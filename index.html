@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eureka Logos Planner</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #1a1a1a;
+    color: #e8e8e8;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+
+  h1 { font-size: 22px; margin-bottom: 4px; letter-spacing: 1px; }
+  .subtitle { color: #999; font-size: 13px; margin-bottom: 14px; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 8px; margin-bottom: 18px;
+  }
+  .toolbar button {
+    background: #2a2a2a; color: #ddd; border: 1px solid #444;
+    border-radius: 6px; padding: 5px 12px; cursor: pointer; font-size: 12px;
+  }
+  .toolbar button:hover { background: #3a3a3a; }
+  .toolbar button.primary { background: #2c5f63; border-color: #3d8484; }
+  .toolbar button.primary:hover { background: #357070; }
+
+  .layout {
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+  }
+
+  /* ---------- LINKS: Logos-Skill-Übersicht ---------- */
+  .skill-panel {
+    background-color: #272627;
+    border: 1px solid #141414;
+    border-radius: 10px;
+    padding: 10px;
+  }
+  .skill-panel h2 {
+    font-size: 14px; color: #bbb; margin: 2px 2px 10px 2px; font-weight: 600;
+  }
+  .skill-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 48px);
+    grid-auto-rows: 48px;
+    gap: 6px;
+  }
+  .skill {
+    background: #1d1d1d;
+    border: 1px solid #3a3a3a;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    transition: border-color .15s, transform .1s;
+    padding: 2px;
+  }
+  .skill:hover { border-color: #7fd4d4; transform: translateY(-2px); }
+  .skill img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+  .skill .fallback {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; height: 100%;
+    font-size: 13px; font-weight: 700; border-radius: 5px; color: #fff;
+    pointer-events: none;
+  }
+  .skill.has-img .fallback { display: none; }
+
+  .skill.used { border-color: #7fa86a; }
+  .skill.used::after {
+    content: attr(data-count);
+    position: absolute; top: -6px; right: -6px;
+    background: #4a6b35; color: #eaf5df;
+    font-size: 10px; font-weight: 700;
+    min-width: 15px; height: 15px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3px;
+    border: 1px solid #6b8f52;
+  }
+
+  .empty-slot {
+    background: transparent;
+    border: 1px dashed #333;
+    border-radius: 6px;
+  }
+
+  /* ---------- RECHTS: Kommandoleiste + vertikale Regler ---------- */
+  .bar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .bar-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .bar-controls-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+  }
+  .bar-controls-vertical button {
+    background: #2a2a2a; color: #eee;
+    border: 1px solid #555; border-radius: 6px;
+    width: 32px; height: 32px;
+    font-size: 17px; line-height: 1;
+    cursor: pointer; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .12s, border-color .12s;
+  }
+  .bar-controls-vertical button:hover { background: #454545; border-color: #7fd4d4; }
+  .bar-controls-vertical button:disabled {
+    opacity: .3; cursor: default; background: #262626; border-color: #3a3a3a;
+  }
+  .bar-controls-vertical button.clear-btn {
+    background: #432c2c; border-color: #7a4a4a; color: #f0d9d9;
+  }
+  .bar-controls-vertical button.clear-btn:hover { background: #5a3838; }
+
+  .slot-count {
+    font-size: 11px; color: #888; text-align: center;
+    letter-spacing: .3px;
+  }
+
+  .logos-bar {
+    width: 216px;
+    padding: 3px;
+    background: linear-gradient(180deg, #3d8484 0%, #2c5f63 60%, #27555a 100%);
+    border: 5px solid #6e5233;
+    outline: 1px solid #3f2f1d;
+    border-radius: 10px;
+    box-shadow: 0 0 0 3px rgba(110,82,51,.35), inset 0 0 18px rgba(0,0,0,.35);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 4px;
+    transition: height .25s ease;
+  }
+  .bar-row {
+    display: flex; flex-direction: row;
+    justify-content: center; gap: 12px; align-items: center;
+    border-radius: 6px;
+  }
+  .bar-row.drop-hover {
+    outline: 1px dashed #b8e4e4;
+    outline-offset: -2px;
+    background: rgba(255,255,255,.05);
+  }
+  .bar-divider {
+    height: 3px; border-radius: 2px; flex-shrink: 0;
+    background: linear-gradient(90deg,
+                rgba(110,82,51,0) 0%, #6e5233 12%, #8a6a3f 50%,
+                #6e5233 88%, rgba(110,82,51,0) 100%);
+    box-shadow: 0 1px 2px rgba(0,0,0,.5);
+  }
+  .bar-skill {
+    background: rgba(18, 42, 44, .6);
+    border: 2px solid rgba(110, 82, 51, .95);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 1px; position: relative;
+    transition: transform .12s;
+  }
+  .bar-skill:hover { transform: scale(1.06); }
+  .bar-skill img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+  .bar-skill .fallback {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; height: 100%;
+    font-size: 12px; font-weight: 700; color: #fff;
+    border-radius: 5px; pointer-events: none;
+  }
+  .bar-skill .remove-hint {
+    position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+    font-size: 10px; color: #ffe9a8; white-space: nowrap;
+    opacity: 0; transition: opacity .15s; pointer-events: none;
+  }
+  .bar-skill:hover .remove-hint { opacity: 1; }
+  .bar-empty {
+    color: #bfe3e3; font-size: 11px; text-align: center;
+    align-self: center; max-width: 140px; line-height: 1.4; user-select: none;
+  }
+  .bar-full-warning { color: #ff9b9b; font-size: 12px; min-height: 16px; text-align: center; }
+
+  /* ---------- UNTEN: Ausgewählte Skills mit Klapptext ---------- */
+  .selected-panel {
+    margin-top: 26px;
+    width: 100%;
+    max-width: 940px;
+    background-color: #272627;
+    border: 1px solid #141414;
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .selected-panel h2 {
+    font-size: 15px; color: #bbb; margin-bottom: 10px; font-weight: 600;
+  }
+  .selected-list { display: flex; flex-direction: column; gap: 6px; }
+  .sel-item {
+    background: #1d1d1d;
+    border: 1px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .sel-item summary {
+    cursor: pointer;
+    padding: 8px 12px;
+    font-size: 14px;
+    display: flex; align-items: center; gap: 10px;
+    list-style: none;
+    user-select: none;
+  }
+  .sel-item summary::-webkit-details-marker { display: none; }
+  .sel-item summary::before { content: "▸"; color: #7fd4d4; transition: transform .15s; }
+  .sel-item[open] summary::before { transform: rotate(90deg); }
+  .sel-item summary:hover { background: #232323; }
+  .sel-item .icon-preview {
+    width: 26px; height: 26px;
+    object-fit: contain;
+    border-radius: 4px;
+    background: #151515;
+    padding: 1px;
+  }
+  .sel-body {
+    padding: 4px 14px 12px 34px;
+    color: #ccc;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .sel-body .recipe-label {
+    color: #7fd4d4; font-weight: 600; font-size: 12px;
+    letter-spacing: .5px; display: block; margin-top: 4px;
+  }
+  .sel-body .recipe-line { display: list-item; list-style: disc; margin-left: 16px; }
+  .sel-body .combo-num { color: #a8c86a; margin-right: 4px; }
+  .sel-body .no-data { color: #777; font-style: italic; }
+  .selected-empty { color: #777; font-size: 13px; font-style: italic; }
+
+  .footer-note {
+    margin-top: 22px; color: #777; font-size: 12px; text-align: center;
+    max-width: 820px; line-height: 1.5;
+  }
+
+  #toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #2c5f63; color: #dff5f5; border: 1px solid #3d8484;
+    padding: 8px 18px; border-radius: 8px; font-size: 13px;
+    opacity: 0; transition: opacity .25s; pointer-events: none;
+    max-width: 90vw; text-align: center;
+  }
+  #toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<h1>⚔ EUREKA LOGOS PLANNER</h1>
+<div class="subtitle" id="subtitle"></div>
+
+<div class="toolbar">
+  <button id="btnLang" title="Language / Sprache">🌐</button>
+  <button id="btnExportPng" class="primary"></button>
+</div>
+
+<div class="layout">
+
+  <div class="skill-panel" id="skillPanel">
+    <h2 id="panelTitle"></h2>
+    <div class="skill-grid" id="skillGrid"></div>
+  </div>
+
+  <div class="bar-section">
+    <div class="bar-wrapper">
+      <div class="logos-bar" id="logosBar"></div>
+      <div class="bar-controls-vertical">
+        <button id="slotPlus" title="Mehr Reihen / More rows">+</button>
+        <button id="slotMinus" title="Weniger Reihen / Fewer rows">−</button>
+        <button id="resetBtn" class="clear-btn" title="Leeren / Clear">×</button>
+      </div>
+    </div>
+    <div class="slot-count" id="slotLabel"></div>
+    <div class="bar-full-warning" id="warning"></div>
+  </div>
+
+</div>
+
+<div class="selected-panel">
+  <h2 id="selTitle"></h2>
+  <div class="selected-list" id="selectedList"></div>
+</div>
+
+<div class="footer-note" id="footerNote"></div>
+<div id="toast"></div>
+
+<script>
+  // ============================================================
+  //  !!! WICHTIG – ORDNER-STRUKTUR !!!
+  //
+  //    ACTIONS_DIR   = "logos_icons"           -> Ordner mit den 56 Action-Skill-PNGs
+  //    FRAGMENTS_DIR = "logos_fragment_icons"  -> Ordner mit den Fragment-PNGs
+  //
+  //  PNG-EXPORT: Läuft normal direkt. Falls der Browser das Zeichnen lokal
+  //  geladener Bilder blockiert (Chrome/Edge-Sicherheitsregel), erscheint
+  //  EINMALIG ein Ordner-Dialog – dort den Projekt-Ordner (den mit dieser
+  //  HTML-Datei) auswählen, danach startet der Download automatisch.
+  //  Kein Python, kein Server nötig.
+  // ============================================================
+  const ACTIONS_DIR   = "logos_icons";
+  const FRAGMENTS_DIR = "logos_fragment_icons";
+
+  // ============================================================
+  //  TABELLE 1 – AKTIONEN (56 Skills)
+  //  FORMAT:  "datei.png" | "Name EN" | "Name DE" | "Kombi 1" | ...
+  // ============================================================
+  const DATA_LINES = [
+    // ===================== REIHE 1 (Positionen 1–10) =====================
+    // Position 01 (oben links):
+    "Wisdom of the Aetherweaver.png | Wisdom of the Aetherweaver | Vermächtnis des Zauberers | Wisdom of the Aetherweaver",
+    // Position 02:
+    "Wisdom of the Martialist.png | Wisdom of the Martialist | Vermächtnis des Kämpfers | Wisdom of the Martialist",
+    // Position 03:
+    "Wisdom of the Platebearer.png | Wisdom of the Platebearer | Vermächtnis des Ritters | Wisdom of the Platebearer",
+    // Position 04:
+    "Wisdom of the Guardian.png | Wisdom of the Guardian | Vermächtnis des Wächters | Wisdom of the Guardian | Wisdom of the Platebearer + Protect L | Wisdom of the Platebearer + Stoneskin L | Wisdom of the Platebearer + Incense L + Incense L | Stoneskin L + Stoneskin L + Stoneskin L",
+    // Position 05:
+    "Wisdom of the Ordained.png | Wisdom of the Ordained | Vermächtnis des Priesters | Wisdom of the Ordained | Wisdom of the Aetherweaver + Esuna L | Wisdom of the Aetherweaver + Cure L + Cure L | Cure L II + Cure L II + Cure L II",
+    // Position 06:
+    "Wisdom of the Skirmisher.png | Wisdom of the Skirmisher | Vermächtnis des Kampfkünstlers | Wisdom of the Skirmisher | Wisdom of the Martialist + Feint L | Wisdom of the Martialist + Wisdom of the Martialist + Wisdom of the Martialist",
+    // Position 07:
+    "Wisdom of the Watcher.png | Wisdom of the Watcher | Vermächtnis des Spähers | Logos-Splitter der Tarnung + Logos-Splitter der Tarnung",
+    // Position 08:
+    "Wisdom of the Templar.png | Wisdom of the Templar | Vermächtnis des heiligen Ritters | Wisdom of the Skirmisher + Cure L II | Wisdom of the Skirmisher + Stoneskin L | Wisdom of the Platebearer + Cure L + Stoneskin L",
+    // Position 09:
+    "Wisdom of the Irregular.png | Wisdom of the Irregular | Vermächtnis des Berserkers | Wisdom of the Skirmisher + Wisdom of the Guardian | Wisdom of the Martialist + Incense L + Wisdom of the Skirmisher",
+    // Position 10 (Reihe 1, rechts):
+    "Wisdom of the Breathtaker.png | Wisdom of the Breathtaker | Vermächtnis des Diebes | Wisdom of the Breathtaker | Featherfoot L + Stealth L | Stealth L + Stealth L + Stealth L | Featherfoot L + Featherfoot L + Featherfoot L",
+    // ===================== REIHE 2 (Positionen 11–20) ====================
+    // Position 11:
+    "Spirit of the Remembered.png | Spirit of the Remembered | Segen des Helden | Spirit of the Remembered | Wisdom of the Martialist + Wisdom of the Guardian | Wisdom of the Aetherweaver + Wisdom of the Martialist + Wisdom of the Platebearer",
+    // Position 12:
+    "Protect L.png | Protect L | Logos-Protes | Protect L",
+    // Position 13:
+    "Shell L.png | Shell L | Logos-Vallum | Shell L | Esuna L + Protect L",
+    // Position 14:
+    "Death L.png | Death L | Logos-Tod | Raise L + Dispel L | Raise L + Tranquilizer L + Tranquilizer L",
+    // Position 15:
+    "Focus L.png | Focus L | Logos-Ladung | Wisdom of the Skirmisher + Bloodbath L | Bloodbath L + Bloodbath L + Bloodbath L",
+    // Position 16:
+    "Paralyze L.png | Paralyze L | Logos-Paralyse | Paralyze L",
+    // Position 17:
+    "Paralyze L III.png | Paralyze L III | Logos-Paralyga | Paralyze L + Spirit Dart L | Paralyze L + Paralyze L + Paralyze L | Wisdom of the Aetherweaver + Paralyze L + Paralyze L",
+    // Position 18:
+    "Swift L.png | Swift L | Logos-Eile | Featherfoot L + Featherfoot L | Backstep L + Backstep L + Featherfoot L",
+    // Position 19:
+    "Featherfoot L.png | Featherfoot L | Logos-Leichtfuß | Featherfoot L | Feint L + Feint L",
+    // Position 20:
+    "Spirit Dart L.png | Spirit Dart L | Logos-Geistpfeil | Spirit Dart L | Tranquilizer L + Wisdom of the Ordained | Wisdom of the Aetherweaver + Paralyze L + Tranquilizer L",
+    // ===================== REIHE 3 (Positionen 21–30) ====================
+    // Position 21:
+    "Catastrophe L.png | Catastrophe L | Logos-Magieexplosion | Wisdom of the Guardian + Spirit Dart L | Bloodbath L + Bloodbath L | Spirit Dart L + Spirit Dart L + Spirit Dart L",
+    // Position 22:
+    "Dispel L.png | Dispel L | Logos-Entzauberung | Dispel L | Esuna L + Wisdom of the Ordained | Esuna L + Esuna L + Esuna L | Tranquilizer L + Tranquilizer L + Tranquilizer L",
+    // Position 23:
+    "Feint L.png | Feint L | Logos-Finte | Feint L",
+    // Position 24:
+    "Stealth L.png | Stealth L | Logos-Tarnung | Stealth L | Wisdom of the Ordained + Shell L",
+    // Position 25:
+    "Aetherial Manipulation L.png | Aetherial Manipulation L | Logos-Äthermanipulation | Backstep L + Stealth L | Wisdom of the Martialist + Backstep L + Feint L",
+    // Position 26:
+    "Backstep L.png | Backstep L | Logos-Entrinnung | Backstep L",
+    // Position 27:
+    "Tranquilizer L.png | Tranquilizer L | Logos-Betäubung | Tranquilizer L",
+    // Position 28:
+    "Bloodbath L.png | Bloodbath L | Logos-Blutbad | Bloodbath L | Cure L + Wisdom of the Skirmisher | Wisdom of the Martialist + Wisdom of the Martialist + Cure L",
+    // Position 29:
+    "Rejuvenate L.png | Rejuvenate L | Logos-Aufladung | Bloodbath L + Shell L | Spirit of the Remembered + Spirit Dart L | Wisdom of the Aetherweaver + Wisdom of the Martialist + Cure L",
+    // Position 30:
+    "Haymaker L.png | Haymaker L | Logos-Konter | Wisdom of the Skirmisher + Featherfoot L | Wisdom of the Martialist + Incense L + Featherfoot L",
+    // ===================== REIHE 4 (Positionen 31–40) ====================
+    // Position 31:
+    "Rapid Recast L.png | Rapid Recast | Logos-Velocitas | Esuna L + Dispel L | Cure L + Esuna L + Feint L",
+    // Position 32:
+    "Cure L.png | Cure L | Logos-Vita | Cure L",
+    // Position 33:
+    "Cure L II.png | Cure L II | Logos-Vitra | Cure L + Wisdom of the Ordained | Cure L + Cure L + Cure L | Raise L + Raise L + Raise L",
+    // Position 34:
+    "Stoneskin L.png | Stoneskin L | Logos-Steinhaut | Stoneskin L | Protect L + Shell L | Protect L + Protect L + Protect L | Shell L + Shell L + Shell L",
+    // Position 35:
+    "Cure L III.png | Cure L III | Logos-Vitaga | Bloodbath L + Wisdom of the Ordained | Cure L II + Cure L II | Cure L + Cure L + Wisdom of the Ordained",
+    // Position 36:
+    "Regen L.png | Regen L | Logos-Regena | Tranquilizer L | Feint L + Cure L III | Cure L + Cure L + Feint L",
+    // Position 37:
+    "Esuna L.png | Esuna L | Logos-Medica | Esuna L",
+    // Position 38:
+    "Incense L.png | Incense L | Logos-Hohn | Incense L",
+    // Position 39:
+    "Raise L.png | Raise L | Logos-Wiederbelebung | Raise L",
+    // Position 40:
+    "Bravery L.png | Bravery L | Logos-Courage | Wisdom of the Skirmisher + Wisdom of the Guardian + Wisdom of the Ordained",
+    // ===================== REIHE 5 (Positionen 41–50) ====================
+    // Position 41:
+    "Solid Shield L.png | Solid Shield L | Logos-Schild | Protect L + Wisdom of the Guardian + Stoneskin L",
+    // Position 42:
+    "Spell Shield L.png | Spell Shield L | Logos-Magieschild | Wisdom of the Guardian + Shell L + Stoneskin L",
+    // Position 43:
+    "Reflect L.png | Reflect L | Logos-Reflektion | Protect L + Wisdom of the Ordained + Shell L",
+    // Position 44:
+    "Smite L.png | Smite L | Logos-Schattenhieb | Tranquilizer L + Wisdom of the Skirmisher + Spirit Dart L",
+    // Position 45:
+    "Refresh L.png | Refresh L | Logos-Erfrischung | Wisdom of the Aetherweaver + Wisdom of the Ordained + Cure L II",
+    // Position 46:
+    "Banish L.png | Banish L | Logos-Bann | Wisdom of the Aetherweaver + Dispel L + Dispel L",
+    // Position 47:
+    "Banish L III.png | Banish L III | Logos-Bannga | Wisdom of the Ordained + Dispel L + Dispel L",
+    // Position 48:
+    "Magic Burst L.png | Magic Burst L | Logos-Magieexplosion | Magic Burst L | Spirit of the Remembered + Wisdom of the Ordained + Stoneskin L",
+    // Position 49:
+    "Double Edge L.png | Double Edge L | Logos-Zweischneid | Double Edge L | Wisdom of the Skirmisher + Bloodbath L + Wisdom of the Guardian",
+    // Position 50:
+    "Eagle Eye Shot L.png | Eagle Eye Shot L | Logos-Adlerauge | Eagle Eye Shot L | Wisdom of the Skirmisher + Spirit of the Remembered + Spirit Dart L",
+    // ===================== REIHE 6 (Positionen 51–56, dann LEER) ==========
+    // Position 51:
+    "Perception L.png | Perception L | Logos-Tigerauge | Wisdom of the Breathtaker + Wisdom of the Breathtaker | Stealth L + Dispel L + Wisdom of the Breathtaker",
+    // Position 52:
+    "Wisdom of the Elder.png | Wisdom of the Elder | Vermächtnis des Weisen | Wisdom of the Aetherweaver + Wisdom of the Ordained + Magic Burst L | Wisdom of the Guardian + Stoneskin L + Magic Burst L",
+    // Position 53:
+    "Wisdom of the Duelist.png | Wisdom of the Duelist | Vermächtnis des Fechtmeisters | Wisdom of the Skirmisher + Wisdom of the Skirmisher + Double Edge L | Bloodbath L + Bloodbath L + Double Edge L",
+    // Position 54:
+    "Wisdom of the Fiendhunter.png | Wisdom of the Fiendhunter | Vermächtnis des Bogengeweihten | Featherfoot L + Spirit Dart L + Eagle Eye Shot L | Feint L + Tranquilizer L + Eagle Eye Shot L",
+    // Position 55:
+    "Wisdom of the Indomitable.png | Wisdom of the Indomitable | Vermächtnis des Helden | Wisdom of the Platebearer + Incense L + Double Edge L | Protect L + Spirit of the Remembered + Double Edge L",
+    // Position 56 (letzter Skill – Positionen 57–60 bleiben leer!):
+    "Sacrifice L.png | Sacrifice L | Logos-Aufopferung | Esuna L + Raise L + Magic Burst L",
+  ];
+
+  // Fallback (leer – alle 56 stehen oben)
+  const NAMES = [];
+
+  // ============================================================
+  //  TABELLE 2 – FRAGMENTE
+  //  FORMAT:  "datei.png" | "Fragment EN" | "Fragment DE"
+  // ============================================================
+  const FRAGMENT_LINES = [
+    "mneme_inimical.png | Paralyze L | Logos-Splitter der Paralyse",
+    "mneme_inimical.png | Tranquilizer L | Logos-Splitter der Betäubung",
+    "mneme_inimical.png | Spirit Dart L | Logos-Splitter des Geistpfeils",
+    "mneme_inimical.png | Dispel L | Logos-Splitter der Entzauberung",
+    "mneme_offensive.png | Wisdom of the Aetherweaver | Vermächtnis des Zauberers",
+    "mneme_offensive.png | Wisdom of the Martialist | Vermächtnis des Kämpfers",
+    "mneme_offensive.png | Wisdom of the Skirmisher | Logos-Splitter des Kampfkünstlers",
+    "mneme_offensive.png | Bloodbath L | Logos-Splitter des Blutbads",
+    "mneme_offensive.png | Magic Burst L | Logos-Splitter der Magieexplosion",
+    "mneme_offensive.png | Eagle Eye Shot L | Logos-Splitter des Adlerauges",
+    "mneme_offensive.png | Double Edge L | Logos-Splitter des Zweischneids",
+    "mneme_protective.png | Wisdom of the Platebearer | Vermächtnis des Ritters",
+    "mneme_protective.png | Incense L | Logos-Splitter des Hohns",
+    "mneme_protective.png | Wisdom of the Guardian | Vermächtnis des Wächters",
+    "mneme_protective.png | Spirit of the Remembered | Segen des Helden",
+    "mneme_curative.png | Cure L | Logos-Splitter des Vita",
+    "mneme_curative.png | Esuna L | Logos-Splitter des Medica",
+    "mneme_curative.png | Raise L | Logos-Splitter der Wiederbelebung",
+    "mneme_curative.png | Wisdom of the Ordained | Vermächtnis des Priesters",
+    "mneme_curative.png | Cure L II | Logos-Splitter des Vitra",
+    "mneme_tactical.png | Backstep L | Logos-Splitter der Entrinnung",
+    "mneme_tactical.png | Feint L | Logos-Splitter der Finte",
+    "mneme_tactical.png | Featherfoot L | Logos-Splitter des Leichtfußes",
+    "mneme_tactical.png | Stealth L | Logos-Splitter der Tarnung",
+    "mneme_tactical.png | Wisdom of the Breathtaker | Vermächtnis des Diebes",
+    "mneme_mitigative.png | Protect L | Logos-Splitter des Protes",
+    "mneme_mitigative.png | Shell L | Logos-Splitter des Vallum",
+    "mneme_mitigative.png | Stoneskin L | Logos-Splitter der Steinhaut",
+  ];
+
+  // ---- Parser: Fragmente ----
+  const FRAGMENTS = [];
+  (function parseFragments() {
+    for (const line of FRAGMENT_LINES) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("#")) continue;
+      const parts = trimmed.split("|").map(p => p.trim().replace(/^"|"$/g, ""));
+      if (parts.length < 3 || !parts[0] || !parts[1]) continue;
+      FRAGMENTS.push({ file: parts[0], nameEn: parts[1], nameDe: parts[2] || parts[1] });
+    }
+  })();
+
+  function fragmentByName(name) {
+    const key = name.trim().toLowerCase();
+    return FRAGMENTS.find(f => f.nameEn.toLowerCase() === key) || null;
+  }
+
+  // Kombi-Text zerlegen: "Obscure x3 + Reasoned" -> [{name, count}, ...]
+  function parseCombo(text) {
+    return text.split("+").map(part => {
+      const p = part.trim();
+      if (!p) return null;
+      const m = p.match(/^(.*?)\s*[x×]\s*(\d+)$/i);
+      if (m) return { name: m[1].trim(), count: parseInt(m[2], 10) };
+      return { name: p, count: 1 };
+    }).filter(Boolean);
+  }
+
+  // ---- Parser: Aktionen ----
+  const SKILLS = [];
+  (function parseData() {
+    const seen = new Set();
+    for (const line of DATA_LINES) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("#")) continue;
+      const parts = trimmed.split("|").map(p => p.trim().replace(/^"|"$/g, ""));
+      if (parts.length < 3 || !parts[0]) continue;
+      const [file, nameEn, nameDe, ...combos] = parts;
+      if (!nameEn) continue;
+      if (seen.has(nameEn)) continue;
+      seen.add(nameEn);
+      SKILLS.push({
+        id: nameEn,
+        file: file,
+        nameEn: nameEn,
+        nameDe: nameDe || nameEn,
+        combos: combos.filter(c => c && c.length > 0),
+      });
+    }
+    for (const n of NAMES) {
+      if (!seen.has(n)) {
+        SKILLS.push({ id: n, file: n + ".png", nameEn: n, nameDe: n, combos: [] });
+      }
+    }
+  })();
+
+  function displayName(skill) { return LANG === "de" ? skill.nameDe : skill.nameEn; }
+
+  // ============================================================
+  //  UI-TEXTE (DE / EN)
+  // ============================================================
+  let LANG = (navigator.language || "").toLowerCase().startsWith("de") ? "de" : "en";
+
+  const COPYRIGHT =
+    "FINAL FANTASY XIV ©2010 - 2026 SQUARE ENIX CO., LTD. FINAL FANTASY is a registered " +
+    "trademark of Square Enix Holdings Co., Ltd. All material used under license.";
+
+  const T = {
+    de: {
+      subtitle: "Alle Logos-Actions – Klick hinzufügen, per Drag & Drop gezielt platzieren",
+      panelTitle: "Logos-Actions (" + SKILLS.length + ")",
+      rows: (r, cap) => `${r} Reihen · ${cap} Skills`,
+      clear: "Leeren",
+      emptyHint: "Klicke links auf Skills oder ziehe sie hierher",
+      full: "Leiste ist voll – füge mit + eine Reihe hinzu oder nimm einen Skill raus.",
+      rowFull: "Diese Reihe ist voll (max. 2 Skills).",
+      btnExpPng: "🖼 Als PNG speichern",
+      pngOk: "PNG wurde heruntergeladen.",
+      pngAskFolder: "Browser blockiert den direkten Export – bitte im Dialog den Projekt-Ordner (mit dieser Datei) auswählen, dann startet der Download automatisch.",
+      pngFail: "PNG-Export leider blockiert. Erneut klicken und im Dialog den Projekt-Ordner auswählen – dann klappt es.",
+      resetConfirm: "Leiste wirklich leeren?",
+      selTitle: "Ausgewählte Logos-Actions & Kombinationen",
+      selEmpty: "Noch keine Skills ausgewählt – klicke links auf Icons, um sie hier aufzulisten.",
+      recipeLabel: "KOMBINATIONEN / FRAGMENTE",
+      combo: (i) => `Kombi ${i}:`,
+      noData: "Für diesen Skill sind noch keine Kombinationen hinterlegt.",
+      hintRemove: "Klick zum Entfernen",
+      footer: COPYRIGHT,
+      langBtn: "🌐 DE",
+      times: (n) => `${n}×`,
+    },
+    en: {
+      subtitle: "All logos actions – click to add, drag & drop to place precisely",
+      panelTitle: "Logos Actions (" + SKILLS.length + ")",
+      rows: (r, cap) => `${r} rows · ${cap} skills`,
+      clear: "Clear",
+      emptyHint: "Click skills on the left or drag them here",
+      full: "Bar is full – add a row with + or remove a skill.",
+      rowFull: "This row is full (max. 2 skills).",
+      btnExpPng: "🖼 Save as PNG",
+      pngOk: "PNG downloaded.",
+      pngAskFolder: "Browser blocks direct export – please pick the project folder (containing this file) in the dialog, the download will then start automatically.",
+      pngFail: "PNG export blocked. Click again and pick the project folder in the dialog – then it works.",
+      resetConfirm: "Really clear the bar?",
+      selTitle: "Selected logos actions & combinations",
+      selEmpty: "No skills selected yet – click icons on the left to list them here.",
+      recipeLabel: "COMBINATIONS / FRAGMENTS",
+      combo: (i) => `Combo ${i}:`,
+      noData: "No combinations stored for this skill yet.",
+      hintRemove: "Click to remove",
+      footer: COPYRIGHT,
+      langBtn: "🌐 EN",
+      times: (n) => `${n}x`,
+    }
+  };
+  function t(key) { return T[LANG][key]; }
+
+  // ============================================================
+  //  GEOMETRIE / STATE
+  // ============================================================
+  const GRID_COLS = 10;
+  const GRID_ROWS = 6;
+  const PER_ROW = 2;
+  const MIN_ROWS = 3;
+  const MAX_ROWS = 6;
+
+  const BAR_V_PAD  = 2 * 3;   // Leisten-Innenabstand: 3px oben + 3px unten
+  const BAR_BORDER = 2 * 5;
+  const DIV_H      = 3;
+  const BAR_GAP    = 4;
+
+  const STORE_KEY = "eurekaLogosPlanner.v3";
+  const OLD_STORE_KEY = "eurekaLogosPlanner.v2";
+
+  let rowCount = 3;
+  // Jede Reihe ist ein eigenes Array: rows[r] = [skillId, skillId?] (max. 2)
+  let rows = [[], [], []];
+
+  const grid   = document.getElementById("skillGrid");
+  const panel  = document.getElementById("skillPanel");
+  const bar    = document.getElementById("logosBar");
+  const label  = document.getElementById("slotLabel");
+  const warn   = document.getElementById("warning");
+  const toast  = document.getElementById("toast");
+  const btnMinus = document.getElementById("slotMinus");
+  const btnPlus  = document.getElementById("slotPlus");
+  const btnReset = document.getElementById("resetBtn");
+
+  function capacity() { return rowCount * PER_ROW; }
+  function usedCount() { return rows.reduce((n, r) => n + r.length, 0); }
+  function skillById(id) { return SKILLS.find(s => s.id === id); }
+  function warnOnce(msg) {
+    warn.textContent = msg;
+    setTimeout(() => { if (warn.textContent === msg) warn.textContent = ""; }, 2500);
+  }
+
+  let ROW_H = 44;
+  function computeRowHeight() {
+    const panelH = panel.offsetHeight;
+    const inner  = panelH - BAR_V_PAD - BAR_BORDER;
+    const overhead = (MAX_ROWS - 1) * DIV_H + (2 * MAX_ROWS - 2) * BAR_GAP;
+    ROW_H = Math.max(30, Math.floor((inner - overhead) / MAX_ROWS));
+  }
+  function barHeightFor(r) {
+    const overhead = (r - 1) * DIV_H + (2 * r - 2) * BAR_GAP;
+    return BAR_V_PAD + BAR_BORDER + r * ROW_H + overhead;
+  }
+
+  function initials(name) {
+    return name.split(/\s+/).map(w => w[0]).join("").slice(0, 3).toUpperCase();
+  }
+  function hueOf(name) {
+    let h = 0;
+    for (const c of name) h = (h * 31 + c.charCodeAt(0)) % 360;
+    return h;
+  }
+  function makeFallback(name) {
+    const el = document.createElement("span");
+    el.className = "fallback";
+    el.textContent = initials(name);
+    el.style.background = `hsl(${hueOf(name)}, 38%, 34%)`;
+    return el;
+  }
+
+  // ---- Icons: Ordner-Zugriff nur als PNG-Export-Fallback (Chrome/Edge) ----
+  let dirHandle = null;   // Projekt-Ordner (enthält HTML + Icon-Ordner)
+  let iconUrls  = {};     // dateiname (klein) -> blob:URL (nicht taintend!)
+
+  function idbOpen() {
+    return new Promise((res, rej) => {
+      const rq = indexedDB.open("eurekaLogosPlanner", 1);
+      rq.onupgradeneeded = () => rq.result.createObjectStore("kv");
+      rq.onsuccess = () => res(rq.result);
+      rq.onerror = () => rej(rq.error);
+    });
+  }
+  async function idbSet(k, v) {
+    const db = await idbOpen();
+    return new Promise((res, rej) => {
+      const tx = db.transaction("kv", "readwrite");
+      tx.objectStore("kv").put(v, k);
+      tx.oncomplete = res;
+      tx.onerror = () => rej(tx.error);
+    });
+  }
+  async function idbGet(k) {
+    const db = await idbOpen();
+    return new Promise((res, rej) => {
+      const tx = db.transaction("kv", "readonly");
+      const rq = tx.objectStore("kv").get(k);
+      rq.onsuccess = () => res(rq.result);
+      rq.onerror = () => rej(rq.error);
+    });
+  }
+
+  async function getSubDir(name) {
+    try { return await dirHandle.getDirectoryHandle(name, { create: false }); }
+    catch (e) { return null; }
+  }
+
+  async function scanIcons() {
+    iconUrls = {};
+    if (!dirHandle) return;
+    for (const dirName of [ACTIONS_DIR, FRAGMENTS_DIR]) {
+      const sub = await getSubDir(dirName);
+      if (!sub) continue;
+      try {
+        for await (const [name, handle] of sub.entries()) {
+          if (handle.kind === "file") {
+            try { iconUrls[name.toLowerCase()] = URL.createObjectURL(await handle.getFile()); }
+            catch (e) {}
+          }
+        }
+      } catch (e) {}
+    }
+  }
+
+  function iconUrlFor(file) {
+    return iconUrls[file.toLowerCase()] || `${ACTIONS_DIR}/${file}`;
+  }
+
+  // Bereits gerenderte <img> auf die blob:URLs umschalten
+  function refreshImages() {
+    document.querySelectorAll("img[data-file]").forEach(im => {
+      im.src = iconUrlFor(im.dataset.file);
+    });
+  }
+
+  function makeImg(skill) {
+    const img = document.createElement("img");
+    img.dataset.file = skill.file;
+    img.src = iconUrlFor(skill.file);
+    img.alt = skill.id;
+    return img;
+  }
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 3800);
+  }
+
+  // ---- Markierungen auf den Kacheln aktualisieren ----
+  function updateTileMarkers() {
+    const counts = {};
+    for (const r of rows) for (const id of r) counts[id] = (counts[id] || 0) + 1;
+    grid.querySelectorAll(".skill").forEach(tile => {
+      const n = counts[tile.dataset.id] || 0;
+      if (n > 0) {
+        tile.classList.add("used");
+        tile.dataset.count = n;
+      } else {
+        tile.classList.remove("used");
+        delete tile.dataset.count;
+      }
+    });
+  }
+
+  // ============================================================
+  //  DRAG & DROP
+  // ============================================================
+  let dragPayload = null; // {kind:'new', id} oder {kind:'move', r, i}
+
+  function clearDropHighlights() {
+    bar.querySelectorAll(".bar-row").forEach(r => r.classList.remove("drop-hover"));
+  }
+
+  function insertionIndex(rowEl, x) {
+    const skills = [...rowEl.querySelectorAll(".bar-skill")];
+    for (let i = 0; i < skills.length; i++) {
+      const b = skills[i].getBoundingClientRect();
+      if (x < b.left + b.width / 2) return i;
+    }
+    return skills.length;
+  }
+
+  function handleDropOnRow(r, e, rowEl) {
+    if (!dragPayload) return;
+    let idx = Math.min(insertionIndex(rowEl, e.clientX), PER_ROW);
+
+    if (dragPayload.kind === "new") {
+      if (rows[r].length >= PER_ROW) { warnOnce(t("rowFull")); dragPayload = null; return; }
+      rows[r].splice(idx, 0, dragPayload.id);
+    } else {
+      const fr = dragPayload.r, fi = dragPayload.i;
+      const id = rows[fr][fi];
+      if (id === undefined) { dragPayload = null; return; }
+      rows[fr].splice(fi, 1);
+      if (fr === r && fi < idx) idx--;
+      if (rows[r].length >= PER_ROW) {
+        // Ziel voll -> an Ursprungsposition zurücklegen
+        rows[fr].splice(fi, 0, id);
+        warnOnce(t("rowFull"));
+        dragPayload = null;
+        refreshAll();
+        return;
+      }
+      rows[r].splice(idx, 0, id);
+    }
+    dragPayload = null;
+    refreshAll();
+  }
+
+  document.addEventListener("dragend", () => { dragPayload = null; clearDropHighlights(); });
+
+  // ---- Links: Skill-Raster ----
+  for (const skill of SKILLS) {
+    const tile = document.createElement("div");
+    tile.className = "skill";
+    tile.title = displayName(skill);
+    tile.dataset.id = skill.id;
+
+    tile.appendChild(makeFallback(skill.id));
+    const img = makeImg(skill);
+    img.onload = () => { tile.classList.add("has-img"); tile.appendChild(img); };
+
+    // MEHRFACH-AUSWAHL: Kachel bleibt klickbar, auch wenn schon in der Leiste
+    tile.addEventListener("click", () => {
+      const target = rows.findIndex(rw => rw.length < PER_ROW);
+      if (target === -1) { warnOnce(t("full")); return; }
+      rows[target].push(skill.id);
+      refreshAll();
+    });
+
+    // DRAG & DROP: neuen Skill von hier wegziehen
+    tile.draggable = true;
+    tile.addEventListener("dragstart", e => {
+      dragPayload = { kind: "new", id: skill.id };
+      e.dataTransfer.effectAllowed = "copyMove";
+      e.dataTransfer.setData("text/plain", skill.id);
+    });
+
+    grid.appendChild(tile);
+  }
+  for (let i = SKILLS.length; i < GRID_COLS * GRID_ROWS; i++) {
+    const ph = document.createElement("div");
+    ph.className = "empty-slot";
+    grid.appendChild(ph);
+  }
+
+  // Zurück aufs Raster ziehen = entfernen
+  grid.addEventListener("dragover", e => {
+    if (dragPayload && dragPayload.kind === "move") e.preventDefault();
+  });
+  grid.addEventListener("drop", e => {
+    e.preventDefault();
+    if (dragPayload && dragPayload.kind === "move") {
+      const { r, i } = dragPayload;
+      rows[r].splice(i, 1);
+      dragPayload = null;
+      refreshAll();
+    }
+  });
+
+  // ---- Kommandoleiste ----
+  function removeFromRow(r, i) {
+    rows[r].splice(i, 1);
+    refreshAll();
+  }
+
+  function renderBar() {
+    bar.innerHTML = "";
+    bar.style.height = barHeightFor(rowCount) + "px";
+    // Icon-Größe: nur 3px Luft nach oben/unten (Rand der Reihe)
+    const skillSize = Math.max(22, ROW_H - 6);
+
+    for (let r = 0; r < rowCount; r++) {
+      const rowEl = document.createElement("div");
+      rowEl.className = "bar-row";
+      rowEl.style.height = ROW_H + "px";
+      rowEl.style.justifyContent = rows[r].length > 1 ? "space-evenly" : "center";
+
+      rows[r].forEach((id, i) => {
+        const skill = skillById(id);
+        if (!skill) return;
+        const el = document.createElement("div");
+        el.className = "bar-skill";
+        el.style.width = skillSize + "px";
+        el.style.height = skillSize + "px";
+        el.title = displayName(skill) + " (" + t("hintRemove") + ")";
+
+        const hint = document.createElement("span");
+        hint.className = "remove-hint";
+        hint.textContent = "✕";
+        el.appendChild(hint);
+
+        el.appendChild(makeFallback(skill.id));
+        const img = makeImg(skill);
+        img.onload = () => { el.innerHTML = ""; el.appendChild(hint); el.appendChild(img); };
+
+        el.addEventListener("click", () => removeFromRow(r, i));
+        el.draggable = true;
+        el.addEventListener("dragstart", e => {
+          e.stopPropagation();
+          dragPayload = { kind: "move", r, i };
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", id);
+        });
+
+        rowEl.appendChild(el);
+      });
+
+      if (rowEl.children.length === 0 && usedCount() === 0 && r === 0) {
+        const hint = document.createElement("div");
+        hint.className = "bar-empty";
+        hint.textContent = t("emptyHint");
+        rowEl.appendChild(hint);
+      }
+
+      // Drop-Ziele
+      rowEl.addEventListener("dragover", e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = (dragPayload && dragPayload.kind === "move") ? "move" : "copy";
+        rowEl.classList.add("drop-hover");
+      });
+      rowEl.addEventListener("dragleave", e => {
+        if (!rowEl.contains(e.relatedTarget)) rowEl.classList.remove("drop-hover");
+      });
+      rowEl.addEventListener("drop", e => {
+        e.preventDefault();
+        rowEl.classList.remove("drop-hover");
+        handleDropOnRow(r, e, rowEl);
+      });
+
+      bar.appendChild(rowEl);
+      if (r < rowCount - 1) {
+        const div = document.createElement("div");
+        div.className = "bar-divider";
+        bar.appendChild(div);
+      }
+    }
+  }
+
+  // ---- Unten: Liste der ausgewählten Skills (mit Fragment-Icons) ----
+  function renderSelectedList() {
+    const list = document.getElementById("selectedList");
+    list.innerHTML = "";
+
+    const flat = [];
+    for (const r of rows) for (const id of r) flat.push(id);
+
+    if (flat.length === 0) {
+      const p = document.createElement("div");
+      p.className = "selected-empty";
+      p.textContent = t("selEmpty");
+      list.appendChild(p);
+      return;
+    }
+
+    for (const id of flat) {
+      const skill = skillById(id);
+      if (!skill) continue;
+
+      const det = document.createElement("details");
+      det.className = "sel-item";
+
+      const sum = document.createElement("summary");
+      const icon = makeImg(skill);
+      icon.className = "icon-preview";
+      sum.appendChild(icon);
+      const txt = document.createElement("span");
+      txt.textContent = displayName(skill);
+      sum.appendChild(txt);
+      det.appendChild(sum);
+
+      const body = document.createElement("div");
+      body.className = "sel-body";
+
+      if (skill.combos.length > 0) {
+        const lbl = document.createElement("span");
+        lbl.className = "recipe-label";
+        lbl.textContent = t("recipeLabel");
+        body.appendChild(lbl);
+
+        skill.combos.forEach((comboText, i) => {
+          const li = document.createElement("div");
+          li.className = "recipe-line";
+
+          const num = document.createElement("span");
+          num.className = "combo-num";
+          num.textContent = t("combo")(i + 1) + " ";
+          li.appendChild(num);
+
+          const pieces = parseCombo(comboText);
+          pieces.forEach((piece, pi) => {
+            if (pi > 0) li.appendChild(document.createTextNode("  +  "));
+
+            const frag = fragmentByName(piece.name);
+            if (frag) {
+              const fi = document.createElement("img");
+              fi.dataset.file = frag.file;
+              fi.src = iconUrls[frag.file.toLowerCase()] || `${FRAGMENTS_DIR}/${frag.file}`;
+              fi.alt = frag.nameEn;
+              fi.className = "frag-icon";
+              fi.style.cssText = "width:18px;height:18px;vertical-align:-3px;margin-right:3px;object-fit:contain;";
+              li.appendChild(fi);
+
+              const nm = document.createElement("span");
+              nm.textContent = LANG === "de" ? frag.nameDe : frag.nameEn;
+              li.appendChild(nm);
+            } else {
+              const nm = document.createElement("span");
+              nm.textContent = piece.name;
+              li.appendChild(nm);
+            }
+
+            if (piece.count > 1) {
+              const cnt = document.createElement("span");
+              cnt.className = "frag-count";
+              cnt.textContent = " " + t("times")(piece.count);
+              li.appendChild(cnt);
+            }
+          });
+
+          body.appendChild(li);
+        });
+      } else {
+        const nd = document.createElement("div");
+        nd.className = "no-data";
+        nd.textContent = t("noData");
+        body.appendChild(nd);
+      }
+
+      det.appendChild(body);
+      list.appendChild(det);
+    }
+  }
+
+  // ---- Refresh + Auto-Save ----
+  function refreshAll() {
+    renderBar();
+    renderSelectedList();
+    updateTileMarkers();
+    updateSlotLabel();
+    saveState();
+  }
+  function updateSlotLabel() {
+    label.textContent = t("rows")(rowCount, capacity());
+    btnMinus.disabled = (rowCount <= MIN_ROWS);
+    btnPlus.disabled  = (rowCount >= MAX_ROWS);
+  }
+
+  // ---- Speichern / Laden (unsichtbar, nur Browser-lokal) ----
+  function stateObj() {
+    return { app: "eureka-logos-planner", rows: rows.map(r => r.slice()) };
+  }
+  function saveState() {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(stateObj()));
+    } catch (e) {}
+  }
+
+  function chunkPairs(arr, n) {
+    const out = [];
+    let i = 0;
+    while (out.length < n) {
+      out.push(arr.slice(i, i + PER_ROW));
+      i += PER_ROW;
+    }
+    return out;
+  }
+
+  function applyState(st) {
+    let newRows = null;
+    if (st && Array.isArray(st.rows)) newRows = st.rows;
+    else if (st && Array.isArray(st.skills)) newRows = chunkPairs(st.skills, st.rows || 3); // altes Format
+    if (!newRows) return false;
+
+    rowCount = Math.max(MIN_ROWS, Math.min(MAX_ROWS, newRows.length || MIN_ROWS));
+    rows = [];
+    for (let r = 0; r < rowCount; r++) {
+      const src = newRows[r] || [];
+      rows.push(src.filter(id => skillById(id)).slice(0, PER_ROW));
+    }
+    computeRowHeight();
+    refreshAll();
+    return true;
+  }
+
+  function loadState() {
+    try {
+      let raw = localStorage.getItem(STORE_KEY);
+      if (!raw) raw = localStorage.getItem(OLD_STORE_KEY); // Migration von v2
+      if (!raw) return;
+      applyState(JSON.parse(raw));
+    } catch (e) {}
+  }
+
+  // ============================================================
+  //  PNG-EXPORT ("Als PNG speichern")
+  //  Direkt-Download; falls der Browser das Zeichnen lokaler Bilder
+  //  blockiert (Chrome/Edge: canvas tainting), EINMALIG den Projekt-Ordner
+  //  per Dialog verbinden -> Icons laufen dann über blob:URLs -> Download.
+  //  Kein Python, kein Server.
+  // ============================================================
+  function waitForImages() {
+    const imgs = [...document.querySelectorAll("img[data-file]")];
+    return Promise.all(imgs.map(im =>
+      im.complete ? Promise.resolve() : new Promise(res => { im.onload = res; im.onerror = res; })
+    ));
+  }
+
+  async function connectFolderForExport() {
+    if (!window.showDirectoryPicker) return false;
+    try {
+      if (dirHandle &&
+          (await dirHandle.queryPermission({ mode: "read" })) === "granted") {
+        return true; // schon verbunden, Icons liegen bereit
+      }
+      showToast(t("pngAskFolder"));
+      dirHandle = await window.showDirectoryPicker({ mode: "read" });
+      try { await idbSet("projectDir", dirHandle); } catch (e) {}
+      await scanIcons();
+      refreshImages();
+      await waitForImages();
+      return true;
+    } catch (e) {
+      return false; // Dialog abgebrochen
+    }
+  }
+
+  async function exportPng(isRetry) {
+    if (isRetry === undefined) isRetry = false;
+
+    const SCALE = 2;
+    const bw = bar.offsetWidth, bh = bar.offsetHeight;
+    const canvas = document.createElement("canvas");
+    canvas.width = bw * SCALE; canvas.height = bh * SCALE;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(SCALE, SCALE);
+
+    const grad = ctx.createLinearGradient(0, 0, 0, bh);
+    grad.addColorStop(0, "#3d8484"); grad.addColorStop(0.6, "#2c5f63"); grad.addColorStop(1, "#27555a");
+    ctx.fillStyle = grad;
+    roundRect(ctx, 0, 0, bw, bh, 10); ctx.fill();
+    ctx.lineWidth = 5; ctx.strokeStyle = "#6e5233";
+    roundRect(ctx, 2.5, 2.5, bw - 5, bh - 5, 8); ctx.stroke();
+
+    const barRect = bar.getBoundingClientRect();
+    for (const el of bar.querySelectorAll(".bar-skill, .bar-divider")) {
+      const r = el.getBoundingClientRect();
+      const x = r.left - barRect.left, y = r.top - barRect.top;
+      if (el.classList.contains("bar-divider")) {
+        const dg = ctx.createLinearGradient(x, 0, x + r.width, 0);
+        dg.addColorStop(0, "rgba(110,82,51,0)"); dg.addColorStop(.5, "#8a6a3f"); dg.addColorStop(1, "rgba(110,82,51,0)");
+        ctx.fillStyle = dg;
+        ctx.fillRect(x, y, r.width, r.height);
+      } else {
+        ctx.fillStyle = "rgba(18,42,44,.6)";
+        roundRect(ctx, x, y, r.width, r.height, 8); ctx.fill();
+        ctx.lineWidth = 2; ctx.strokeStyle = "rgba(110,82,51,.95)";
+        roundRect(ctx, x + 1.5, y + 1.5, r.width - 3, r.height - 3, 7); ctx.stroke();
+        const img = el.querySelector("img");
+        if (img && img.complete && img.naturalWidth > 0) {
+          try { ctx.drawImage(img, x + 2, y + 2, r.width - 4, r.height - 4); } catch (e) {}
+        }
+      }
+    }
+
+    try {
+      const blob = await new Promise((res, rej) => {
+        try { canvas.toBlob(b => b ? res(b) : rej(new Error("empty")), "image/png"); }
+        catch (err) { rej(err); } // SecurityError bei tainted canvas
+      });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "logos-leiste.png";
+      a.click();
+      URL.revokeObjectURL(a.href);
+      showToast(t("pngOk"));
+    } catch (e) {
+      // Blockiert (Chrome/Edge-Sicherheit) -> einmalig Ordner verbinden, dann erneut
+      if (!isRetry) {
+        const ok = await connectFolderForExport();
+        if (ok) { await exportPng(true); return; }
+      }
+      showToast(t("pngFail"));
+    }
+  }
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  // ---- Sprache ----
+  function applyLanguage() {
+    document.getElementById("subtitle").textContent = t("subtitle");
+    document.getElementById("panelTitle").textContent = t("panelTitle");
+    document.getElementById("selTitle").textContent = t("selTitle");
+    document.getElementById("footerNote").textContent = t("footer");
+    document.getElementById("btnExportPng").textContent = t("btnExpPng");
+    document.getElementById("btnLang").textContent = t("langBtn");
+    btnReset.title = t("clear");
+    grid.querySelectorAll(".skill").forEach(tile => {
+      const s = skillById(tile.dataset.id);
+      if (s) tile.title = displayName(s);
+    });
+    refreshAll();
+  }
+
+  // ---- Events ----
+  document.getElementById("btnLang").addEventListener("click", () => {
+    LANG = LANG === "de" ? "en" : "de";
+    try { localStorage.setItem(STORE_KEY + ".lang", LANG); } catch (e) {}
+    applyLanguage();
+  });
+  document.getElementById("btnExportPng").addEventListener("click", () => exportPng(false));
+
+  btnPlus.addEventListener("click", () => {
+    if (rowCount < MAX_ROWS) { rowCount++; rows.push([]); refreshAll(); warn.textContent = ""; }
+  });
+  btnMinus.addEventListener("click", () => {
+    if (rowCount > MIN_ROWS) {
+      rowCount--;
+      rows.pop(); // unterste Reihe wird entfernt (deren Skills fallen weg)
+      refreshAll();
+    }
+  });
+  btnReset.addEventListener("click", () => {
+    if (!confirm(t("resetConfirm"))) return;
+    rows = rows.map(() => []);
+    refreshAll();
+  });
+
+  // ---- Init ----
+  try {
+    const savedLang = localStorage.getItem(STORE_KEY + ".lang");
+    if (savedLang === "de" || savedLang === "en") LANG = savedLang;
+  } catch (e) {}
+
+  computeRowHeight();
+  applyLanguage();
+  loadState();
+  window.addEventListener("load", () => { computeRowHeight(); refreshAll(); });
+
+  // Gespeicherte Ordner-Verbindung (vom PNG-Export) still wiederherstellen,
+  // falls der Browser die Berechtigung noch erteilt hat
+  (async function initFolder() {
+    try {
+      const h = await idbGet("projectDir");
+      if (h && window.showDirectoryPicker) {
+        dirHandle = h;
+        if ((await dirHandle.queryPermission({ mode: "read" })) === "granted") {
+          await scanIcons();
+          refreshImages();
+        }
+      }
+    } catch (e) {}
+  })();
+</script>
+</body>
+</html>
