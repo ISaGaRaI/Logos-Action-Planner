@@ -9,3 +9,9 @@ Future Patches:
 - Second screenshot possible, that gives you the Logos combination, too
 - Highlight some words like Additional effect, duration ...
 - BA prepar possibility (what you have before enter and after use Spirit of Remember + You logos command)
+
+
+
+
+
+- Mobile version
