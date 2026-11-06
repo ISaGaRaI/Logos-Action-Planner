@@ -2,7 +2,7 @@
 For Eureka Logos Action, easier to plan future Balders Arsenal runs or for fun 
 You can make your own Register and he gives you all information
 
-Future Patches: 
+Future Patches: (not 100% confirmed only brianstorm)
 - Disable the description while hover over the skill
 - Remake the structure for myself
 - Combination choice (pick your combination)
