@@ -246,6 +246,7 @@
   .pct-cell.pct-70 { color:#f2ecc0; border-color:#c9bb60; }
   .pct-cell.pct-50 { color:#ffd9ae; border-color:#cf9050; }
   .pct-cell.pct-30 { color:#ffc4c4; border-color:#cc7070; }
+  .pct-cell.pct-take { color:#9fe0e0; border-color:#3d8484; background:#1d3030; cursor:default; }
   .pct-spacer { height:3px; flex-shrink:0; }
   .cs-src { display:inline-flex; align-items:center; gap:2px; margin-left:4px; vertical-align:-2px; opacity:.85; }
   .cs-src img { width:13px; height:13px; object-fit:contain; }
@@ -265,6 +266,7 @@
 <div class="toolbar">
   <button id="btnLang" title="Language / Sprache">&#127760;</button>
   <button id="btnExportPng" class="primary"></button>
+   <button id="btnCopyPng" class="primary"></button>
   <button id="btnSplitters" title="Splitter ein-/ausblenden" class="icon-btn"><img src="divers/logo.png" alt="Splitter"></button>
   <button id="btnBar2" title="BA Prepare" class="icon-btn"><img src="divers/BAprepare.png" alt="BA Prepare"></button>
 </div>
@@ -503,6 +505,9 @@
       full: "Leiste ist voll \u2013 f\u00fcge mit + eine Reihe hinzu oder nimm einen Skill raus.",
       rowFull: "Diese Reihe ist voll (max. 2 Skills).",
       btnExpPng: "\ud83d\uddbc Als PNG speichern",
+      btnCopyPng: "\ud83d\udccb In Zwischenablage",
+      pngCopied: "PNG in der Zwischenablage \u2013 einfach einf\u00fcgen!",
+      pngCopyFail: "Zwischenablage blockiert \u2013 PNG wurde stattdessen heruntergeladen.",
       pngOk: "PNG wurde heruntergeladen.",
       pngAskFolder: "Browser blockiert den direkten Export \u2013 bitte im Dialog den Projekt-Ordner (mit dieser Datei) ausw\u00e4hlen, dann startet der Download automatisch.",
       pngFail: "PNG-Export leider blockiert. Erneut klicken und im Dialog den Projekt-Ordner ausw\u00e4hlen \u2013 dann klappt es.",
@@ -528,7 +533,8 @@
 	  barHead1: "Start BA",
       barHead2: "Nach nutzung ",
       pickTitle: "Kombi wählen",
-      splEmpty: "Noch nichts \u2013 Skills mit Kombis in die Leiste ziehen."
+      splEmpty: "Noch nichts \u2013 Skills mit Kombis in die Leiste ziehen.",
+      takeTip: "Ubernommen aus Leiste 1 \u2013 keine erneuten Mnemen notig.",
     },
     en: {
       subtitle: "All logos actions \u2013 click to add, drag & drop to place precisely",
@@ -539,6 +545,9 @@
       full: "Bar is full \u2013 add a row with + or remove a skill.",
       rowFull: "This row is full (max. 2 skills).",
       btnExpPng: "\ud83d\uddbc Save as PNG",
+      btnCopyPng: "\ud83d\udccb Copy to clipboard",
+      pngCopied: "PNG copied to clipboard \u2013 just paste it!",
+      pngCopyFail: "Clipboard blocked \u2013 PNG was downloaded instead.",
       pngOk: "PNG downloaded.",
       pngAskFolder: "Browser blocks direct export \u2013 please pick the project folder (containing this file) in the dialog, the download will then start automatically.",
       pngFail: "PNG export blocked. Click again and pick the project folder in the dialog \u2013 then it works.",
@@ -565,6 +574,7 @@
       barHead2: "After Use",
       pickTitle: "Choose combo",
 	  splEmpty: "Nothing yet \u2013 drag skills with combos into the bar.",
+      takeTip: "Carried over from Bar 1 \u2013 no extra mnemes needed.",
     }
   };
   function t(key) { return T[LANG][key]; }
@@ -1018,22 +1028,32 @@
   function renderPctCol(colEl, dataRows) {
     if (!colEl) return;
     colEl.innerHTML = "";
+    const isBar2 = (dataRows === rows2);
     for (let r = 0; r < rowCount; r++) {
-      const info = rowPctInfo(dataRows, r);
       const cell = document.createElement("div");
       cell.className = "pct-cell";
       cell.style.height = ROW_H + "px";
-      if (info) {
-        cell.classList.add(info.cls);
-        cell.textContent = info.text;
-        cell.title = t("pickTitle");
-        cell.addEventListener("click", function(ev) {
-          ev.stopPropagation();
-          openRowComboPop(cell, dataRows, r);
-        });
+      let taken = false;
+      if (isBar2 && rows2 && rows2[r] && rows2[r].length > 0 && rowEquals(rows[r], rows2[r])) {
+        cell.classList.add("pct-take");
+        cell.textContent = "\u2713";
+        cell.title = t("takeTip");
+        taken = true;
       } else {
-        cell.style.visibility = "hidden";
+        const info = rowPctInfo(dataRows, r);
+        if (info) {
+          cell.classList.add(info.cls);
+          cell.textContent = info.text;
+          cell.title = t("pickTitle");
+          cell.addEventListener("click", function(ev) {
+            ev.stopPropagation();
+            openRowComboPop(cell, dataRows, r);
+          });
+        } else {
+          cell.style.visibility = "hidden";
+        }
       }
+      void taken;
       colEl.appendChild(cell);
       if (r < rowCount - 1) {
         const sp = document.createElement("div");
@@ -1529,18 +1549,38 @@
     }
   }
 
+  function rowEquals(a, b) {
+    if (!a || !b) return false;
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i].id !== b[i].id) return false;
+      const sa = skillById(a[i].id);
+      const sb = skillById(b[i].id);
+      if (effectiveCombo(a[i], sa) !== effectiveCombo(b[i], sb)) return false;
+    }
+    return true;
+  }
+
   function aggregateSplitters() {
     const totals = {};
-    for (const r of rows) for (const en of r) {
-      const skill = skillById(en.id);
-      if (!skill || skill.combos.length === 0) continue;
-      let ci = en.combo;
-      if (ci === null && skill.combos.length === 1) ci = 0;
-      if (ci === null || !skill.combos[ci]) continue;
-      for (const piece of parseCombo(skill.combos[ci])) {
-        const key = piece.name.toLowerCase();
-        if (!totals[key]) totals[key] = { name: piece.name, count: 0, frag: fragmentByName(piece.name) };
-        totals[key].count += piece.count;
+    function addRow(list) {
+      for (const en of list) {
+        const skill = skillById(en.id);
+        if (!skill || skill.combos.length === 0) continue;
+        const ci = effectiveCombo(en, skill);
+        if (ci === null || !skill.combos[ci]) continue;
+        for (const piece of parseCombo(skill.combos[ci])) {
+          const key = piece.name.toLowerCase();
+          if (!totals[key]) totals[key] = { name: piece.name, count: 0, frag: fragmentByName(piece.name) };
+          totals[key].count += piece.count;
+        }
+      }
+    }
+    for (let r = 0; r < rows.length; r++) addRow(rows[r]);
+    if (rows2) {
+      for (let r = 0; r < rows2.length; r++) {
+        if (rows[r] && rows2[r] && rows2[r].length > 0 && rowEquals(rows[r], rows2[r])) continue;
+        addRow(rows2[r]);
       }
     }
     return Object.values(totals);
@@ -1803,57 +1843,152 @@
     } catch (e) { return false; }
   }
 
-  async function exportPng(isRetry) {
-    if (isRetry === undefined) isRetry = false;
+  function exportTargets() {
+    const targets = [ { el: bar, kind: "bar" } ];
+    if (rows2) targets.push({ el: bar2, kind: "bar" });
+    const spl = document.getElementById("splitterPanel");
+    if (rows2 === null || true) {           // Einkaufsliste immer, wenn sichtbar
+      if (spl && splitterPanelVisible && spl.classList.contains("show")) {
+        targets.push({ el: spl, kind: "panel" });
+      }
+    }
+    return targets;
+  }
+
+  // Baut das gemeinsame Canvas ueber alle Ziele.
+  function buildPngCanvas() {
     const SCALE = 2;
-    const bw = bar.offsetWidth, bh = bar.offsetHeight;
+    const PAD = 8;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const t of exportTargets()) {
+      const r = t.el.getBoundingClientRect();
+      minX = Math.min(minX, r.left); minY = Math.min(minY, r.top);
+      maxX = Math.max(maxX, r.right); maxY = Math.max(maxY, r.bottom);
+    }
+    if (minX === Infinity) return null;
+    const bw = maxX - minX + PAD * 2, bh = maxY - minY + PAD * 2;
     const canvas = document.createElement("canvas");
     canvas.width = bw * SCALE; canvas.height = bh * SCALE;
     const ctx = canvas.getContext("2d");
     ctx.scale(SCALE, SCALE);
-    const grad = ctx.createLinearGradient(0, 0, 0, bh);
-    grad.addColorStop(0, "#3d8484"); grad.addColorStop(0.6, "#2c5f63"); grad.addColorStop(1, "#27555a");
-    ctx.fillStyle = grad;
-    roundRect(ctx, 0, 0, bw, bh, 10); ctx.fill();
-    ctx.lineWidth = 5; ctx.strokeStyle = "#6e5233";
-    roundRect(ctx, 2.5, 2.5, bw - 5, bh - 5, 8); ctx.stroke();
-    const barRect = bar.getBoundingClientRect();
-    for (const el of bar.querySelectorAll(".bar-skill, .bar-divider")) {
-      const r = el.getBoundingClientRect();
-      const x = r.left - barRect.left, y = r.top - barRect.top;
-      if (el.classList.contains("bar-divider")) {
-        const dg = ctx.createLinearGradient(x, 0, x + r.width, 0);
-        dg.addColorStop(0, "rgba(110,82,51,0)"); dg.addColorStop(.5, "#8a6a3f"); dg.addColorStop(1, "rgba(110,82,51,0)");
-        ctx.fillStyle = dg;
-        ctx.fillRect(x, y, r.width, r.height);
-      } else {
-        ctx.fillStyle = "rgba(18,42,44,.6)";
-        roundRect(ctx, x, y, r.width, r.height, 8); ctx.fill();
-        ctx.lineWidth = 2; ctx.strokeStyle = "rgba(110,82,51,.95)";
-        roundRect(ctx, x + 1.5, y + 1.5, r.width - 3, r.height - 3, 7); ctx.stroke();
-        const img = el.querySelector("img");
-        if (img && img.complete && img.naturalWidth > 0) {
-          try { ctx.drawImage(img, x + 2, y + 2, r.width - 4, r.height - 4); } catch (e) {}
-        }
-      }
+    for (const t of exportTargets()) {
+      if (t.kind === "bar") drawBarToCanvas(ctx, t.el, minX - PAD, minY - PAD);
+      else drawPanelToCanvas(ctx, t.el, minX - PAD, minY - PAD);
     }
+    return canvas;
+  }
+
+  // Zeichnet die Einkaufsliste als Karte (Hintergrund, Titel, Zeilen).
+  function drawPanelToCanvas(ctx, panelEl, ox, oy) {
+    const r = panelEl.getBoundingClientRect();
+    const x = r.left - ox, y = r.top - oy, w = r.width, h = r.height;
+    ctx.fillStyle = "#272627";
+    roundRect(ctx, x, y, w, h, 10); ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = "#3d8484";
+    roundRect(ctx, x + 1, y + 1, w - 2, h - 2, 10); ctx.stroke();
+    // Titel (Inhalt der h3 ohne den X-Button)
+    const h3 = panelEl.querySelector("h3");
+    if (h3) {
+      let title = "";
+      h3.childNodes.forEach(function(n) { if (n.nodeType === 3) title += n.textContent; });
+      ctx.fillStyle = "#7fd4d4";
+      ctx.font = "700 12px 'Segoe UI', Arial, sans-serif";
+      ctx.textBaseline = "top";
+      ctx.fillText(title.toUpperCase(), x + 12, y + 10);
+    }
+    // Zeilen
+    ctx.font = "12px 'Segoe UI', Arial, sans-serif";
+    let cy = y + 34;
+    panelEl.querySelectorAll(".splitter-row").forEach(function(row) {
+      const rr = row.getBoundingClientRect();
+      const ry = rr.top - oy;
+      const img = row.querySelector("img");
+      let tx = x + 12;
+      if (img && img.complete && img.naturalWidth > 0) {
+        try { ctx.drawImage(img, tx, ry + (rr.height - 20) / 2, 20, 20); } catch (e) {}
+        tx += 26;
+      }
+      const nameSpan = row.querySelector("span");
+      const nEl = row.querySelector(".n");
+      const nameTxt = nameSpan ? nameSpan.textContent : "";
+      ctx.fillStyle = "#cccccc";
+      ctx.textBaseline = "middle";
+      ctx.fillText(nameTxt, tx, ry + rr.height / 2);
+      if (nEl) {
+        ctx.fillStyle = "#ffe9a8";
+        ctx.font = "700 12px 'Segoe UI', Arial, sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText(nEl.textContent, x + w - 12, ry + rr.height / 2);
+        ctx.textAlign = "left";
+        ctx.font = "12px 'Segoe UI', Arial, sans-serif";
+      }
+      cy = ry + rr.height; // nur um Reihenfolge zu halten
+    });
+  }
+
+  async function exportPngCommon(mode, isRetry) {
+    if (isRetry === undefined) isRetry = false;
+    const canvas = buildPngCanvas();
+    if (!canvas) { showToast(t("pngFail")); return; }
     try {
       const blob = await new Promise(function(res, rej) {
         try { canvas.toBlob(function(b) { b ? res(b) : rej(new Error("empty")); }, "image/png"); }
         catch (err) { rej(err); }
       });
+      if (mode === "clipboard") {
+        try {
+          await navigator.clipboard.write([ new ClipboardItem({ "image/png": blob }) ]);
+          showToast(t("pngCopied"));
+          return;
+        } catch (e2) {
+          // Browser hat es blockiert -> Fallback: Download
+        }
+      }
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = "logos-leiste.png";
       a.click();
       URL.revokeObjectURL(a.href);
-      showToast(t("pngOk"));
+      showToast(mode === "clipboard" ? t("pngCopyFail") : t("pngOk"));
     } catch (e) {
       if (!isRetry) {
         const ok = await connectFolderForExport();
-        if (ok) { await exportPng(true); return; }
+        if (ok) { await exportPngCommon(mode, true); return; }
       }
       showToast(t("pngFail"));
+    }
+  }
+
+  function exportPng(isRetry) { return exportPngCommon("download", isRetry); }
+
+  // Zeichnet EINE Leiste (inkl. Rahmen-Optik) an ihre relative Position.
+  function drawBarToCanvas(ctx, barEl, ox, oy) {
+    const br = barEl.getBoundingClientRect();
+    const x = br.left - ox, y = br.top - oy, bw = br.width, bh = br.height;
+    const grad = ctx.createLinearGradient(0, y, 0, y + bh);
+    grad.addColorStop(0, "#3d8484"); grad.addColorStop(0.6, "#2c5f63"); grad.addColorStop(1, "#27555a");
+    ctx.fillStyle = grad;
+    roundRect(ctx, x, y, bw, bh, 10); ctx.fill();
+    ctx.lineWidth = 5; ctx.strokeStyle = "#6e5233";
+    roundRect(ctx, x + 2.5, y + 2.5, bw - 5, bh - 5, 8); ctx.stroke();
+    for (const el of barEl.querySelectorAll(".bar-skill, .bar-divider")) {
+      const r = el.getBoundingClientRect();
+      const ex = r.left - ox, ey = r.top - oy;
+      if (el.classList.contains("bar-divider")) {
+        const dg = ctx.createLinearGradient(ex, 0, ex + r.width, 0);
+        dg.addColorStop(0, "rgba(110,82,51,0)"); dg.addColorStop(.5, "#8a6a3f"); dg.addColorStop(1, "rgba(110,82,51,0)");
+        ctx.fillStyle = dg;
+        ctx.fillRect(ex, ey, r.width, r.height);
+      } else {
+        ctx.fillStyle = "rgba(18,42,44,.6)";
+        roundRect(ctx, ex, ey, r.width, r.height, 8); ctx.fill();
+        ctx.lineWidth = 2; ctx.strokeStyle = "rgba(110,82,51,.95)";
+        roundRect(ctx, ex + 1.5, ey + 1.5, r.width - 3, r.height - 3, 7); ctx.stroke();
+        const img = el.querySelector("img");
+        if (img && img.complete && img.naturalWidth > 0) {
+          try { ctx.drawImage(img, ex + 2, ey + 2, r.width - 4, r.height - 4); } catch (e) {}
+        }
+      }
     }
   }
 
@@ -1873,6 +2008,8 @@
     document.getElementById("selTitle").textContent = t("selTitle");
     document.getElementById("footerNote").textContent = t("footer");
     document.getElementById("btnExportPng").textContent = t("btnExpPng");
+    document.getElementById("btnCopyPng").addEventListener("click", function() { exportPngCommon("clipboard", false); });
+	document.getElementById("btnCopyPng").textContent = t("btnCopyPng");
     document.getElementById("btnLang").textContent = t("langBtn");
     btnReset.title = t("clear");
 	const lt = document.getElementById("logoTitle");
