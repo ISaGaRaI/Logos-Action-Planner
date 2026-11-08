@@ -1682,8 +1682,24 @@
   }
   
   function fitScale() {
-    const needed = document.documentElement.scrollWidth || document.body.scrollWidth;
+    // 1) Zoom zuruecksetzen, damit wir die ECHTEN Masze messen
+    document.documentElement.style.zoom = 1;
+    // 2) Linkste und rechteste Kante aller sichtbaren Hauptelemente vermessen
+    //    (fixe Popups ausnehmen, die verfaelschen das Bild)
+    let minLeft = Infinity, maxRight = -Infinity;
+    for (const el of document.body.children) {
+      if (el.id === "tooltip" || el.id === "toast" || el.id === "comboPop") continue;
+      const r = el.getBoundingClientRect();
+      if (r.width === 0) continue;
+      if (r.left < minLeft) minLeft = r.left;
+      if (r.left + r.width > maxRight) maxRight = r.left + r.width;
+    }
+    if (minLeft === Infinity) return;
+    // 3) Benoetigte Breite = rechte Kante minus linke Kante (faengt den
+    //    linken Ueberhang mit ein, den scrollWidth uebersehen wuerde)
+    const needed = maxRight - minLeft;
     const avail = window.innerWidth;
+    // 4) Zoom setzen: 1 = Original, sonst proportional verkleinern (min. 0.5)
     let z = 1;
     if (needed > avail && needed > 0) z = Math.max(0.5, avail / needed);
     document.documentElement.style.zoom = z;
