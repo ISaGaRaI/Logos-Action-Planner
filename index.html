@@ -14,7 +14,7 @@
   }
   h1 { font-size: 22px; margin-bottom: 4px; letter-spacing: 1px; }
   .subtitle { color: #999; font-size: 13px; margin-bottom: 14px; }
-  .toolbar { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 18px; }
+  .toolbar { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 8px; margin-bottom: 14px; }
   .toolbar button {
     background: #2a2a2a; color: #ddd; border: 1px solid #444;
     border-radius: 6px; padding: 5px 12px; cursor: pointer; font-size: 12px;
@@ -23,6 +23,10 @@
   .toolbar button.primary { background: #2c5f63; border-color: #3d8484; }
   .toolbar button.primary:hover { background: #357070; }
   .layout { display: flex; gap: 28px; align-items: flex-start; flex-wrap: nowrap; }
+  
+  .toolbar button.icon-btn { padding: 3px; display: flex; align-items: center; }
+  .toolbar button.icon-btn img { width: 22px; height: 22px; object-fit: contain; }
+  .toolbar button.active { background: #357070; border-color: #7fd4d4; box-shadow: 0 0 8px rgba(127,212,212,.5); }
 
   .skill-panel { background-color: #272627; border: 1px solid #141414; border-radius: 10px; padding: 10px; }
   .skill-panel h2 { font-size: 14px; color: #bbb; margin: 2px 2px 10px 2px; font-weight: 600; }
@@ -47,6 +51,7 @@
     display: flex; align-items: center; justify-content: center; padding: 0 3px;
     border: 1px solid #6b8f52;
   }
+  .skill.logo-hit { border-color: #ffe9a8; box-shadow: 0 0 10px rgba(255,233,168,.85); transform: translateY(-2px); }
   .empty-slot { background: transparent; border: 1px dashed #333; border-radius: 6px; }
 
   .bar-section { display: flex; flex-direction: column; align-items: center; gap: 8px; }
@@ -97,10 +102,9 @@
   .bar-empty { color: #bfe3e3; font-size: 11px; text-align: center; align-self: center; max-width: 140px; line-height: 1.4; user-select: none; }
   .bar-full-warning { color: #ff9b9b; font-size: 12px; min-height: 16px; text-align: center; }
 
-  .selected-panel {
-    margin-top: 26px; width: 100%; max-width: 940px;
-    background-color: #272627; border: 1px solid #141414; border-radius: 10px; padding: 14px 16px;
-  }
+  .bottom-row { position: relative; margin-top: 10px; width: 100%; }
+  .main-area { display: flex; flex-direction: column; align-items: flex-start; }
+  .selected-panel { width: 100%; background-color: #272627; border: 1px solid #141414; border-radius: 10px; padding: 14px 16px; }
   .selected-panel h2 { font-size: 15px; color: #bbb; margin-bottom: 10px; font-weight: 600; }
   .selected-list { display: flex; flex-direction: column; gap: 6px; }
   .sel-item { background: #1d1d1d; border: 1px solid #333; border-radius: 8px; overflow: hidden; }
@@ -155,262 +159,176 @@
   #tooltip .tip-sep { display: block; height: 1px; background: #2a4a48; margin: 5px 0; }
   #tooltip .tip-roles { display: flex; flex-direction: row; gap: 1px; align-items: flex-start; margin-top: 1px; }
   #tooltip .tip-role-row { display: flex; flex-direction: column; gap: 3px; }
-  #tooltip .tip-jobs { display: flex; flex-direction: column; gap: 1px; padding-top: 0; }
   #tooltip .tip-jobs { display: flex; flex-direction: column; gap: 2px; padding-top: 2px; }
   #tooltip .tip-job {
     display: flex; align-items: center; justify-content: center;
     background: rgba(46,42,32,.5); border-radius: 6px;
     padding: 1px; width: fit-content;
   }
+  .logo-panel { background:#272627; border:1px solid #141414; border-radius:10px; padding:10px; overflow-y:auto; width:230px; flex-shrink:0; }
+  .logo-panel h2 { font-size:14px; color:#bbb; margin:2px 2px 10px 2px; font-weight:600; }
+  .logo-item { background:#1d1d1d; border:1px solid #333; border-radius:8px; margin-bottom:6px; overflow:hidden; }
+  .logo-item summary { cursor:pointer; padding:6px 10px; font-size:13px; display:flex; align-items:center; gap:8px; list-style:none; user-select:none; }
+  .logo-item summary::-webkit-details-marker { display:none; }
+  .logo-item summary::before { content:"\25B8"; color:#7fd4d4; transition:transform .15s; }
+  .logo-item[open] summary::before { transform:rotate(90deg); }
+  .logo-item summary:hover { background:#232323; }
+  .logo-item .logo-icon { width:24px; height:24px; object-fit:contain; border-radius:4px; background:#151515; padding:1px; }
+  .logo-items { padding:2px 10px 10px 24px; display:flex; flex-wrap:wrap; gap:6px; }
+  .logo-chip { display:flex; align-items:center; gap:4px; background:rgba(46,42,32,.5); border:1px solid #3a3a3a; border-radius:6px; padding:2px 6px 2px 2px; font-size:11.5px; color:#ccc; }
+  .logo-chip img { width:18px; height:18px; object-fit:contain; }
+  .logo-chip.chip-active { border-color: #ffe9a8; background: rgba(255,233,168,.18); }
+  .sel-body .recipe-line { cursor:pointer; border-radius:6px; padding:1px 6px; }
+  .sel-body .recipe-line:hover { background:#232323; }
+  .sel-body .recipe-line.picked { background:rgba(61,132,132,.25); outline:1px solid #3d8484; }
+  .splitter-panel { display:none; background:#272627; border:1px solid #3d8484; border-radius:10px; padding:10px 12px; width:230px; }
+  .splitter-panel.show { display:block; }
+  .splitter-panel h3 { font-size:12px; color:#7fd4d4; letter-spacing:1px; display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; text-transform:uppercase; }
+  .splitter-panel h3 button { background:none; border:none; color:#ff9b9b; cursor:pointer; font-size:14px; }
+  .splitter-row { display:flex; align-items:center; gap:6px; font-size:12px; color:#ccc; padding:2px 0; }
+  .splitter-row img { width:20px; height:20px; object-fit:contain; }
+  .splitter-row .n { margin-left:auto; color:#ffe9a8; font-weight:700; }
+  .combo-summary { display: none; position: absolute; left: calc(100% + 14px); top: 0; width: 340px;
+    background: #272627; border: 1px solid #141414; border-radius: 10px; padding: 12px 14px; }
+  .combo-summary .cs-pieces { flex-direction: column; align-items: flex-start; gap: 3px; }
+  .combo-summary .plus { display: none; }
+  .combo-summary.show { display: block; }
+  .combo-summary h3 { font-size: 14px; color: #bbb; font-weight: 600; margin-bottom: 8px; }
+  .combo-skill { background: #1d1d1d; border: 1px solid #333; border-radius: 8px; padding: 6px 8px; margin-bottom: 6px; }
+  .combo-skill .cs-head { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #bfe3e3; margin-bottom: 4px; }
+  .combo-skill .cs-head img { width: 20px; height: 20px; object-fit: contain; }
+  .combo-skill .cs-pieces { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 11.5px; color: #ccc; }
+  .combo-skill .cs-pieces img { width: 16px; height: 16px; object-fit: contain; vertical-align: -3px; }
+  .combo-skill .plus { color: #a8c86a; margin: 0 2px; }
+  .sel-actions { margin-left: auto; display: flex; gap: 4px; }
+  .sel-btn { background: #2a2a2a; border: 1px solid #555; color: #ddd; border-radius: 6px; cursor: pointer;
+    font-size: 13px; line-height: 1; padding: 2px 7px; }
+  .sel-btn:hover { background: #454545; border-color: #7fd4d4; }
+  .sel-btn.rm { border-color: #7a4a4a; color: #f0d9d9; }
+  .bars-outer { display:flex; gap:10px; align-items:flex-start; }
+  .bars-wrap { display:flex; gap:10px; align-items:flex-start; }
+  .bar-col { display:flex; flex-direction:column; align-items:center; position:relative; }
+  .bar-col .logos-bar { margin-top:6px; }
+  .bar-head { display:none; position:absolute; top:-22px; left:42px; width:216px; height:18px;
+    line-height:18px; font-size:11px; letter-spacing:1.2px; color:#c9a55f;
+    text-transform:uppercase; font-weight:700; text-align:left; white-space:nowrap;
+    z-index:6; pointer-events:none; }
+  .bar-head.on { display:block; }
+  #bar2Block .bar-head { left:0; }
+  .bar-aside { display:flex; gap:10px; align-items:flex-start; }
+  #bar2Block { display:none; }
+  #bar2Block.show { display:flex; }
+  .pct-q { color:#aaa; border-color:#666; }
+  .pct-100 { color:#d3f0b8; background:#3f6b2f; border-color:#7fa86a; }
+  .pct-70 { color:#f2ecc0; background:#6b6230; border-color:#c9bb60; }
+  .pct-50 { color:#ffd9ae; background:#6b4d24; border-color:#cf9050; }
+  .pct-30 { color:#ffc4c4; background:#6b3030; border-color:#cc7070; }
+  #comboPop { position:fixed; z-index:1000; background:#10201f; border:1px solid #3d8484;
+    border-radius:8px; padding:8px; display:none; max-width:320px; box-shadow:0 4px 14px rgba(0,0,0,.55); }
+  #comboPop.show { display:block; }
+  #comboPop h4 { font-size:12px; color:#bfe3e3; margin:0 0 6px 2px; }
+  #comboPop .pop-line { display:flex; align-items:center; flex-wrap:wrap; gap:4px; font-size:12px;
+    color:#ccc; padding:4px 6px; border-radius:6px; cursor:pointer; }
+  #comboPop .pop-line:hover { background:rgba(127,212,212,.15); }
+  #comboPop .pop-line.pop-picked { outline:1px solid #3d8484; background:rgba(61,132,132,.25); }
+  #comboPop .pop-line img { width:16px; height:16px; object-fit:contain; }
+  #comboPop .pop-x { float:right; background:none; border:none; color:#ff9b9b; cursor:pointer; font-size:13px; padding:0 2px; }
+  #comboPop .pop-skill-head { display:flex; align-items:center; gap:6px; font-size:12px;
+    color:#ffe9a8; font-weight:700; margin:6px 2px 2px 2px; }
+  #comboPop .pop-skill-head img { width:18px; height:18px; object-fit:contain; }
+  #comboPop .pop-sep { height:1px; background:#2a4a48; margin:7px 2px; }
+  .bar-flex { display:flex; gap:4px; align-items:flex-start; }
+  .pct-col { width:38px; display:flex; flex-direction:column; gap:4px; padding:8px 0; flex-shrink:0; }
+  .pct-cell { display:flex; align-items:center; justify-content:center; font-size:10.5px;
+    font-weight:700; border:1px solid; border-radius:6px; background:#1d1d1d; cursor:pointer; user-select:none; }
+  .pct-cell.pct-q { color:#aaa; border-color:#555; }
+  .pct-cell.pct-100 { color:#d3f0b8; border-color:#7fa86a; }
+  .pct-cell.pct-70 { color:#f2ecc0; border-color:#c9bb60; }
+  .pct-cell.pct-50 { color:#ffd9ae; border-color:#cf9050; }
+  .pct-cell.pct-30 { color:#ffc4c4; border-color:#cc7070; }
+  .pct-spacer { height:3px; flex-shrink:0; }
+  .cs-src { display:inline-flex; align-items:center; gap:2px; margin-left:4px; vertical-align:-2px; opacity:.85; }
+  .cs-src img { width:13px; height:13px; object-fit:contain; }
 </style>
 </head>
 <body>
 
 <h1>&#9876; EUREKA LOGOS PLANNER</h1>
+<link rel="icon" type="image/png" href="divers/BAprepare.png">
 <div class="subtitle" id="subtitle"></div>
 
+<div class="main-area">
 <div class="toolbar">
   <button id="btnLang" title="Language / Sprache">&#127760;</button>
   <button id="btnExportPng" class="primary"></button>
+  <button id="btnSplitters" title="Splitter ein-/ausblenden" class="icon-btn"><img src="divers/logo.png" alt="Splitter"></button>
+  <button id="btnBar2" title="BA Prepare" class="icon-btn"><img src="divers/BAprepare.png" alt="BA Prepare"></button>
 </div>
-
 <div class="layout">
+  <div class="logo-panel">
+    <h2 id="logoTitle"></h2>
+    <div id="logoList"></div>
+  </div>
   <div class="skill-panel" id="skillPanel">
     <h2 id="panelTitle"></h2>
     <div class="skill-grid" id="skillGrid"></div>
   </div>
-  <div class="bar-section">
-    <div class="bar-wrapper">
-      <div class="logos-bar" id="logosBar"></div>
-      <div class="bar-controls-vertical">
-        <button id="slotPlus" title="Mehr Reihen / More rows">+</button>
-        <button id="slotMinus" title="Weniger Reihen / Fewer rows">&minus;</button>
-        <button id="resetBtn" class="clear-btn" title="Leeren / Clear">&times;</button>
-      </div>
-    </div>
+  <div class="bar-section">                      <!-- Ö 1 -->
+    <div class="bars-outer">                     <!-- Ö 2 -->
+      <div class="bars-wrap">                    <!-- Ö 3 -->
+        <div class="bar-col">
+          <div class="bar-head" id="barHead1"></div>
+          <div class="bar-flex">
+            <div class="pct-col" id="pctCol1"></div>
+            <div class="logos-bar" id="logosBar"></div>
+          </div>
+        </div>                                  <!-- Zu 4 -->
+        <div class="bar-col" id="bar2Block">
+          <div class="bar-head" id="barHead2"></div>
+          <div class="bar-flex">
+            <div class="logos-bar" id="logosBar2"></div>
+            <div class="pct-col" id="pctCol2"></div>
+          </div>
+        </div>                                 <!-- Zu 4 -->
+      </div>                                     <!-- Zu 3: bars-wrap ENDE -->
+      <div class="bar-aside">                    <!-- Ö 3 -->
+        <div class="splitter-panel" id="splitterPanel"></div>
+        <div class="bar-controls-vertical">
+          <button id="slotPlus" title="Mehr Reihen / More rows">+</button>
+          <button id="slotMinus" title="Weniger Reihen / Fewer rows">&minus;</button>
+          <button id="resetBtn" class="clear-btn" title="Leeren / Clear">&times;</button>
+        </div>
+      </div>                                     <!-- Zu 3: bar-aside ENDE -->
+    </div>                                       <!-- Zu 2: bars-outer ENDE -->
     <div class="slot-count" id="slotLabel"></div>
     <div class="bar-full-warning" id="warning"></div>
-  </div>
-</div>
+  </div>   <!-- Zu 1: bar-section ENDE -->
+  </div>                                         <!-- .layout ENDE -->
 
-<div class="selected-panel">
-  <h2 id="selTitle"></h2>
-  <div class="selected-list" id="selectedList"></div>
+<div class="bottom-row" id="bottomRow">
+  <div class="selected-panel">
+    <h2 id="selTitle"></h2>
+    <div class="selected-list" id="selectedList"></div>
+  </div>
+  <div class="combo-summary" id="comboSummary"></div>
+</div>
 </div>
 
 <div class="footer-note" id="footerNote"></div>
+<div id="comboPop"></div>
 <div id="toast"></div>
 <div id="tooltip"></div>
+
+<!-- LADE ZUERST DIE DATEN -->
+<script src="data.js"></script>
 
 <script>
   const ACTIONS_DIR = "logos_icons";
   const FRAGMENTS_DIR = "logos_fragment_icons";
   const CLASS_ROLE_DIR = "class_role";
 
-  // Icon-Groesse fuer Klassen- und Oberklassen-Icons (Pixel), bei Bedarf anpassen:
-  const CLASS_ICON_PX = 25;
-
-  // TABELLE 1 - AKTIONEN: "datei.png" | "Name EN" | "Name DE" | "Kombi 1" | ...
-  const DATA_LINES = [
-    "Wisdom of the Aetherweaver.png | Wisdom of the Aetherweaver | Vermächtnis des Zauberers | Wisdom of the Aetherweaver",
-    "Wisdom of the Martialist.png | Wisdom of the Martialist | Vermächtnis des Kämpfers | Wisdom of the Martialist",
-    "Wisdom of the Platebearer.png | Wisdom of the Platebearer | Vermächtnis des Ritters | Wisdom of the Platebearer",
-    "Wisdom of the Guardian.png | Wisdom of the Guardian | Vermächtnis des Wächters | Wisdom of the Guardian | Wisdom of the Platebearer + Protect L | Wisdom of the Platebearer + Stoneskin L | Wisdom of the Platebearer + Incense L + Incense L | Stoneskin L + Stoneskin L + Stoneskin L",
-    "Wisdom of the Ordained.png | Wisdom of the Ordained | Vermächtnis des Priesters | Wisdom of the Ordained | Wisdom of the Aetherweaver + Esuna L | Wisdom of the Aetherweaver + Cure L + Cure L | Cure L II + Cure L II + Cure L II",
-    "Wisdom of the Skirmisher.png | Wisdom of the Skirmisher | Vermächtnis des Kampfkünstlers | Wisdom of the Skirmisher | Wisdom of the Martialist + Feint L | Wisdom of the Martialist + Wisdom of the Martialist + Wisdom of the Martialist",
-    "Wisdom of the Watcher.png | Wisdom of the Watcher | Vermächtnis des Spähers | Logos-Splitter der Tarnung + Logos-Splitter der Tarnung",
-    "Wisdom of the Templar.png | Wisdom of the Templar | Vermächtnis des heiligen Ritters | Wisdom of the Skirmisher + Cure L II | Wisdom of the Skirmisher + Stoneskin L | Wisdom of the Platebearer + Cure L + Stoneskin L",
-    "Wisdom of the Irregular.png | Wisdom of the Irregular | Vermächtnis des Berserkers | Wisdom of the Skirmisher + Wisdom of the Guardian | Wisdom of the Martialist + Incense L + Wisdom of the Skirmisher",
-    "Wisdom of the Breathtaker.png | Wisdom of the Breathtaker | Vermächtnis des Diebes | Wisdom of the Breathtaker | Featherfoot L + Stealth L | Stealth L + Stealth L + Stealth L | Featherfoot L + Featherfoot L + Featherfoot L",
-    "Spirit of the Remembered.png | Spirit of the Remembered | Segen des Helden | Spirit of the Remembered | Wisdom of the Martialist + Wisdom of the Guardian | Wisdom of the Aetherweaver + Wisdom of the Martialist + Wisdom of the Platebearer",
-    "Protect L.png | Protect L | Logos-Protes | Protect L",
-    "Shell L.png | Shell L | Logos-Vallum | Shell L | Esuna L + Protect L",
-    "Death L.png | Death L | Logos-Tod | Raise L + Dispel L | Raise L + Tranquilizer L + Tranquilizer L",
-    "Focus L.png | Focus L | Logos-Ladung | Wisdom of the Skirmisher + Bloodbath L | Bloodbath L + Bloodbath L + Bloodbath L",
-    "Paralyze L.png | Paralyze L | Logos-Paralyse | Paralyze L",
-    "Paralyze L III.png | Paralyze L III | Logos-Paralyga | Paralyze L + Spirit Dart L | Paralyze L + Paralyze L + Paralyze L | Wisdom of the Aetherweaver + Paralyze L + Paralyze L",
-    "Swift L.png | Swift L | Logos-Eile | Featherfoot L + Featherfoot L | Backstep L + Backstep L + Featherfoot L",
-    "Featherfoot L.png | Featherfoot L | Logos-Leichtfuß | Featherfoot L | Feint L + Feint L",
-    "Spirit Dart L.png | Spirit Dart L | Logos-Geistpfeil | Spirit Dart L | Tranquilizer L + Wisdom of the Ordained | Wisdom of the Aetherweaver + Paralyze L + Tranquilizer L",
-    "Catastrophe L.png | Catastrophe L | Logos-Magieexplosion | Wisdom of the Guardian + Spirit Dart L | Bloodbath L + Bloodbath L | Spirit Dart L + Spirit Dart L + Spirit Dart L",
-    "Dispel L.png | Dispel L | Logos-Entzauberung | Dispel L | Esuna L + Wisdom of the Ordained | Esuna L + Esuna L + Esuna L | Tranquilizer L + Tranquilizer L + Tranquilizer L",
-    "Feint L.png | Feint L | Logos-Finte | Feint L",
-    "Stealth L.png | Stealth L | Logos-Tarnung | Stealth L | Wisdom of the Ordained + Shell L",
-    "Aetherial Manipulation L.png | Aetherial Manipulation L | Logos-Äthermanipulation | Backstep L + Stealth L | Wisdom of the Martialist + Backstep L + Feint L",
-    "Backstep L.png | Backstep L | Logos-Entrinnung | Backstep L",
-    "Tranquilizer L.png | Tranquilizer L | Logos-Betäubung | Tranquilizer L",
-    "Bloodbath L.png | Bloodbath L | Logos-Blutbad | Bloodbath L | Cure L + Wisdom of the Skirmisher | Wisdom of the Martialist + Wisdom of the Martialist + Cure L",
-    "Rejuvenate L.png | Rejuvenate L | Logos-Aufladung | Bloodbath L + Shell L | Spirit of the Remembered + Spirit Dart L | Wisdom of the Aetherweaver + Wisdom of the Martialist + Cure L",
-    "Haymaker L.png | Haymaker L | Logos-Konter | Wisdom of the Skirmisher + Featherfoot L | Wisdom of the Martialist + Incense L + Featherfoot L",
-    "Rapid Recast L.png | Rapid Recast | Logos-Velocitas | Esuna L + Dispel L | Cure L + Esuna L + Feint L",
-	"Cure L.png | Cure L | Logos-Vita | Cure L",
-    "Cure L II.png | Cure L II | Logos-Vitra | Cure L + Wisdom of the Ordained | Cure L + Cure L + Cure L | Raise L + Raise L + Raise L",
-    "Stoneskin L.png | Stoneskin L | Logos-Steinhaut | Stoneskin L | Protect L + Shell L | Protect L + Protect L + Protect L | Shell L + Shell L + Shell L",
-    "Cure L III.png | Cure L III | Logos-Vitaga | Bloodbath L + Wisdom of the Ordained | Cure L II + Cure L II | Cure L + Cure L + Wisdom of the Ordained",
-    "Regen L.png | Regen L | Logos-Regena | Tranquilizer L | Feint L + Cure L III | Cure L + Cure L + Feint L",
-    "Esuna L.png | Esuna L | Logos-Medica | Esuna L",
-    "Incense L.png | Incense L | Logos-Hohn | Incense L",
-    "Raise L.png | Raise L | Logos-Wiederbelebung | Raise L",
-    "Bravery L.png | Bravery L | Logos-Courage | Wisdom of the Skirmisher + Wisdom of the Guardian + Wisdom of the Ordained",
-    "Solid Shield L.png | Solid Shield L | Logos-Schild | Protect L + Wisdom of the Guardian + Stoneskin L",
-    "Spell Shield L.png | Spell Shield L | Logos-Magieschild | Wisdom of the Guardian + Shell L + Stoneskin L",
-    "Reflect L.png | Reflect L | Logos-Reflektion | Protect L + Wisdom of the Ordained + Shell L",
-    "Smite L.png | Smite L | Logos-Schattenhieb | Tranquilizer L + Wisdom of the Skirmisher + Spirit Dart L",
-    "Refresh L.png | Refresh L | Logos-Erfrischung | Wisdom of the Aetherweaver + Wisdom of the Ordained + Cure L II",
-    "Banish L.png | Banish L | Logos-Bann | Wisdom of the Aetherweaver + Dispel L + Dispel L",
-    "Banish L III.png | Banish L III | Logos-Bannga | Wisdom of the Ordained + Dispel L + Dispel L",
-    "Magic Burst L.png | Magic Burst L | Logos-Magieexplosion | Magic Burst L | Spirit of the Remembered + Wisdom of the Ordained + Stoneskin L",
-    "Double Edge L.png | Double Edge L | Logos-Zweischneid | Double Edge L | Wisdom of the Skirmisher + Bloodbath L + Wisdom of the Guardian",
-    "Eagle Eye Shot L.png | Eagle Eye Shot L | Logos-Adlerauge | Eagle Eye Shot L | Wisdom of the Skirmisher + Spirit of the Remembered + Spirit Dart L",
-    "Perception L.png | Perception L | Logos-Tigerauge | Wisdom of the Breathtaker + Wisdom of the Breathtaker | Stealth L + Dispel L + Wisdom of the Breathtaker",
-    "Wisdom of the Elder.png | Wisdom of the Elder | Vermächtnis des Weisen | Wisdom of the Aetherweaver + Wisdom of the Ordained + Magic Burst L | Wisdom of the Guardian + Stoneskin L + Magic Burst L",
-    "Wisdom of the Duelist.png | Wisdom of the Duelist | Vermächtnis des Fechtmeisters | Wisdom of the Skirmisher + Wisdom of the Skirmisher + Double Edge L | Bloodbath L + Bloodbath L + Double Edge L",
-    "Wisdom of the Fiendhunter.png | Wisdom of the Fiendhunter | Vermächtnis des Bogengeweihten | Featherfoot L + Spirit Dart L + Eagle Eye Shot L | Feint L + Tranquilizer L + Eagle Eye Shot L",
-    "Wisdom of the Indomitable.png | Wisdom of the Indomitable | Vermächtnis des Helden | Wisdom of the Platebearer + Incense L + Double Edge L | Protect L + Spirit of the Remembered + Double Edge L",
-    "Sacrifice L.png | Sacrifice L | Logos-Aufopferung | Esuna L + Raise L + Magic Burst L",
-  ];
-
-  // Fallback (leer - alle 56 stehen oben)
-  const NAMES = [];
-
-  // ============================================================
-  //  TABELLE 2 - FRAGMENTE
-  //  FORMAT:  "datei.png" | "Fragment EN" | "Fragment DE"
-  // ============================================================
-  const FRAGMENT_LINES = [
-    "mneme_inimical.png | Paralyze L | Logos-Splitter der Paralyse",
-    "mneme_inimical.png | Tranquilizer L | Logos-Splitter der Betäubung",
-    "mneme_inimical.png | Spirit Dart L | Logos-Splitter des Geistpfeils",
-    "mneme_inimical.png | Dispel L | Logos-Splitter der Entzauberung",
-    "mneme_offensive.png | Wisdom of the Aetherweaver | Vermächtnis des Zauberers",
-    "mneme_offensive.png | Wisdom of the Martialist | Vermächtnis des Kämpfers",
-    "mneme_offensive.png | Wisdom of the Skirmisher | Logos-Splitter des Kampfkünstlers",
-    "mneme_offensive.png | Bloodbath L | Logos-Splitter des Blutbads",
-    "mneme_offensive.png | Magic Burst L | Logos-Splitter der Magieexplosion",
-    "mneme_offensive.png | Eagle Eye Shot L | Logos-Splitter des Adlerauges",
-    "mneme_offensive.png | Double Edge L | Logos-Splitter des Zweischneids",
-    "mneme_protective.png | Wisdom of the Platebearer | Vermächtnis des Ritters",
-    "mneme_protective.png | Incense L | Logos-Splitter des Hohns",
-    "mneme_protective.png | Wisdom of the Guardian | Vermächtnis des Wächters",
-    "mneme_protective.png | Spirit of the Remembered | Segen des Helden",
-    "mneme_curative.png | Cure L | Logos-Splitter des Vita",
-    "mneme_curative.png | Esuna L | Logos-Splitter des Medica",
-    "mneme_curative.png | Raise L | Logos-Splitter der Wiederbelebung",
-    "mneme_curative.png | Wisdom of the Ordained | Vermächtnis des Priesters",
-    "mneme_curative.png | Cure L II | Logos-Splitter des Vitra",
-    "mneme_tactical.png | Backstep L | Logos-Splitter der Entrinnung",
-    "mneme_tactical.png | Feint L | Logos-Splitter der Finte",
-    "mneme_tactical.png | Featherfoot L | Logos-Splitter des Leichtfußes",
-    "mneme_tactical.png | Stealth L | Logos-Splitter der Tarnung",
-    "mneme_tactical.png | Wisdom of the Breathtaker | Vermächtnis des Diebes",
-    "mneme_mitigative.png | Protect L | Logos-Splitter des Protes",
-    "mneme_mitigative.png | Shell L | Logos-Splitter des Vallum",
-    "mneme_mitigative.png | Stoneskin L | Logos-Splitter der Steinhaut",
-  ];
-
-  // TABELLE 3 - BESCHREIBUNGEN + KLASSEN (4 Spalten):
-  //   "Name EN" | "Beschreibung DE" | "Description EN" | "Klassen (EN, mit + getrennt)"
-  const DESCRIPTION_LINES = [
-	"Dispel L | DE | EN | Rolle EN",
-	"Wisdom of the Aetherweaver | Du erhöhst deinen ausgeteilten Magieschaden um 60%. Kann nicht zusammen mit anderen Vermächtnisfähigkeiten eingesetzt werden. Effekt endet bei erneuter Ausführung oder wenn ein anderes Vermächtnis aktiviert wird. | Increases magic damage dealt by 60%. Cannot be used with other Wisdom abilities. Effect ends upon reuse or upon replacement of duty action. | Heiler",
-	"Wisdom of the Martialist | Du erhöhst deinen ausgeteilten Schaden um 40%. Kann nicht zusammen mit anderen Vermächtnisfähigkeiten eingesetzt werden. Effekt endet bei erneuter Ausführung oder wenn ein anderes Vermächtnis aktiviert wird. | Increases damage dealt by 40%. Cannot be used with other Wisdom abilities. Effect ends upon reuse or upon replacement of duty action. | Tank ",
-    "Wisdom of the Platebearer | Du verringerst deinen erlittenen Schaden um 80% und erhöhst deine maximalen LP um 50%. Kann nicht zusammen mit anderen Vermächtnisfähigkeiten eingesetzt werden. Effekt endet bei erneuter Ausführung oder wenn ein anderes Vermächtnis aktiviert wird. | Reduces damage taken by 80% while increasing maximum HP by 50%. Cannot be used with other Wisdom abilities. Effect ends upon reuse or upon replacement of duty action. | Melee + Ranged + Healer + Magic ",
-    "Wisdom of the Guardian | Du verringerst deinen erlittenen Schaden um 40% und erhöhst deine maximalen LP um 10%. Kann nicht zusammen mit anderen Vermächtnisfähigkeiten eingesetzt werden. Effekt endet bei erneuter Ausführung oder wenn ein anderes Vermächtnis aktiviert wird. | Reduces damage taken by 45% while increasing maximum HP by 10%. Cannot be used with other Wisdom abilities. Effect ends upon reuse or upon replacement of duty action. | Tank ",
-    "Wisdom of the Ordained | Deine maximalen MP sind um 50% und die Wirkung deiner Heilmagie ist um 25% erhöht. Kann nicht zusammen mit anderen Vermächtnisfähigkeiten eingesetzt werden. Effekt endet bei erneuter Ausführung oder wenn ein anderes Vermächtnis aktiviert wird. | Increases maximum MP by 50% and healing magic potency by 25%. Cannot be used with other Wisdom abilities. Effect ends upon reuse or upon replacement of duty action. | Healer ",
-    "Wisdom of the Skirmisher | Du erhöhst deinen ausgeteilten Schaden um 20%. Kann nicht zusammen mit anderen Vermächtnisfähigkeiten eingesetzt werden. Effekt endet bei erneuter Ausführung oder wenn ein anderes Vermächtnis aktiviert wird. | Increases damage dealt by 20%. Cannot be used with other Wisdom abilities. Effect ends upon reuse or upon replacement of duty action. | Melee + Ranged + Magic ",
-    "Wisdom of the Watcher | Deine Ausweichrate ist um 25% erhöht, dein ausgeteilter Schaden jedoch um 5% verringert. Kann nicht zusammen mit anderen Vermächtnisfähigkeiten eingesetzt werden. Effekt endet bei erneuter Ausführung oder wenn ein anderes Vermächtnis aktiviert wird. | Increases evasion by 25% while reducing damage dealt by 5%. Cannot be used with other Wisdom abilities. Effect ends upon reuse or upon replacement of duty action. | Tank ",
-    "Wisdom of the Templar | Deine maximalen LP sind um 30% und die Wirkung deiner Heilmagie ist um 50% erhöht. Dein ausgeteilter Schaden ist jedoch um 5% verringert. Kann nicht zusammen mit anderen Vermächtnisfähigkeiten eingesetzt werden. Effekt endet bei erneuter Ausführung oder wenn ein anderes Vermächtnis aktiviert wird. | Increases healing magic potency by 50% and maximum HP by 30%, while reducing damage dealt by 5%. Cannot be used with other Wisdom abilities. Effect ends upon reuse or upon replacement of duty action. | Healer ",
-    "Wisdom of the Irregular | Du erhöhst deinen ausgeteilten physischen Schaden um 30%, deine Magieabwehr ist jedoch um 60% verringert. Kann nicht zusammen mit anderen Vermächtnisfähigkeiten eingesetzt werden. Effekt endet bei erneuter Ausführung oder wenn ein anderes Vermächtnis aktiviert wird. | Increases damage dealt by 30% while reducing magic defense by 60%. Cannot be used with other Wisdom abilities. Effect ends upon reuse or upon replacement of duty action. | Melee + Ranged + Magic ",
-    "Wisdom of the Breathtaker | Du erhöhst deine Ausweichrate um 10%. Außerdem ist deine Be­we­gungs­ge­schwin­dig­keit auf- und abgesessen erhöht und deine Giftresistenz verstärkt. Kann nicht zusammen mit anderen Vermächtnisfähigkeiten eingesetzt werden. Effekt endet bei erneuter Ausführung oder wenn ein anderes Vermächtnis aktiviert wird. | Increases poison resistance and movement speed, including mount speed, and increases evasion by 10%. Cannot be used with other Wisdom abilities. Effect ends upon reuse or upon replacement of duty action. | Tank + Melee + Ranged + Healer + Magic ",
-    "Spirit of the Remembered | Deine maximalen LP sind um 10% und deine Präzision um 30% erhöht. Außerdem belebst du dich mit einer Wahr­schein­lich­keit von 70% bei erlittener Kampfunfähigkeit wieder. Dauer: 180 Minuten | Increases maximum HP by 10% and accuracy by 30%. Additional Effect: Grants a 70% chance of automatic revival upon KO. Duration: 180m | Tank + Melee + Ranged + Healer + Magic ",
-    "Protect L | Du verringerst den erlittenen physischen Schaden des Ziels um 22%. Dauer: 30 Minuten | Reduces physical damage taken by 22%. Duration: 30m  | Tank + Melee + Ranged + Healer + Magic ",
-    "Shell L | Du verringerst den erlittenen magischen Schaden des Ziels um 22%. Dauer: 30 Minuten | Reduces magic damage taken by 22%. Duration: 30m | Tank + Melee + Ranged + Healer + Magic ",
-    "Death L | Du machst das Ziel kampfunfähig. Je niedriger die LP des Ziels, desto größer die Erfolgschance. | KOs target. The less the target's HP, the greater the chance of success. | Tank + Melee + Magic + Healer + Ranged ",
-    "Focus L | Du versiehst dich mit Starksammeln. Der Effekt kann bis zu 16 Mal gestapelt werden. Effekt von Starksammeln: Erhöht den Attacke-Wert der nächsten Waf­fen­fer­tig­keit pro Stapel um 30%. Gemeinsamer Reaktivierungs-Timer mit allen anderen Waf­fen­fer­tig­kei­ten und Magie. Dauer: 30 Sekunden | Grants a stack of Boost, up to a maximum of 16. Boost Bonus: Increases potency of next weaponskill by 30% per stack. Shares a recast timer with all other weaponskills and spells. Duration: 30s | Tank + Melee + Ranged + Healer + Magic ",
-    "Paralyze L | Du fügst dem Ziel Paralyse zu. Dauer: 60 Sekunden | Afflicts target with Paralysis. Duration: 60s | Tank + Melee + Healer + Ranged + Magic ",
-    "Paralyze L III | Du fügst dem Ziel und den Gegnern in seiner Nähe Paralyse zu. Dauer: 60 Sekunden | Afflicts target and all neaby enemies with Paralysis. Duration: 60s | Tank + Melee + Ranged + Healer + Magic ",
-    "Swift L | Du erhöhst deine Be­we­gungs­ge­schwin­dig­keit beträchtlich. Dauer: 10 Sekunden | Greatly increases movement speed. Duration: 10s | Tank + Melee + Ranged + Healer + Magic ",
-    "Featherfoot L | Du erhöhst deine Ausweichrate um 15%. Dauer: 45 Sekunden | Increases evasion by 15%. Duration: 45s | Tank + Melee + Ranged + Healer + Magic ",
-    "Spirit Dart L | Du führst eine physische Fernkampfattacke aus. Attacke-Wert: 100 Zusatzeffekt: Erhöht den erlittenen Schaden des Ziels um 8%. Dauer: 60 Sekunden | Delivers a ranged attack with a potency of 100. Additional Effect: Afflicts target with Spirit Dart L, increasing damage taken by 8% Duration: 60s | Melee + Ranged + Magic ",
-    "Catastrophe L | Du führst eine magische Attacke auf alle umstehenden Gegner aus. Attacke-Wert: 4.000 bei Gegnern und 999.999 bei Ausführendem. | Deals unaspected damage to all nearby enemies with a potency of 4,000, while dealing damage with a potency of 999,999 to self. | Tank + Melee + Ranged ",
-    "Dispel L | Du entfernst einen positiven Status vom Ziel. | Removes one beneficial status from target. | Melee + Ranged + Healer + Magic ",
-    "Feint L | Du führst eine physische Attacke aus. Attacke-Wert: 100. Zusatzeffekt: Verringert die Ausweichrate des Ziels. Dauer: 60 Sekunden | Delivers an attack with a potency of 100. Additional Effect: Reduces target's evasion. Duration: 60s | Tank + Healer ",
-    "Stealth L | Du verbirgst dich vor den Blicken der meisten Gegner, verlangsamst aber deine Be­we­gungs­ge­schwin­dig­keit um 50%. Einige Gegner können dich sehen. Bedingung: nach Ausführung nicht im Kampf. Effekt endet bei erneuter Ausführung oder nächstem Kommando mit Ausnahme von Sprint. | Blend in with your surroundings, making it impossible for most enemies to detect you, but reducing movement speed by 50%. Has no effect on certain enemies with special sight. Cannot be executed while in combat. Effect ends upon use of any action other than Sprint, or upon reuse. | Tank + Melee + Ranged + Magic + Healer ",
-    "Aetherial Manipulation L | Du bewegst dich augenblicklich vor dein anvisiertes Ziel. Kann nicht während Fessel ausgeführt werden. | Rush to a target's side. Unable to cast if bound. | Tank + Melee + Magic + Healer + Ranged ",
-    "Backstep L | Du springst 10 Yalme von deiner aktuellen Position zurück. Kann nicht während Fessel ausgeführt werden. | Jump 10 yalms back from current position. Cannot be executed while bound. | Tank + Melee + Ranged + Healer + Magic ",
-    "Tranquilizer L | Du fügst dem Ziel Betäubung zu. Dauer: 8 Sekunden | Stuns target. Duration: 8s | Tank + Melee + Ranged + Healer + Magic ",
-    "Bloodbath L | Du wandelst einen Teil deines ausgeteilten Schadens in LP um. Dauer: 45 Sekunden | Converts a portion of damage dealt into HP. Duration: 45s | Tank + Melee + Ranged + Healer + Magic",
-    "Rejuvenate L | Du regenerierst augenblicklich 50 % deiner Maximal-LP und 50% deiner Maximal-MP. | Instantly restores 50% of maximum HP and MP. | Tank + Melee + Ranged + Healer + Magic ",
-    "Haymaker L | Du führst eine physische Attacke aus. Attacke-Wert: 300 Zusatzeffekt: Gegner wird um 20% verlangsamt. Bedingung: Nur direkt nach erfolgreichem Ausweichen Dauer: 30 Sekunden | Delivers an attack with a potency of 300. Can only be executed immediately after evading an attack. Additional Effect: Slow +20% Duration: 30s | Tank ",
-    "Rapid Recast L | Du halbierst die Re­ak­ti­vie­rungs­zeit des nächsten ausgeführten Talents. Dauer: 15 Sekunden | Shortens recast time for next ability used by 50%. Duration: 15s | Tank + Melee + Ranged + Magic ",
-	"Cure L | Du regenerierst LP des Ziels. Heilpotenzial: 9.000 | Restores target's HP. Cure Potency: 9,000 | Tank + Melee + Ranged ",
-    "Cure L II | Du regenerierst LP des Ziels. Heilpotenzial: 12.000 | Restores target's HP. Cure Potency: 12,000 | Melee + Magic + Ranged ",
-    "Stoneskin L | Du errichtest eine Barriere um das Ziel, die insgesamt 10% der Maximal-LP des Ziels absorbiert. Dauer: 30 Sekunden | Creates a barrier around target that absorbs damage totaling 10% of target's maximum HP. Duration: 30s | Tank + Melee + Magic + Healer + Ranged ",
-    "Cure L III | Du regenerierst eigene LP oder die eines Grup­pen­mit­glieds und aller umstehenden Grup­pen­mit­glieder. Heilpotenzial: 9.000 | Restores own or target party member's HP and all party members nearby target. Cure Potency: 9,000 | Tank + Melee + Ranged ",
-    "Regen L | Du regenerierst stetig LP des Ziels. Heilpotenzial: 2.500. Dauer: 21 Sekunden | Grants Regen to target. Cure Potency: 2,500. Duration: 21s | Tank + Melee + Ranged + Magic ",
-    "Esuna L | Du entfernst einen negativen Status vom anvisierten Ziel. | Removes a single detrimental effect from target. | Tank + Melee + Ranged + Magic ",
-    "Incense L | Du setzt dich an die erste Stelle der Feindseligkeitsliste des Gegners und erhöhst die Feindseligkeit noch weiter. Dauer: 15 Sekunden | Gesture threateningly, placing yourself at the top of a target's enmity list and increasing enmity generation. Duration: 15s | Melee + Ranged + Healer + Magic ",
-    "Raise L | Du belebst das Ziel wieder, wonach es für gewisse Zeit unter Schwäche leidet. | Resurrects target to a weakened state. | Tank + Melee + Ranged ",
-    "Bravery L | Du erhöhst den ausgeteilten Schaden des Ziels um 10%. Dauer: 300 Sekunden | Increases target's damage dealt by 10%. Duration: 300s | Healer + Magic ",
-    "Solid Shield L | Du verringerst den Schaden, den du durch phyische Angriffe erleidest, um 99%. Dauer: 8 Sekunden | Reduces physical damage taken by 99%. Duration: 8s | Melee + Magic + Healer + Ranged ",
-    "Spell Shield L | Du reduzierst Schaden, den du durch magische Angriffe erleidest, um 99%. Dauer: 8 Sekunden | Reduces magic damage taken by 99%. Duration: 8s | Tank + Melee + Ranged + Magic ",
-    "Reflect L | Du errichtest eine Barriere um dich oder ein anderes Grup­pen­mit­glied, die jedwede Magie reflektiert. Dauer: 10 Sekunden | Creates a magic-reflecting barrier around self or party member. Duration: 10s | Tank + Melee + Ranged + Magic + Healer",
-    "Smite L | Du führst eine physische Attacke aus. Attacke-Wert: 1.000. Zusatzeffekt: Du wandelst einen Teil deines ausgeteilten Schadens in LP um. Bedingung: Die eigenen LP betragen 50% oder weniger. | Delivers an attack with a potency of 1,000. Can only be executed when your HP is below 50%. Additional Effect: Restores an amount of own HP proportional to damage dealt | Tank ",
-    "Refresh L | Erhöht die Magia-Ätherregeneration von dir und umstehenden Grup­pen­mit­gliedern. Dauer: 30 Sekunden | Increases the amount of magia aether regenerated over time by self and nearby party members. Duration: 30s | Healer ",
-    "Banish L | Du führst eine elementneutrale magische Attacke aus. Attacke-Wert: 200. Zusatzeffekt: Erhöht den erlittenen Schaden untoter Gegner um 25%. Dauer: 60 Sekunden | Deals unaspected damage with a potency of 200. Additional Effect: Afflicts undead targets with Banish L, increasing damage taken by 25%. Duration: 60s | Healer ",
-    "Banish L III | Du führst eine elementneutrale magische Attacke auf das Ziel und die Gegner in seiner Nähe aus. Attacke-Wert: 150. Zusatzeffekt: Erhöht den erlittenen Schaden untoter Gegner um 25%. Dauer: 60 Sekunden | Deals unaspected damage with a potency of 150 to target and all enemies nearby it. Additional Effect: Afflicts undead targets with Banish L, increasing damage taken by 25%. Duration: 60s | Healer ",
-    "Magic Burst L | Du verdoppelst den Schaden magischer Attacken im Austausch für erhöhten MP-Verbrauch. Dauer: 20 Sekunden | Increases spell damage by 100% while increasing MP cost. Duration: 20s | Healer + Magic ",
-    "Double Edge L | Du erhöhst deinen ausgeteilten physischen Schaden alle 3 Sekunden um 15%, während deine LP pro Stapel um jeweils 360 LP mehr sinken. Der Effekt ist bis zu 16 Einheiten stapelbar. | Increases physical damage dealt while dealing damage to self over time. Stacks increase every 3 seconds, up to a maximum of 16. For each stack, physical damage dealt is increased by 15%, and potency of damage dealt to self increases by 360. | Tank + Melee ",
-    "Eagle Eye Shot L | Du führst eine physische Fernkampfattacke aus. Attacke-Wert: 80. Mit sinkenden LP des Ziels steigt der Attacke-Wert bis zum maximal Zehnfachen. Erhöht die Feindseligkeit extrem. | Delivers a ranged attack with a potency of 80. Potency increases up to 1,000% the lower the target's HP. Generates significant enmity upon use. | Ranged ",
-    "Perception L | Du deckst im Umkreis von 15 Yalmen alle Fallen auf. Wenn sich keine Fallen im Umkreis von 15 Yalmen befinden, wird der Suchkreis auf 36 Yalme erweitert und dir wird gewahr, ob sich dort noch Fallen befinden. Dieses Logos-Kommando kann nur in Dungeons angewendet werden. | Reveals all traps within a 15-yalm radius. If no traps exist within 15 yalms, detects whether any traps are present within a 36-yalm radius. Only effective within dungeons. | Melee + Ranged ",
-    "Wisdom of the Elder | Du erhöhst deinen ausgeteilten magischen Schaden um 35% und verringerst deinen erlittenen magischen Schaden um 22%. Außerdem verringerst du den MP-Verbrauch deiner Zauber. Kann nicht zusammen mit anderen Vermächtnisfähigkeiten eingesetzt werden. Effekt endet bei erneuter Ausführung oder wenn ein anderes Vermächtnis aktiviert wird. | Increases magic damage dealt by 35% while reducing magic damage taken by 22% and decreasing spell MP cost. Cannot be used with other Wisdom abilities. Effect ends upon reuse or upon replacement of duty action. | Magic ",
-    "Wisdom of the Duelist | Du erhöhst deinen ausgeteilten physischen Schaden um 40% und deine maximalen LP um 15%. Kann nicht zusammen mit anderen Vermächtnisfähigkeiten eingesetzt werden. Effekt endet bei erneuter Ausführung oder wenn ein anderes Vermächtnis aktiviert wird. | Increases physical damage dealt by 40% and maximum HP by 15%. Cannot be used with other Wisdom abilities. Effect ends upon reuse or upon replacement of duty action. | Melee ",
-    "Wisdom of the Fiendhunter | Du erhöhst deinen ausgeteilten physischen Schaden um 25% und deine Ausweichrate wird um 25% erhöht. Kann nicht zusammen mit anderen Vermächtnisfähigkeiten eingesetzt werden. Effekt endet bei erneuter Ausführung oder wenn ein anderes Vermächtnis aktiviert wird. | Increases physical damage dealt by 25% and evasion by 25%. Cannot be used with other Wisdom abilities. Effect ends upon reuse or upon replacement of duty action. | Ranged ",
-    "Wisdom of the Indomitable | Du verringerst deinen erlittenen Schaden um 64%. Wenn dich eine Attacke trifft und du 50% oder mehr deiner Lebenspunkte verlierst, erhältst du einen Stapel „LP-Bonus“. Der Effekt kann bis zu 16 Mal gestapelt werden. Kann nicht zusammen mit anderen Vermächtnisfähigkeiten eingesetzt werden. Effekt endet bei erneuter Ausführung oder wenn ein anderes Vermächtnis aktiviert wird. Dauer: 15 Minuten | Reduces damage taken by 64%. Grants one stack of HP Boost each time damage equal to or greater than half of maximum HP is taken from a single-target attack, up to a maximum of 16. Cannot be used with other Wisdom abilities. Effect ends upon reuse or upon replacement of duty action. Duration: 15m | Tank ",
-    "Sacrifice L | Du regenerierst alle LP des Ziels und belebst es wieder. Zusatzeffekt: Du erhältst den Status Aufopferung. Effekt von Aufopferung: Kampfunfähigkeit nach Ablauf der Effektdauer. Bedingung: Aufopferung nicht aktiv. Dauer: 10 Sekunden | Restores all of a KO'd target's HP. Cannot be executed if currently afflicted with Sacrifice. Additional Effect: Inflicts Sacrifice on self. Sacrifice Effect: When effect expires, you will be KO'd Duration: 10s | Healer ",
-	  ];
-
-  // TABELLE 4 - OBERKLASSEN (Rollen): "datei.png" | "Rolle EN" | "Rolle DE"
-  // Die REIHENFOLGE dieser Zeilen bestimmt die Anzeige-Reihenfolge:
-  // Tank > Heiler > Nahkaempfer > Fernkaempfer > Magier
-  // Neue Rollen jederzeit einfach als Zeile anhaengen.
-  const ROLE_LINES = [
-    "role_tank.png | Tank | Verteidiger",
-    "role_healer.png | Healer | Heiler",
-    "role_melee.png | Melee | Nahkämpfer",
-    "role_ranged.png | Ranged | Fernkämpfer",
-    "role_magic.png | Magic | Magier",
-  ];
-
-  // TABELLE 5 - KLASSEN (4 Spalten):
-  //   "datei.png" | "Klasse EN" | "Klasse DE" | "Rolle EN (wie in Tabelle 4)"
-  // Dateinamen an deine echten PNGs anpassen. Klassen ohne passende
-  // Rolle werden unter "Ohne Rolle" gesammelt.
-  const CLASS_LINES = [
-    "Paladin.png | Paladin | Paladin | Tank",
-    "Warrior.png | Warrior | Krieger | Tank",
-    "DarkKnight.png | Dark Knight | Dunkelritter | Tank",
-    "Gunbreaker.png | Gunbreaker | Revolverklinge | Tank",
-    "WhiteMage.png | White Mage | Weismagier | Healer",
-    "Scholar.png | Scholar | Gelehrter | Healer",
-    "Astrologian.png | Astrologian | Astrologe | Healer",
-    "Sage.png | Sage | Weiser | Healer",
-    "Monk.png | Monk | M&ouml;nch | Melee",
-    "Dragoon.png | Dragoon | Dragoon | Melee",
-    "Ninja.png | Ninja | Ninja | Melee",
-    "Samurai.png | Samurai | Samurai | Melee",
-    "Reaper.png | Reaper | Schnitter | Melee",
-    "Bard.png | Bard | Barde | Ranged",
-    "Machinist.png | Machinist | Maschinist | Ranged",
-    "Dancer.png | Dancer | T&auml;nzer | Ranged",
-    "BlackMage.png | Black Mage | Schwarzmagier | Magic",
-    "Summoner.png | Summoner | Beschw&ouml;rer | Magic",
-    "RedMage.png | Red Mage | Rotmagier | Magic",
-  ];
-
   let LANG = (navigator.language || "").toLowerCase().startsWith("de") ? "de" : "en";
 
-  // --- Rollen (Oberklassen) parsen ---
   const ROLES = [];
   (function parseRoles() {
     for (const line of ROLE_LINES) {
@@ -423,7 +341,6 @@
   })();
   function roleDisplayName(role) { return LANG === "de" ? role.nameDe : role.nameEn; }
 
-  // --- Klassen parsen ---
   const CLASSES = {};
   (function parseClasses() {
     for (const line of CLASS_LINES) {
@@ -445,9 +362,6 @@
     return e && e.role ? e.role.trim().toLowerCase() : "";
   }
 
-  // --- Klassen nach Oberklasse gruppieren (Reihenfolge wie Tabelle 4) ---
-  // Rollen-Namen wie "Healer"/"Heiler" werden automatisch zu allen
-  // Klassen dieser Rolle expandiert (gem. CLASS_LINES).
   function groupClasses(clsList) {
     const expanded = [];
     for (const cls of clsList) {
@@ -485,7 +399,7 @@
 
   const FRAGMENTS = [];
   (function parseFragments() {
-    for (const line of FRAGMENT_LINES) {
+    for (const line of MNEMEN_LINES) {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("#")) continue;
       const parts = trimmed.split("|").map(p => p.trim().replace(/^"|"$/g, ""));
@@ -498,6 +412,25 @@
     return FRAGMENTS.find(f => f.nameEn.toLowerCase() === key) || null;
   }
 
+  const LOGOGRAMS = [];
+  (function parseLogograms() {
+    for (const line of LOGOGRAM_LINES) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("#")) continue;
+      const parts = trimmed.split("|").map(p => p.trim().replace(/^"|"$/g, ""));
+      if (parts.length < 4 || !parts[0]) continue;
+      LOGOGRAMS.push({ file: parts[0], nameEn: parts[1], nameDe: parts[2] || parts[1], items: parts.slice(3).filter(Boolean) });
+    }
+  })();
+  function logoName(l) { return LANG === "de" ? l.nameDe : l.nameEn; }
+  function logogramsFor(actionName) {
+    const key = (actionName || "").trim().toLowerCase();
+    if (!key) return [];
+    return LOGOGRAMS.filter(function(l) {
+      return l.items.some(function(it) { return it.trim().toLowerCase() === key; });
+    });
+  }
+  
   const DESCR = {};
   (function parseDescriptions() {
     for (const line of DESCRIPTION_LINES) {
@@ -583,6 +516,15 @@
       footer: COPYRIGHT,
       langBtn: "\ud83c\udf10 DE",
       times: function(n) { return n + "\u00d7"; },
+	  src: "Quelle:",
+      splTitle: "Logos-Splitter",
+      alreadyList: "Steht bereits in der Liste.",
+      addBar: "In die Leiste",
+      rmList: "Aus der Liste entfernen",
+	  barHead1: "Start BA",
+      barHead2: "Nach nutzung ",
+      pickTitle: "Kombi wählen",
+      splEmpty: "Noch nichts \u2013 Skills mit Kombis in die Leiste ziehen."
     },
     en: {
       subtitle: "All logos actions \u2013 click to add, drag & drop to place precisely",
@@ -598,7 +540,7 @@
       pngFail: "PNG export blocked. Click again and pick the project folder in the dialog \u2013 then it works.",
       resetConfirm: "Really clear the bar?",
       selTitle: "Selected logos actions & combinations",
-      selEmpty: "No skills selected yet \u2013 click icons on the left to list them here.",
+      selEmpty: "No skills selected yet \u2013 click icons on the left to list them.",
       lblDesc: "DESCRIPTION",
       lblRole: "ROLE / CLASSES",
       lblCombo: "COMBINATIONS / FRAGMENTS",
@@ -609,7 +551,16 @@
       noRole: "No role",
       footer: COPYRIGHT,
       langBtn: "\ud83c\udf10 EN",
-      times: function(n) { return n + "x"; },
+      times: function(n) { return n + "x"; },      
+	  src: "Source:",
+      splTitle: "Logos Splitters",
+      alreadyList: "Already in the list.",
+      addBar: "Add to bar",
+      rmList: "Remove from list",
+      barHead1: "Start BA",
+      barHead2: "After Use",
+      pickTitle: "Choose combo",
+	  splEmpty: "Nothing yet \u2013 drag skills with combos into the bar.",
     }
   };
   function t(key) { return T[LANG][key]; }
@@ -621,10 +572,16 @@
 
   let rowCount = 3;
   let rows = [[], [], []];
+  let pickedCombos = {};
+  let splitterPanelVisible = true;
+  let selected = [];
+    let rows2 = null;   
+  let uidSeq = 0;
 
   const grid = document.getElementById("skillGrid");
   const panel = document.getElementById("skillPanel");
   const bar = document.getElementById("logosBar");
+  const bar2 = document.getElementById("logosBar2");
   const label = document.getElementById("slotLabel");
   const warn = document.getElementById("warning");
   const toast = document.getElementById("toast");
@@ -632,6 +589,7 @@
   const btnMinus = document.getElementById("slotMinus");
   const btnPlus = document.getElementById("slotPlus");
   const btnReset = document.getElementById("resetBtn");
+  
 
   function capacity() { return rowCount * PER_ROW; }
   function usedCount() { return rows.reduce(function(n, r) { return n + r.length; }, 0); }
@@ -674,7 +632,8 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
-    function fillSentences(el, text) {
+
+  function fillSentences(el, text) {
     if (!text) return;
     var parts = text.split(". ");
     for (var i = 0; i < parts.length; i++) {
@@ -696,6 +655,7 @@
       rq.onerror = function() { rej(rq.error); };
     });
   }
+
   async function idbSet(k, v) {
     const db = await idbOpen();
     return new Promise(function(res, rej) {
@@ -705,19 +665,22 @@
       tx.onerror = function() { rej(tx.error); };
     });
   }
+
   async function idbGet(k) {
     const db = await idbOpen();
     return new Promise(function(res, rej) {
       const tx = db.transaction("kv", "readonly");
       const rq = tx.objectStore("kv").get(k);
       rq.onsuccess = function() { res(rq.result); };
-      rq.onerror = function() { rej(rq.error); };
+      rq.onerror = function() { rej(tx.error); };
     });
   }
+
   async function getSubDir(name) {
     try { return await dirHandle.getDirectoryHandle(name, { create: false }); }
     catch (e) { return null; }
   }
+
   async function scanIcons() {
     iconUrls = {};
     if (!dirHandle) return;
@@ -735,14 +698,17 @@
       } catch (e) {}
     }
   }
+
   function iconUrlFor(file) {
     return iconUrls[file.toLowerCase()] || (ACTIONS_DIR + "/" + file);
   }
+
   function refreshImages() {
     document.querySelectorAll("img[data-file]").forEach(function(im) {
       im.src = iconUrls[im.dataset.file];
     });
   }
+
   function makeImg(skill) {
     const img = document.createElement("img");
     img.dataset.file = skill.file;
@@ -750,6 +716,7 @@
     img.alt = skill.id;
     return img;
   }
+
   function makeClassImg(file, alt) {
     const img = document.createElement("img");
     img.dataset.file = file;
@@ -762,14 +729,16 @@
     img.onerror = function() { img.remove(); };
     return img;
   }
+
   function makeJobChip(cls) {
     const chip = document.createElement("span");
     chip.className = "tip-job";
     const e = classEntry(cls);
     if (e && e.file) chip.appendChild(makeClassImg(e.file, cls));
-    else chip.textContent = classDisplay(cls);   // Fallback nur falls Icon fehlt
+    else chip.textContent = classDisplay(cls);
     return chip;
   }
+
   function showToast(msg) {
     toast.textContent = msg;
     toast.classList.add("show");
@@ -778,7 +747,7 @@
 
   function updateTileMarkers() {
     const counts = {};
-    for (const r of rows) for (const id of r) counts[id] = (counts[id] || 0) + 1;
+    for (const r of rows) for (const en of r) counts[en.id] = (counts[en.id] || 0) + 1;
     grid.querySelectorAll(".skill").forEach(function(tile) {
       const n = counts[tile.dataset.id] || 0;
       if (n > 0) { tile.classList.add("used"); tile.dataset.count = n; }
@@ -791,6 +760,7 @@
   function clearDropHighlights() {
     bar.querySelectorAll(".bar-row").forEach(function(r) { r.classList.remove("drop-hover"); });
   }
+
   function insertionIndex(rowEl, x) {
     const skills = Array.prototype.slice.call(rowEl.querySelectorAll(".bar-skill"));
     for (let i = 0; i < skills.length; i++) {
@@ -799,30 +769,36 @@
     }
     return skills.length;
   }
-  function handleDropOnRow(r, e, rowEl) {
+
+  function handleDropOnRow(r, e, rowEl, dataArr) {
     if (!dragPayload) return;
     let idx = Math.min(insertionIndex(rowEl, e.clientX), PER_ROW);
     if (dragPayload.kind === "new") {
-      if (rows[r].length >= PER_ROW) { warnOnce(t("rowFull")); dragPayload = null; return; }
-      rows[r].splice(idx, 0, dragPayload.id);
+      if (dataArr[r].length >= PER_ROW) { warnOnce(t("rowFull")); dragPayload = null; return; }
+      let combo = null;
+      if (typeof pickedCombos[dragPayload.id] === "number") combo = pickedCombos[dragPayload.id];
+      const sk = skillById(dragPayload.id);
+      if (combo === null && sk && sk.combos.length === 1) combo = 0;
+      dataArr[r].splice(idx, 0, { uid: ++uidSeq, id: dragPayload.id, combo: combo });
     } else {
-      const fr = dragPayload.r, fi = dragPayload.i;
-      const id = rows[fr][fi];
-      if (id === undefined) { dragPayload = null; return; }
-      rows[fr].splice(fi, 1);
-      if (fr === r && fi < idx) idx--;
-      if (rows[r].length >= PER_ROW) {
-        rows[fr].splice(fi, 0, id);
+      const fr = dragPayload.r, fi = dragPayload.i, srcArr = dragPayload.arr || rows;
+      const entry = srcArr[fr][fi];
+      if (!entry) { dragPayload = null; return; }
+      srcArr[fr].splice(fi, 1);
+      if (srcArr === dataArr && fr === r && fi < idx) idx--;
+      if (dataArr[r].length >= PER_ROW) {
+        srcArr[fr].splice(fi, 0, entry);
         warnOnce(t("rowFull"));
         dragPayload = null;
         refreshAll();
         return;
       }
-      rows[r].splice(idx, 0, id);
+      dataArr[r].splice(idx, 0, entry);
     }
     dragPayload = null;
     refreshAll();
   }
+
   document.addEventListener("dragend", function() {
     dragPayload = null;
     clearDropHighlights();
@@ -837,9 +813,8 @@
     const img = makeImg(skill);
     img.onload = function() { tile.classList.add("has-img"); tile.appendChild(img); };
     tile.addEventListener("click", function() {
-      const target = rows.findIndex(function(rw) { return rw.length < PER_ROW; });
-      if (target === -1) { warnOnce(t("full")); return; }
-      rows[target].push(skill.id);
+      if (selected.indexOf(skill.id) !== -1) { warnOnce(t("alreadyList")); return; }
+      selected.push(skill.id);
       refreshAll();
     });
     tile.draggable = true;
@@ -852,6 +827,7 @@
     bindTooltip(tile, function() { return skill; });
     grid.appendChild(tile);
   }
+
   for (let i = SKILLS.length; i < GRID_COLS * GRID_ROWS; i++) {
     const ph = document.createElement("div");
     ph.className = "empty-slot";
@@ -861,11 +837,11 @@
   grid.addEventListener("dragover", function(e) {
     if (dragPayload && dragPayload.kind === "move") e.preventDefault();
   });
+
   grid.addEventListener("drop", function(e) {
     e.preventDefault();
     if (dragPayload && dragPayload.kind === "move") {
-      const r = dragPayload.r, i = dragPayload.i;
-      rows[r].splice(i, 1);
+      dragPayload.arr.splice(dragPayload.i, 1);
       dragPayload = null;
       refreshAll();
     }
@@ -876,17 +852,17 @@
     refreshAll();
   }
 
-  function renderBar() {
-    bar.innerHTML = "";
-    bar.style.height = barHeightFor(rowCount) + "px";
+  function renderBarInto(barEl, dataRows) {
+    barEl.innerHTML = "";
+    barEl.style.height = barHeightFor(rowCount) + "px";
     const skillSize = Math.max(22, ROW_H - 6);
     for (let r = 0; r < rowCount; r++) {
       const rowEl = document.createElement("div");
       rowEl.className = "bar-row";
       rowEl.style.height = ROW_H + "px";
-      rowEl.style.justifyContent = rows[r].length > 1 ? "space-evenly" : "center";
-      rows[r].forEach(function(id, i) {
-        const skill = skillById(id);
+      rowEl.style.justifyContent = dataRows[r].length > 1 ? "space-evenly" : "center";
+      dataRows[r].forEach(function(en, i) {
+        const skill = skillById(en.id);
         if (!skill) return;
         const el = document.createElement("div");
         el.className = "bar-skill";
@@ -899,19 +875,34 @@
         el.appendChild(makeFallback(skill.id));
         const img = makeImg(skill);
         img.onload = function() { el.innerHTML = ""; el.appendChild(hint); el.appendChild(img); };
-        el.addEventListener("click", function() { removeFromRow(r, i); });
+        el.addEventListener("click", function() { dataRows[r].splice(i, 1); refreshAll(); });
         el.draggable = true;
         el.addEventListener("dragstart", function(e) {
           e.stopPropagation();
-          dragPayload = { kind: "move", r: r, i: i };
+          dragPayload = { kind: "move", r: r, i: i, arr: dataRows };
           e.dataTransfer.effectAllowed = "move";
-          e.dataTransfer.setData("text/plain", id);
+          e.dataTransfer.setData("text/plain", en.id);
           tipEl.classList.remove("show");
         });
         bindTooltip(el, function() { return skill; });
+        if (skill.combos.length > 0) {
+          const ci = effectiveCombo(en, skill);
+          const bd = document.createElement("span");
+          if (ci === null) { bd.className = "pct-badge pct-q"; bd.textContent = "?%"; }
+          else {
+            const info = pctInfo(mnemeTotal(skill.combos[ci]));
+            bd.className = "pct-badge " + info.cls;
+            bd.textContent = info.pct + "%";
+          }
+          el.appendChild(bd);
+          bd.addEventListener("click", function(ev) {
+            ev.stopPropagation();
+            openComboPop(ev, en, skill);
+          });
+        }
         rowEl.appendChild(el);
       });
-      if (rowEl.children.length === 0 && usedCount() === 0 && r === 0) {
+      if (rowEl.children.length === 0 && dataRows === rows && usedCount() === 0 && r === 0) {
         const hint = document.createElement("div");
         hint.className = "bar-empty";
         hint.textContent = t("emptyHint");
@@ -928,18 +919,293 @@
       rowEl.addEventListener("drop", function(e) {
         e.preventDefault();
         rowEl.classList.remove("drop-hover");
-        handleDropOnRow(r, e, rowEl);
+        handleDropOnRow(r, e, rowEl, dataRows);
       });
-      bar.appendChild(rowEl);
+      barEl.appendChild(rowEl);
       if (r < rowCount - 1) {
         const div = document.createElement("div");
         div.className = "bar-divider";
-        bar.appendChild(div);
+        barEl.appendChild(div);
+      }
+    }
+
+  function renderBarInto(barEl, dataRows) {
+    barEl.innerHTML = "";
+    barEl.style.height = barHeightFor(rowCount) + "px";
+    const skillSize = Math.max(22, ROW_H - 6);
+    for (let r = 0; r < rowCount; r++) {
+      const rowEl = document.createElement("div");
+      rowEl.className = "bar-row";
+      rowEl.style.height = ROW_H + "px";
+      rowEl.style.justifyContent = dataRows[r].length > 1 ? "space-evenly" : "center";
+      const els = [];
+      dataRows[r].forEach(function(en, i) {
+        const skill = skillById(en.id);
+        if (!skill) { els.push(null); return; }
+        const el = document.createElement("div");
+        el.className = "bar-skill";
+        el.style.width = skillSize + "px";
+        el.style.height = skillSize + "px";
+        const hint = document.createElement("span");
+        hint.className = "remove-hint";
+        hint.textContent = "\u2715";
+        el.appendChild(hint);
+        el.appendChild(makeFallback(skill.id));
+        const img = makeImg(skill);
+        img.onload = function() { el.innerHTML = ""; el.appendChild(hint); el.appendChild(img); };
+        el.addEventListener("click", function() { dataRows[r].splice(i, 1); refreshAll(); });
+        el.draggable = true;
+        el.addEventListener("dragstart", function(e) {
+          e.stopPropagation();
+          dragPayload = { kind: "move", r: r, i: i, arr: dataRows };
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", en.id);
+          tipEl.classList.remove("show");
+        });
+        bindTooltip(el, function() { return skill; });
+        els.push(el);
+        rowEl.appendChild(el);
+      });
+      anchor.appendChild(bd);
+      }
+      if (rowEl.children.length === 0 && dataRows === rows && usedCount() === 0 && r === 0) {
+        const hint = document.createElement("div");
+        hint.className = "bar-empty";
+        hint.textContent = t("emptyHint");
+        rowEl.appendChild(hint);
+      }
+      rowEl.addEventListener("dragover", function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = (dragPayload && dragPayload.kind === "move") ? "move" : "copy";
+        rowEl.classList.add("drop-hover");
+      });
+      rowEl.addEventListener("dragleave", function(e) {
+        if (!rowEl.contains(e.relatedTarget)) rowEl.classList.remove("drop-hover");
+      });
+      rowEl.addEventListener("drop", function(e) {
+        e.preventDefault();
+        rowEl.classList.remove("drop-hover");
+        handleDropOnRow(r, e, rowEl, dataRows);
+      });
+      barEl.appendChild(rowEl);
+      if (r < rowCount - 1) {
+        const div = document.createElement("div");
+        div.className = "bar-divider";
+        barEl.appendChild(div);
+      }
+    }
+  }
+  
+  function rowPctInfo(dataRows, r) {
+    let total = 0, unknown = false, hasCombo = false;
+    for (const en of dataRows[r]) {
+      const skill = skillById(en.id);
+      if (!skill || skill.combos.length === 0) continue;
+      hasCombo = true;
+      const ci = effectiveCombo(en, skill);
+      if (ci === null || !skill.combos[ci]) { unknown = true; continue; }
+      total += mnemeTotal(skill.combos[ci]);
+    }
+    if (!hasCombo) return null;
+    if (unknown) return { cls: "pct-q", text: "?%" };
+    const info = pctInfo(total);
+    return { cls: info.cls, text: info.pct + "%" };
+  }
+  function renderPctCol(colEl, dataRows) {
+    if (!colEl) return;
+    colEl.innerHTML = "";
+    for (let r = 0; r < rowCount; r++) {
+      const info = rowPctInfo(dataRows, r);
+      const cell = document.createElement("div");
+      cell.className = "pct-cell";
+      cell.style.height = ROW_H + "px";
+      if (info) {
+        cell.classList.add(info.cls);
+        cell.textContent = info.text;
+        cell.title = t("pickTitle");
+        cell.addEventListener("click", function(ev) {
+          ev.stopPropagation();
+          openRowComboPop(cell, dataRows, r);
+        });
+      } else {
+        cell.style.visibility = "hidden";
+      }
+      colEl.appendChild(cell);
+      if (r < rowCount - 1) {
+        const sp = document.createElement("div");
+        sp.className = "pct-spacer";
+        colEl.appendChild(sp);
       }
     }
   }
 
-  // --- Rollen-Gruppen (Tooltip + Klapptext) ---
+  function renderBar() {
+    renderBarInto(bar, rows);
+    renderPctCol(document.getElementById("pctCol1"), rows);
+    if (rows2) {
+      renderBarInto(bar2, rows2);
+      renderPctCol(document.getElementById("pctCol2"), rows2);
+    }
+    updateBaMode();
+  }
+
+  function openComboPop(ev, entry, skill) {
+    const pop = document.getElementById("comboPop");
+    pop.innerHTML = "";
+    const h = document.createElement("h4");
+    const x = document.createElement("button");
+    x.className = "pop-x";
+    x.textContent = "\u2715";
+    x.addEventListener("click", closeComboPop);
+    h.appendChild(x);
+    h.appendChild(document.createTextNode(displayName(skill) + " \u2013 " + t("pickTitle")));
+    pop.appendChild(h);
+    skill.combos.forEach(function(comboText, ci) {
+      const line = document.createElement("div");
+      const cur = effectiveCombo(entry, skill);
+      line.className = "pop-line" + (cur === ci ? " pop-picked" : "");
+      parseCombo(comboText).forEach(function(piece, pi) {
+        if (pi > 0) line.appendChild(document.createTextNode("+"));
+        const frag = fragmentByName(piece.name);
+        if (frag) {
+          const fi = document.createElement("img");
+          fi.src = iconUrls[frag.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + frag.file);
+          fi.alt = frag.nameEn;
+          line.appendChild(fi);
+          const nm = document.createElement("span");
+          nm.textContent = LANG === "de" ? frag.nameDe : frag.nameEn;
+          line.appendChild(nm);
+        } else {
+          line.appendChild(document.createTextNode(piece.name));
+        }
+        if (piece.count > 1) line.appendChild(document.createTextNode(" " + t("times")(piece.count)));
+      });
+      const info = pctInfo(mnemeTotal(comboText));
+      const pct = document.createElement("span");
+      pct.className = info.cls;
+      pct.textContent = info.pct + "%";
+      pct.style.cssText = "margin-left:auto;font-weight:700;font-size:11.5px;padding:0 4px;border-radius:6px;border:1px solid;background:#222;";
+      line.appendChild(pct);
+      line.addEventListener("click", function() {
+        entry.combo = ci;
+        closeComboPop();
+        refreshAll();
+      });
+      pop.appendChild(line);
+    });
+    pop.classList.add("show");
+    const cr = ev.currentTarget.getBoundingClientRect();
+    const pr = pop.getBoundingClientRect();
+    let px = cr.right + 8, py = cr.top;
+    if (px + pr.width > window.innerWidth - 8) px = Math.max(8, cr.left - pr.width - 8);
+    if (py + pr.height > window.innerHeight - 8) py = Math.max(8, window.innerHeight - pr.height - 8);
+  }
+  
+    let comboPopPos = null;
+  
+  function openRowComboPop(anchorEl, dataRows, r, keepPos) {
+    const pop = document.getElementById("comboPop");
+    pop.innerHTML = "";
+    const list = [];
+    for (const en of dataRows[r]) {
+      const sk = skillById(en.id);
+      if (sk && sk.combos.length > 0) list.push({ en: en, skill: sk });
+    }
+    if (list.length === 0) return;
+    const h = document.createElement("h4");
+    const x = document.createElement("button");
+    x.className = "pop-x";
+    x.textContent = "\u2715";
+    x.addEventListener("click", closeComboPop);
+    h.appendChild(x);
+    h.appendChild(document.createTextNode(t("pickTitle")));
+    pop.appendChild(h);
+    list.forEach(function(item, si) {
+      if (si > 0) {
+        const sep = document.createElement("div");
+        sep.className = "pop-sep";
+        pop.appendChild(sep);
+      }
+      const sh = document.createElement("div");
+      sh.className = "pop-skill-head";
+      sh.appendChild(makeImg(item.skill));
+      const nm = document.createElement("span");
+      nm.textContent = displayName(item.skill);
+      sh.appendChild(nm);
+      if (effectiveCombo(item.en, item.skill) === null) {
+        const q = document.createElement("span");
+        q.textContent = " ?";
+        q.style.cssText = "color:#aaa;font-weight:400;";
+        sh.appendChild(q);
+      }
+      pop.appendChild(sh);
+      item.skill.combos.forEach(function(comboText, ci) {
+        const line = document.createElement("div");
+        const cur = effectiveCombo(item.en, item.skill);
+        line.className = "pop-line" + (cur === ci ? " pop-picked" : "");
+        parseCombo(comboText).forEach(function(piece, pi) {
+          if (pi > 0) line.appendChild(document.createTextNode("+"));
+          const frag = fragmentByName(piece.name);
+          if (frag) {
+            const fi = document.createElement("img");
+            fi.src = iconUrls[frag.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + frag.file);
+            fi.alt = frag.nameEn;
+            line.appendChild(fi);
+            const nmf = document.createElement("span");
+            nmf.textContent = LANG === "de" ? frag.nameDe : frag.nameEn;
+            line.appendChild(nmf);
+          } else {
+            line.appendChild(document.createTextNode(piece.name));
+          }
+          if (piece.count > 1) line.appendChild(document.createTextNode(" " + t("times")(piece.count)));
+        });
+        const info = pctInfo(mnemeTotal(comboText));
+        const pct = document.createElement("span");
+        pct.className = info.cls;
+        pct.textContent = info.pct + "%";
+        pct.style.cssText = "margin-left:auto;font-weight:700;font-size:11.5px;padding:0 4px;border-radius:6px;border:1px solid;background:#222;";
+        line.appendChild(pct);
+        line.addEventListener("click", function(ev) {
+          ev.stopPropagation();
+          item.en.combo = ci;
+          const allSet = list.every(function(it) {
+            return effectiveCombo(it.en, it.skill) !== null;
+          });
+          if (allSet) { closeComboPop(); refreshAll(); }
+          else { refreshAll(); openRowComboPop(anchorEl, dataRows, r, true); }
+        });
+        pop.appendChild(line);
+      });
+    });
+    pop.classList.add("show");
+    if (!keepPos || !comboPopPos) {
+      const cr = anchorEl.getBoundingClientRect();
+      const pr = pop.getBoundingClientRect();
+      let px = cr.right + 8, py = cr.top;
+      if (px + pr.width > window.innerWidth - 8) px = Math.max(8, cr.left - pr.width - 8);
+      if (py + pr.height > window.innerHeight - 8) py = Math.max(8, window.innerHeight - pr.height - 8);
+      comboPopPos = { x: px, y: py };
+    }
+    pop.style.left = comboPopPos.x + "px";
+    pop.style.top = comboPopPos.y + "px";
+  }
+  
+
+  function closeComboPop() {
+    comboPopPos = null;
+    document.getElementById("comboPop").classList.remove("show");
+  }
+
+  function updateBaMode() {
+    const on = !!rows2;
+    document.getElementById("bar2Block").classList.toggle("show", on);
+    document.getElementById("barHead1").classList.toggle("on", on);
+    document.getElementById("barHead2").classList.toggle("on", on);
+    document.getElementById("barHead1").textContent = on ? t("barHead1") : "";
+    document.getElementById("barHead2").textContent = t("barHead2");
+    document.getElementById("btnBar2").classList.toggle("active", on);
+  }
+
   function makeRoleHeader(g, forTooltip) {
     const head = document.createElement(forTooltip ? "div" : "div");
     head.className = forTooltip ? "tip-role-head" : "role-group-header";
@@ -955,6 +1221,7 @@
     }
     return head;
   }
+
   function makeTooltipRoleGroups(clsList) {
     const wrap = document.createElement("div");
     wrap.className = "tip-roles";
@@ -969,6 +1236,7 @@
     }
     return wrap;
   }
+
   function makeBodyRoleGroups(clsList) {
     const wrap = document.createElement("div");
     wrap.className = "role-groups";
@@ -985,30 +1253,30 @@
     return wrap;
   }
 
-  // Hover-Tooltip: Name + Beschreibung + Rollen-Gruppen
   function fillTip(skill) {
-    if (!skill) { tipEl.classList.remove("show"); return; }
-    tipEl.innerHTML = "";
-    const main = document.createElement("div");
-    main.className = "tip-main";
-    const textCol = document.createElement("div");
-    textCol.className = "tip-text";
-    const b = document.createElement("b");
-    b.textContent = displayName(skill);
-    textCol.appendChild(b);
-    const d = descriptionOf(skill);
-    const txt = d ? descTextOf(d) : "";
-    const ds = document.createElement("span");
-    ds.className = txt ? "tip-desc" : "tip-nodesc";
-    if (txt) fillSentences(ds, txt);
-    else ds.textContent = t("noDesc");
-    textCol.appendChild(ds);
-    main.appendChild(textCol);
-    const clsList = d ? classesOf(d) : [];
-    if (clsList.length > 0) main.appendChild(makeTooltipRoleGroups(clsList));
+    const srcs = logogramsFor(skill.nameEn);
+    if (srcs.length > 0) {
+      const src = document.createElement("span");
+      src.className = "tip-src";
+      src.appendChild(document.createTextNode(t("src") + " "));
+      srcs.forEach(function(lg, i) {
+        if (i > 0) src.appendChild(document.createTextNode(", "));
+        const im = document.createElement("img");
+        im.src = iconUrls[lg.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + lg.file);
+        im.alt = logoName(lg);
+        im.style.cssText = "width:16px;height:16px;vertical-align:-3px;object-fit:contain;";
+        src.appendChild(im);
+        const nm = document.createElement("span");
+        nm.className = "src-name";
+        nm.textContent = logoName(lg);
+        src.appendChild(nm);
+      });
+      textCol.appendChild(src);
+    }
     tipEl.appendChild(main);
     tipEl.classList.add("show");
   }
+
   function moveTip(e) {
     const pad = 14;
     let x = e.clientX + pad, y = e.clientY + pad;
@@ -1018,18 +1286,48 @@
     tipEl.style.left = x + "px";
     tipEl.style.top = y + "px";
   }
+
   function bindTooltip(el, getSkill) {
     el.addEventListener("mouseenter", function(e) { fillTip(getSkill()); moveTip(e); });
     el.addEventListener("mousemove", moveTip);
     el.addEventListener("mouseleave", function() { tipEl.classList.remove("show"); });
   }
+  function mnemeTotal(comboText) {
+    return parseCombo(comboText).reduce(function(n, p) { return n + p.count; }, 0);
+  }
+  function pctInfo(count) {
+    if (count <= 3) return { pct: 100, cls: "pct-100" };
+    if (count === 4) return { pct: 70, cls: "pct-70" };
+    if (count === 5) return { pct: 50, cls: "pct-50" };
+    return { pct: 30, cls: "pct-30" };
+  }
+  function effectiveCombo(en, skill) {
+    if (typeof en.combo === "number") return en.combo;
+    if (skill && skill.combos.length === 1) return 0;
+    return null;
+  }
+  function addSkillToBar(id) {
+    let target = -1, arr = rows;
+    for (let r = 0; r < rows.length; r++) if (rows[r].length < PER_ROW) { target = r; break; }
+    if (target === -1 && rows2) {
+      arr = rows2;
+      for (let r = 0; r < rows2.length; r++) if (rows2[r].length < PER_ROW) { target = r; break; }
+    }
+    if (target === -1) { warnOnce(t("full")); return; }
+    let combo = null;
+    if (typeof pickedCombos[id] === "number") combo = pickedCombos[id];
+    const skill = skillById(id);
+    if (combo === null && skill && skill.combos.length === 1) combo = 0;
+    arr[target].push({ uid: ++uidSeq, id: id, combo: combo });
+    refreshAll();
+  }
 
-  // Klapptext: BESCHREIBUNG -> KLASSEN (gruppiert) -> KOMBINATIONEN
   function renderSelectedList() {
     const list = document.getElementById("selectedList");
+    const openIds = new Set();
+    list.querySelectorAll("details.sel-item[open]").forEach(function(d) { openIds.add(d.dataset.sid); });
     list.innerHTML = "";
-    const flat = [];
-    for (const r of rows) for (const id of r) flat.push(id);
+    const flat = selected.slice();
     if (flat.length === 0) {
       const p = document.createElement("div");
       p.className = "selected-empty";
@@ -1044,6 +1342,7 @@
       if (!skill) continue;
       const det = document.createElement("details");
       det.className = "sel-item";
+	  det.dataset.sid = id;
       const sum = document.createElement("summary");
       const icon = makeImg(skill);
       icon.className = "icon-preview";
@@ -1056,6 +1355,26 @@
       badge.className = "sel-count" + (count > 1 ? "" : " one");
       badge.textContent = t("times")(count);
       sum.appendChild(badge);
+	  
+      const acts = document.createElement("span");
+      acts.className = "sel-actions";
+      const add = document.createElement("button");
+      add.className = "sel-btn";
+      add.textContent = "+";
+      add.title = t("addBar");
+      add.addEventListener("click", function() { addSkillToBar(skill.id); });
+      acts.appendChild(add);
+      const rm = document.createElement("button");
+      rm.className = "sel-btn rm";
+      rm.textContent = "\u2715";
+      rm.title = t("rmList");
+      rm.addEventListener("click", function() {
+        const ix = selected.indexOf(skill.id);
+        if (ix !== -1) selected.splice(ix, 1);
+        refreshAll();
+      });
+      acts.appendChild(rm);
+      sum.appendChild(acts);
 
       det.appendChild(sum);
       const body = document.createElement("div");
@@ -1070,7 +1389,7 @@
         body.appendChild(dl);
         const dp = document.createElement("div");
         dp.className = "skill-desc";
-             fillSentences(dp, dtxt);
+        fillSentences(dp, dtxt);
         body.appendChild(dp);
       }
 
@@ -1088,9 +1407,11 @@
         cl.className = "section-label lbl-combo";
         cl.textContent = t("lblCombo");
         body.appendChild(cl);
+        let picked = pickedCombos[skill.id];
+        if (picked === undefined && skill.combos.length === 1) picked = 0;
         skill.combos.forEach(function(comboText, i) {
           const li = document.createElement("div");
-          li.className = "recipe-line";
+          li.className = "recipe-line" + (picked === i ? " picked" : "");
           const num = document.createElement("span");
           num.className = "combo-num";
           num.textContent = t("combo")(i + 1) + " ";
@@ -1120,6 +1441,12 @@
               li.appendChild(cnt);
             }
           });
+          li.title = "Klick zum Auswählen";
+          li.addEventListener("click", function() {
+            if (pickedCombos[skill.id] === i) delete pickedCombos[skill.id];
+            else pickedCombos[skill.id] = i;
+            refreshAll();
+          });
           body.appendChild(li);
         });
       } else {
@@ -1129,50 +1456,294 @@
         body.appendChild(nd);
       }
       det.appendChild(body);
+      if (openIds.has(id)) det.open = true;
       list.appendChild(det);
     }
   }
 
+  const activeMnemes = new Set();
+  function refreshMnemeHits() {
+    grid.querySelectorAll(".skill.logo-hit").forEach(function(tile) { tile.classList.remove("logo-hit"); });
+    if (activeMnemes.size === 0) return;
+    grid.querySelectorAll(".skill").forEach(function(tile) {
+      const sk = skillById(tile.dataset.id);
+      if (!sk) return;
+      let hit = false;
+      outer: for (const c of sk.combos) {
+        for (const piece of parseCombo(c)) {
+          if (activeMnemes.has(piece.name.trim().toLowerCase())) { hit = true; break outer; }
+        }
+      }
+      if (hit) tile.classList.add("logo-hit");
+    });
+  }
+  function makeItemChip(name) {
+    const chip = document.createElement("span");
+    chip.className = "logo-chip";
+    const frag = fragmentByName(name);
+    if (frag) {
+      const im = document.createElement("img");
+      im.src = iconUrls[frag.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + frag.file);
+      im.alt = frag.nameEn;
+      im.onerror = function() { im.remove(); };
+      chip.appendChild(im);
+    }
+    const nm = document.createElement("span");
+    nm.textContent = frag ? (LANG === "de" ? frag.nameDe : frag.nameEn) : name;
+    chip.appendChild(nm);
+    chip.addEventListener("click", function() {
+      const key = name.trim().toLowerCase();
+      if (activeMnemes.has(key)) { activeMnemes.delete(key); chip.classList.remove("chip-active"); }
+      else { activeMnemes.add(key); chip.classList.add("chip-active"); }
+      refreshMnemeHits();
+    });
+    return chip;
+  }
+  function renderLogoList() {
+    const host = document.getElementById("logoList");
+    if (!host) return;
+    host.innerHTML = "";
+    for (const lg of LOGOGRAMS) {
+      const det = document.createElement("details");
+      det.className = "logo-item";
+      const sum = document.createElement("summary");
+      const im = document.createElement("img");
+      im.className = "logo-icon";
+      im.src = iconUrls[lg.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + lg.file);
+      im.alt = logoName(lg);
+      im.onerror = function() { im.remove(); };
+      sum.appendChild(im);
+      const nm = document.createElement("span");
+      nm.textContent = logoName(lg);
+      sum.appendChild(nm);
+      det.appendChild(sum);
+      const body = document.createElement("div");
+      body.className = "logo-items";
+      lg.items.forEach(function(it) { body.appendChild(makeItemChip(it)); });
+      det.appendChild(body);
+      host.appendChild(det);
+    }
+  }
+
+  function aggregateSplitters() {
+    const totals = {};
+    for (const r of rows) for (const en of r) {
+      const skill = skillById(en.id);
+      if (!skill || skill.combos.length === 0) continue;
+      let ci = en.combo;
+      if (ci === null && skill.combos.length === 1) ci = 0;
+      if (ci === null || !skill.combos[ci]) continue;
+      for (const piece of parseCombo(skill.combos[ci])) {
+        const key = piece.name.toLowerCase();
+        if (!totals[key]) totals[key] = { name: piece.name, count: 0, frag: fragmentByName(piece.name) };
+        totals[key].count += piece.count;
+      }
+    }
+    return Object.values(totals);
+  }
+  function renderSplitterPanel() {
+    const panel = document.getElementById("splitterPanel");
+    if (!panel) return;
+    const items = aggregateSplitters();
+    panel.innerHTML = "";
+    const btnSpl = document.getElementById("btnSplitters");
+    if (btnSpl) btnSpl.classList.toggle("active", splitterPanelVisible);
+    if (!splitterPanelVisible) { panel.classList.remove("show"); return; }
+    panel.classList.add("show");
+    if (items.length === 0) {
+      const h = document.createElement("h3");
+      h.textContent = t("splTitle");
+      const x = document.createElement("button");
+      x.textContent = "\u2715";
+      x.title = "Ausblenden";
+      x.addEventListener("click", function() { splitterPanelVisible = false; renderSplitterPanel(); });
+      h.appendChild(x);
+      panel.appendChild(h);
+      const p = document.createElement("div");
+      p.style.cssText = "color:#777;font-size:12px;font-style:italic;padding:6px 2px;";
+      p.textContent = t("splEmpty");
+      panel.appendChild(p);
+      return;
+    }
+    const h = document.createElement("h3");
+    h.textContent = t("splTitle");
+    const x = document.createElement("button");
+    x.textContent = "\u2715";
+    x.title = "Ausblenden";
+    x.addEventListener("click", function() { splitterPanelVisible = false; renderSplitterPanel(); });
+    h.appendChild(x);
+    panel.appendChild(h);
+    items.forEach(function(it) {
+      const row = document.createElement("div");
+      row.className = "splitter-row";
+      if (it.frag) {
+        const im = document.createElement("img");
+        im.src = iconUrls[it.frag.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + it.frag.file);
+        im.alt = it.frag.nameEn;
+        im.onerror = function() { im.remove(); };
+        row.appendChild(im);
+        const nm = document.createElement("span");
+        nm.textContent = LANG === "de" ? it.frag.nameDe : it.frag.nameEn;
+        row.appendChild(nm);
+      } else {
+        row.textContent = it.name;
+      }
+      const n = document.createElement("span");
+      n.className = "n";
+      n.textContent = t("times")(it.count);
+      row.appendChild(n);
+      panel.appendChild(row);
+    });
+  }
+  
+    function logogramsContaining(itemName) {
+    const key = (itemName || "").trim().toLowerCase();
+    if (!key) return [];
+    return LOGOGRAMS.filter(function(l) {
+      return l.items.some(function(it) { return it.trim().toLowerCase() === key; });
+    });
+  }
+  
+  function renderComboSummary() {
+    const host = document.getElementById("comboSummary");
+    if (!host) return;
+    host.innerHTML = "";
+    const done = new Set();
+    let any = false;
+    for (const id of selected) {
+      const skill = skillById(id);
+      if (!skill || skill.combos.length === 0 || done.has(id)) continue;
+      done.add(id);
+      let picked = pickedCombos[skill.id];
+      if (picked === undefined && skill.combos.length === 1) picked = 0;
+      if (picked === undefined || !skill.combos[picked]) continue;
+      any = true;
+      const box = document.createElement("div");
+      box.className = "combo-skill";
+      const head = document.createElement("div");
+      head.className = "cs-head";
+      const im = makeImg(skill);
+      im.style.cssText = "width:20px;height:20px;object-fit:contain;";
+      head.appendChild(im);
+      const nm = document.createElement("span");
+      nm.textContent = displayName(skill);
+      head.appendChild(nm);
+      box.appendChild(head);
+      const pieces = document.createElement("div");
+      pieces.className = "cs-pieces";
+      parseCombo(skill.combos[picked]).forEach(function(piece, pi) {
+        const li = document.createElement("div");
+        li.className = "cs-piece";
+        li.style.cssText = "display:flex;align-items:center;gap:4px;flex-wrap:wrap;";
+        const frag = fragmentByName(piece.name);
+        if (frag) {
+          const fi = document.createElement("img");
+          fi.src = iconUrls[frag.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + frag.file);
+          fi.alt = frag.nameEn;
+          li.appendChild(fi);
+        }
+        const pn = document.createElement("span");
+        pn.textContent = " " + (frag ? (LANG === "de" ? frag.nameDe : frag.nameEn) : piece.name);
+        if (piece.count > 1) pn.textContent += " " + t("times")(piece.count);
+        li.appendChild(pn);
+        const lgSrcs = logogramsContaining(piece.name);
+        if (lgSrcs.length > 0) {
+          const src = document.createElement("span");
+          src.className = "cs-src";
+          src.title = lgSrcs.map(logoName).join(", ");
+          lgSrcs.forEach(function(lg) {
+            const im = document.createElement("img");
+            im.src = iconUrls[lg.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + lg.file);
+            im.alt = logoName(lg);
+            im.onerror = function() { im.remove(); };
+            src.appendChild(im);
+          });
+          li.appendChild(src);
+        }
+        pieces.appendChild(li);
+      });
+      box.appendChild(pieces);
+      host.appendChild(box);
+    }
+    host.classList.toggle("show", any);
+  }
+  function syncPanels() {
+    const lp = document.querySelector(".logo-panel");
+    if (lp && panel.offsetHeight > 0) lp.style.maxHeight = panel.offsetHeight + "px";
+    const layout = document.querySelector(".layout");
+    const row = document.getElementById("bottomRow");
+    if (layout && row && panel.offsetWidth > 0) {
+      row.style.width = (panel.getBoundingClientRect().right - layout.getBoundingClientRect().left) + "px";
+    }
+  }
+  
   function refreshAll() {
     renderBar();
     renderSelectedList();
     updateTileMarkers();
     updateSlotLabel();
+    renderSplitterPanel();
     saveState();
+	renderComboSummary();
+	syncPanels();
   }
+
   function updateSlotLabel() {
     label.textContent = t("rows")(rowCount, capacity());
     btnMinus.disabled = (rowCount <= MIN_ROWS);
     btnPlus.disabled = (rowCount >= MAX_ROWS);
   }
 
-  function stateObj() {
-    return { app: "eureka-logos-planner", rows: rows.map(function(r) { return r.slice(); }) };
+  function mapBarEntries(src) {
+    const out = [];
+    for (const it of src) {
+      if (typeof it === "string" && skillById(it)) out.push({ uid: ++uidSeq, id: it, combo: null });
+      else if (it && skillById(it.id)) out.push({ uid: ++uidSeq, id: it.id, combo: (typeof it.combo === "number" ? it.combo : null) });
+    }
+    return out;
   }
+
+  function stateObj() {
+    return { app: "eureka-logos-planner", rows: rows, rows2: rows2, selected: selected.slice(), combos: pickedCombos };
+  }
+
   function saveState() {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(stateObj())); } catch (e) {}
   }
+
   function chunkPairs(arr, n) {
     const out = [];
     let i = 0;
     while (out.length < n) { out.push(arr.slice(i, i + PER_ROW)); i += PER_ROW; }
     return out;
   }
+
   function applyState(st) {
     let newRows = null;
     if (st && Array.isArray(st.rows)) newRows = st.rows;
     else if (st && Array.isArray(st.skills)) newRows = chunkPairs(st.skills, st.rows || 3);
     if (!newRows) return false;
     rowCount = Math.max(MIN_ROWS, Math.min(MAX_ROWS, newRows.length || MIN_ROWS));
-    rows = [];
-    for (let r = 0; r < rowCount; r++) {
-      const src = newRows[r] || [];
-      rows.push(src.filter(function(id) { return !!skillById(id); }).slice(0, PER_ROW));
+    pickedCombos = (st && st.combos && typeof st.combos === "object") ? st.combos : {};
+    if (st && Array.isArray(st.selected)) {
+      selected = st.selected.filter(function(id) { return !!skillById(id); });
+    } else {
+      const seenS = new Set();
+      for (const r of newRows) for (const it of r) seenS.add(typeof it === "string" ? it : it.id);
+      selected = Array.from(seenS);
     }
+    rows = [];
+    uidSeq = 0;
+    for (let r = 0; r < rowCount; r++) rows.push(mapBarEntries(newRows[r] || []).slice(0, PER_ROW));
+    if (st && Array.isArray(st.rows2)) {
+      rows2 = [];
+      for (let r = 0; r < rowCount; r++) rows2.push(mapBarEntries(st.rows2[r] || []).slice(0, PER_ROW));
+    } else rows2 = null;
     computeRowHeight();
     refreshAll();
     return true;
   }
+
   function loadState() {
     try {
       let raw = localStorage.getItem(STORE_KEY);
@@ -1188,6 +1759,7 @@
       return im.complete ? Promise.resolve() : new Promise(function(res) { im.onload = res; im.onerror = res; });
     }));
   }
+
   async function connectFolderForExport() {
     if (!window.showDirectoryPicker) return false;
     try {
@@ -1201,6 +1773,7 @@
       return true;
     } catch (e) { return false; }
   }
+
   async function exportPng(isRetry) {
     if (isRetry === undefined) isRetry = false;
     const SCALE = 2;
@@ -1254,6 +1827,7 @@
       showToast(t("pngFail"));
     }
   }
+
   function roundRect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -1272,6 +1846,9 @@
     document.getElementById("btnExportPng").textContent = t("btnExpPng");
     document.getElementById("btnLang").textContent = t("langBtn");
     btnReset.title = t("clear");
+	const lt = document.getElementById("logoTitle");
+    if (lt) lt.textContent = LANG === "de" ? "LOGOGRAMME" : "LOGOGRAMS";
+    renderLogoList();
     refreshAll();
   }
 
@@ -1283,15 +1860,29 @@
   document.getElementById("btnExportPng").addEventListener("click", function() { exportPng(false); });
 
   btnPlus.addEventListener("click", function() {
-    if (rowCount < MAX_ROWS) { rowCount++; rows.push([]); refreshAll(); warn.textContent = ""; }
+    if (rowCount < MAX_ROWS) { rowCount++; rows.push([]); if (rows2) rows2.push([]); refreshAll(); warn.textContent = ""; }
   });
   btnMinus.addEventListener("click", function() {
-    if (rowCount > MIN_ROWS) { rowCount--; rows.pop(); refreshAll(); }
+    if (rowCount > MIN_ROWS) { rowCount--; rows.pop(); if (rows2) rows2.pop(); refreshAll(); }
   });
   btnReset.addEventListener("click", function() {
     if (!confirm(t("resetConfirm"))) return;
     rows = rows.map(function() { return []; });
+    if (rows2) rows2 = rows2.map(function() { return []; });
     refreshAll();
+  });
+  document.getElementById("btnBar2").addEventListener("click", function() {
+    if (rows2) rows2 = null;
+    else rows2 = rows.map(function() { return []; });
+    refreshAll();
+  });
+  document.addEventListener("click", function(e) {
+    const pop = document.getElementById("comboPop");
+    if (pop.classList.contains("show") && !pop.contains(e.target) && !e.target.closest(".pct-badge, .pct-cell")) closeComboPop();
+  });
+  document.getElementById("btnSplitters").addEventListener("click", function() {
+  splitterPanelVisible = !splitterPanelVisible;
+  renderSplitterPanel();
   });
 
   try {
@@ -1302,8 +1893,9 @@
   computeRowHeight();
   applyLanguage();
   loadState();
-  window.addEventListener("load", function() { computeRowHeight(); refreshAll(); });
-
+  window.addEventListener("load", function() { computeRowHeight(); refreshAll(); syncPanels(); });
+  window.addEventListener("resize", syncPanels);
+  
   (async function initFolder() {
     try {
       const h = await idbGet("projectDir");
