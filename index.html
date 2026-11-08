@@ -249,6 +249,9 @@
   .pct-spacer { height:3px; flex-shrink:0; }
   .cs-src { display:inline-flex; align-items:center; gap:2px; margin-left:4px; vertical-align:-2px; opacity:.85; }
   .cs-src img { width:13px; height:13px; object-fit:contain; }
+  @media (max-width: 1600px) {
+  .skill-grid { grid-template-columns: repeat(10, 42px); grid-auto-rows: 42px; }
+  .logo-panel { width: 210px; }
 </style>
 </head>
 <body>
@@ -1677,6 +1680,14 @@
     }
   }
   
+  function fitScale() {
+    const needed = document.documentElement.scrollWidth || document.body.scrollWidth;
+    const avail = window.innerWidth;
+    let z = 1;
+    if (needed > avail && needed > 0) z = Math.max(0.5, avail / needed);
+    document.documentElement.style.zoom = z;
+  }
+
   function refreshAll() {
     renderBar();
     renderSelectedList();
@@ -1686,6 +1697,7 @@
     saveState();
 	renderComboSummary();
 	syncPanels();
+    fitScale();     
   }
 
   function updateSlotLabel() {
@@ -1893,8 +1905,8 @@
   computeRowHeight();
   applyLanguage();
   loadState();
-  window.addEventListener("load", function() { computeRowHeight(); refreshAll(); syncPanels(); });
-  window.addEventListener("resize", syncPanels);
+  window.addEventListener("load", function() { computeRowHeight(); refreshAll(); syncPanels(); fitScale(); });
+  window.addEventListener("resize", function() { syncPanels(); fitScale(); });
   
   (async function initFolder() {
     try {
