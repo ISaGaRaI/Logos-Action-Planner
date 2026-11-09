@@ -1860,10 +1860,13 @@
     const SCALE = 2;
     const PAD = 8;
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    const cardM = splitterCardMetrics();
     for (const t of exportTargets()) {
       const r = t.el.getBoundingClientRect();
+      const w = (t.kind === "panel") ? cardM.width : r.width;
+      const h = (t.kind === "panel") ? cardM.height : r.height;
       minX = Math.min(minX, r.left); minY = Math.min(minY, r.top);
-      maxX = Math.max(maxX, r.right); maxY = Math.max(maxY, r.bottom);
+      maxX = Math.max(maxX, r.left + w); maxY = Math.max(maxY, r.top + h);
     }
     if (minX === Infinity) return null;
     const bw = maxX - minX + PAD * 2, bh = maxY - minY + PAD * 2;
@@ -1878,15 +1881,63 @@
     return canvas;
   }
 
-  // Zeichnet die Einkaufsliste als Karte (Hintergrund, Titel, Zeilen).
+  function splitterCardMetrics() {
+    const panelEl = document.getElementById("splitterPanel");
+    const mc = document.createElement("canvas").getContext("2d");
+    const NAME_FONT = "12px 'Segoe UI', Arial, sans-serif";
+    mc.font = NAME_FONT;
+    const PAD_X = 12, TITLE_H = 32, MAX_NAME_W = 190, LINE_H = 14, ROW_PAD = 8;
+    const rowsData = [];
+    let hasImg = false;
+    const domRows = panelEl ? panelEl.querySelectorAll(".splitter-row") : [];
+    for (const row of domRows) {
+      const nEl = row.querySelector(".n");
+      const nameSpan = row.querySelector("span");
+      const cnt = nEl ? nEl.textContent : "";
+      const name = (nameSpan ? nameSpan.textContent : "").trim();
+      if (row.querySelector("img")) hasImg = true;
+      // Name in max 2 Zeilen brechen (Wortgrenzen)
+      const wrapped = [];
+      let rest = name;
+      while (mc.measureText(rest).width > MAX_NAME_W && wrapped.length < 1) {
+        let cut = rest.length;
+        while (cut > 1 && mc.measureText(rest.slice(0, cut)).width > MAX_NAME_W) cut--;
+        const sp = rest.lastIndexOf(" ", cut);
+        if (sp > 0) cut = sp;
+        wrapped.push(rest.slice(0, cut).trim());
+        rest = rest.slice(cut).trim();
+      }
+      wrapped.push(rest);
+      rowsData.push({ cnt: cnt, cntW: mc.measureText(cnt).width, wrapped: wrapped });
+    }
+    let width = 0;
+    for (const rd of rowsData) {
+      const nameW = Math.max.apply(null, rd.wrapped.map(function(w) { return mc.measureText(w).width; }));
+      const rowW = PAD_X + rd.cntW + 10 + (hasImg ? 20 + 8 : 0) + nameW + PAD_X;
+      width = Math.max(width, rowW);
+    }
+    let height = TITLE_H;
+    for (const rd of rowsData) {
+      height += Math.max(20, rd.wrapped.length * LINE_H) + ROW_PAD;
+    }
+    height += 6;
+    return { width: Math.max(width, 220), height: height, rows: rowsData, hasImg: hasImg,
+             PAD_X: PAD_X, TITLE_H: TITLE_H, LINE_H: LINE_H, ROW_PAD: ROW_PAD };
+  }
+
+  // Zeichnet die Einkaufslisten-Karte an der Position der DOM-Liste,
+  // aber mit eigener, gemessener Groesse.
   function drawPanelToCanvas(ctx, panelEl, ox, oy) {
+    const m = splitterCardMetrics();
+    if (m.rows.length === 0) return;
     const r = panelEl.getBoundingClientRect();
-    const x = r.left - ox, y = r.top - oy, w = r.width, h = r.height;
+    const x = r.left - ox, y = r.top - oy;
+    // Hintergrund-Karte in Eigenmas
     ctx.fillStyle = "#272627";
-    roundRect(ctx, x, y, w, h, 10); ctx.fill();
+    roundRect(ctx, x, y, m.width, m.height, 10); ctx.fill();
     ctx.lineWidth = 2; ctx.strokeStyle = "#3d8484";
-    roundRect(ctx, x + 1, y + 1, w - 2, h - 2, 10); ctx.stroke();
-    // Titel (Inhalt der h3 ohne den X-Button)
+    roundRect(ctx, x + 1, y + 1, m.width - 2, m.height - 2, 10); ctx.stroke();
+    // Titel (Text-Knoten des h3 ohne den X-Button)
     const h3 = panelEl.querySelector("h3");
     if (h3) {
       let title = "";
@@ -1894,35 +1945,36 @@
       ctx.fillStyle = "#7fd4d4";
       ctx.font = "700 12px 'Segoe UI', Arial, sans-serif";
       ctx.textBaseline = "top";
-      ctx.fillText(title.toUpperCase(), x + 12, y + 10);
+      ctx.fillText(title.trim().toUpperCase(), x + m.PAD_X, y + 12);
     }
     // Zeilen
-    ctx.font = "12px 'Segoe UI', Arial, sans-serif";
-    let cy = y + 34;
-    panelEl.querySelectorAll(".splitter-row").forEach(function(row) {
-      const rr = row.getBoundingClientRect();
-      const ry = rr.top - oy;
-      const img = row.querySelector("img");
-      let tx = x + 12;
-      if (img && img.complete && img.naturalWidth > 0) {
-        try { ctx.drawImage(img, tx, ry + (rr.height - 20) / 2, 20, 20); } catch (e) {}
-        tx += 26;
-      }
-      const nameSpan = row.querySelector("span");
-      const nEl = row.querySelector(".n");
-      const nameTxt = nameSpan ? nameSpan.textContent : "";
-      ctx.fillStyle = "#cccccc";
+    const domRows = panelEl.querySelectorAll(".splitter-row");
+    let cy = y + m.TITLE_H;
+    domRows.forEach(function(row, ri) {
+      const rd = m.rows[ri];
+      const rowH = Math.max(20, rd.wrapped.length * m.LINE_H);
+      let tx = x + m.PAD_X;
+      // MENGE LINKS (gold, bold)
       ctx.textBaseline = "middle";
-      ctx.fillText(nameTxt, tx, ry + rr.height / 2);
-      if (nEl) {
-        ctx.fillStyle = "#ffe9a8";
-        ctx.font = "700 12px 'Segoe UI', Arial, sans-serif";
-        ctx.textAlign = "right";
-        ctx.fillText(nEl.textContent, x + w - 12, ry + rr.height / 2);
-        ctx.textAlign = "left";
-        ctx.font = "12px 'Segoe UI', Arial, sans-serif";
+      ctx.font = "700 12px 'Segoe UI', Arial, sans-serif";
+      ctx.fillStyle = "#ffe9a8";
+      ctx.fillText(rd.cnt, tx, cy + rowH / 2);
+      tx += rd.cntW + 10;
+      // ICON
+      const img = row.querySelector("img");
+      if (img && img.complete && img.naturalWidth > 0) {
+        try { ctx.drawImage(img, tx, cy + (rowH - 20) / 2, 20, 20); } catch (e) {}
+        tx += 20 + 8;
       }
-      cy = ry + rr.height; // nur um Reihenfolge zu halten
+      // NAME (ggf. 2 Zeilen)
+      ctx.font = "12px 'Segoe UI', Arial, sans-serif";
+      ctx.fillStyle = "#cccccc";
+      const lines = rd.wrapped.length;
+      rd.wrapped.forEach(function(w, li) {
+        const ly = cy + rowH / 2 + (li - (lines - 1) / 2) * m.LINE_H;
+        ctx.fillText(w, tx, ly);
+      });
+      cy += rowH + m.ROW_PAD;
     });
   }
 
