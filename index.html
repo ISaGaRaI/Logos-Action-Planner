@@ -254,6 +254,22 @@
     .skill-grid { grid-template-columns: repeat(10, 42px); grid-auto-rows: 42px; }
     .logo-panel { width: 210px; }
   }
+    /* --- Export-Popup --- */
+  #exportPop { position:fixed; z-index:1001; background:#10201f; border:1px solid #3d8484;
+    border-radius:10px; padding:10px; display:none; width:300px; box-shadow:0 4px 14px rgba(0,0,0,.55); }
+  #exportPop.show { display:block; }
+  #exportPop h4 { font-size:12px; color:#bfe3e3; margin:0 0 8px 2px; display:flex;
+    justify-content:space-between; align-items:center; }
+  #exportPop .exp-opt { display:block; width:100%; text-align:left; background:#1d3030;
+    border:1px solid #3d8484; border-radius:8px; padding:7px 10px; margin-bottom:6px;
+    color:#dff5f5; cursor:pointer; font-size:12.5px; }
+  #exportPop .exp-opt:hover { background:#26403f; }
+  #exportPop .exp-opt b { display:block; font-size:13px; color:#7fd4d4; }
+  #exportPop .exp-opt span { display:block; font-size:11px; color:#9db8b8; margin-top:1px; }
+  #exportPop .exp-opt.off { opacity:.4; cursor:not-allowed; }
+  #exportPop .exp-check { display:flex; align-items:center; gap:6px; font-size:12px;
+    color:#ccc; margin-top:4px; cursor:pointer; user-select:none; }
+  #exportPop .exp-x { background:none; border:none; color:#ff9b9b; cursor:pointer; font-size:13px; padding:0 2px; }
 </style>
 </head>
 <body>
@@ -306,7 +322,6 @@
         </div>
       </div>                                     <!-- Zu 3: bar-aside ENDE -->
     </div>                                       <!-- Zu 2: bars-outer ENDE -->
-    <div class="slot-count" id="slotLabel"></div>
     <div class="bar-full-warning" id="warning"></div>
   </div>   <!-- Zu 1: bar-section ENDE -->
   </div>                                         <!-- .layout ENDE -->
@@ -322,6 +337,7 @@
 
 <div class="footer-note" id="footerNote"></div>
 <div id="comboPop"></div>
+<div id="exportPop"></div>
 <div id="toast"></div>
 <div id="tooltip"></div>
 
@@ -535,6 +551,18 @@
       pickTitle: "Kombi wählen",
       splEmpty: "Noch nichts \u2013 Skills mit Kombis in die Leiste ziehen.",
       takeTip: "Ubernommen aus Leiste 1 \u2013 keine erneuten Mnemen notig.",
+	  expTitle: "Export w\u00e4hlen",
+      expView: "Logosbild",
+      expViewSub: "Leiste(n) + Einkaufsliste, wie sichtbar",
+      expPlan: "BA-Bauplan",
+      expPlanSub: "Mit \u201eDanach einbauen\u201c-Pfeilen (nur BA-Modus)",
+      expPlanOff: "\u2013 nur mit aktivierter Leiste 2 \u2013",
+      expList: "Einkaufsliste (PNG)",
+      expListSub: "Nur die Splitter-Liste als eigenes Bild",
+      expClip: "In Zwischenablage (statt Download)",
+      expCombo: "Logos-Kombiliste",
+      expComboSub: "Pro Skill: welche Kombis und wie oft",
+      comboWord: "Kombi",
     },
     en: {
       subtitle: "All logos actions \u2013 click to add, drag & drop to place precisely",
@@ -575,6 +603,18 @@
       pickTitle: "Choose combo",
 	  splEmpty: "Nothing yet \u2013 drag skills with combos into the bar.",
       takeTip: "Carried over from Bar 1 \u2013 no extra mnemes needed.",
+      expTitle: "Choose export",
+      expView: "Logos image",
+      expViewSub: "Bar(s) + shopping list, as visible",
+      expPlan: "BA blueprint",
+      expPlanSub: "With \u201cafter use\u201d arrows (BA mode only)",
+      expPlanOff: "\u2013 requires Bar 2 active \u2013",
+      expList: "Shopping list (PNG)",
+      expListSub: "Only the splitter list as its own image",
+      expClip: "To clipboard (instead of download)",
+      expCombo: "Logos combo list",
+      expComboSub: "Per skill: which combos and how often",
+	  comboWord: "combo",
     }
   };
   function t(key) { return T[LANG][key]; }
@@ -596,7 +636,6 @@
   const panel = document.getElementById("skillPanel");
   const bar = document.getElementById("logosBar");
   const bar2 = document.getElementById("logosBar2");
-  const label = document.getElementById("slotLabel");
   const warn = document.getElementById("warning");
   const toast = document.getElementById("toast");
   const tipEl = document.getElementById("tooltip");
@@ -1278,25 +1317,25 @@
   }
 
   function fillTip(skill) {
-    const srcs = logogramsFor(skill.nameEn);
-    if (srcs.length > 0) {
-      const src = document.createElement("span");
-      src.className = "tip-src";
-      src.appendChild(document.createTextNode(t("src") + " "));
-      srcs.forEach(function(lg, i) {
-        if (i > 0) src.appendChild(document.createTextNode(", "));
-        const im = document.createElement("img");
-        im.src = iconUrls[lg.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + lg.file);
-        im.alt = logoName(lg);
-        im.style.cssText = "width:16px;height:16px;vertical-align:-3px;object-fit:contain;";
-        src.appendChild(im);
-        const nm = document.createElement("span");
-        nm.className = "src-name";
-        nm.textContent = logoName(lg);
-        src.appendChild(nm);
-      });
-      textCol.appendChild(src);
-    }
+    if (!skill) { tipEl.classList.remove("show"); return; }
+    tipEl.innerHTML = "";
+    const main = document.createElement("div");
+    main.className = "tip-main";
+    const textCol = document.createElement("div");
+    textCol.className = "tip-text";
+    const b = document.createElement("b");
+    b.textContent = displayName(skill);
+    textCol.appendChild(b);
+    const d = descriptionOf(skill);
+    const txt = d ? descTextOf(d) : "";
+    const ds = document.createElement("span");
+    ds.className = txt ? "tip-desc" : "tip-nodesc";
+    if (txt) fillSentences(ds, txt);
+    else ds.textContent = t("noDesc");
+    textCol.appendChild(ds);
+    main.appendChild(textCol);
+    const clsList = d ? classesOf(d) : [];
+    if (clsList.length > 0) main.appendChild(makeTooltipRoleGroups(clsList));
     tipEl.appendChild(main);
     tipEl.classList.add("show");
   }
@@ -1758,7 +1797,6 @@
   }
 
   function updateSlotLabel() {
-    label.textContent = t("rows")(rowCount, capacity());
     btnMinus.disabled = (rowCount <= MIN_ROWS);
     btnPlus.disabled = (rowCount >= MAX_ROWS);
   }
@@ -1855,32 +1893,87 @@
     return targets;
   }
 
-  // Baut das gemeinsame Canvas ueber alle Ziele.
-  function buildPngCanvas() {
-    const SCALE = 2;
-    const PAD = 8;
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  function drawArrowToCanvas(ctx, xa, xb, y) {
+    const color = "#c9a55f";
+    ctx.strokeStyle = color; ctx.fillStyle = color;
+    ctx.lineWidth = 2.5; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(xa, y); ctx.lineTo(xb - 8, y); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(xb, y); ctx.lineTo(xb - 9, y - 5.5); ctx.lineTo(xb - 9, y + 5.5);
+    ctx.closePath(); ctx.fill();
+  }
+
+  function buildPngCanvas(withArrows) {
+    const SCALE = 2, PAD = 8;
+    const ARROW_W = 120;
+    const useArrows = !!(withArrows && rows2);
+    const targets = exportTargets();
     const cardM = splitterCardMetrics();
-    for (const t of exportTargets()) {
+    const infos = targets.map(function(t) {
       const r = t.el.getBoundingClientRect();
-      const w = (t.kind === "panel") ? cardM.width : r.width;
-      const h = (t.kind === "panel") ? cardM.height : r.height;
-      minX = Math.min(minX, r.left); minY = Math.min(minY, r.top);
-      maxX = Math.max(maxX, r.left + w); maxY = Math.max(maxY, r.top + h);
+      return { t: t, r: r,
+        w: (t.kind === "panel") ? cardM.width : r.width,
+        h: (t.kind === "panel") ? cardM.height : r.height };
+    });
+    if (infos.length === 0) return null;
+    const minTop = Math.min.apply(null, infos.map(function(it) { return it.r.top; }));
+    const minLeft = Math.min.apply(null, infos.map(function(it) { return it.r.left; }));
+    const oy = minTop - PAD;
+    let cw, ch, oxOf;
+    if (useArrows) {
+      const pos = {};
+      let x = PAD, maxH = 0;
+      for (const it of infos) {
+        pos[it.t.el.id] = x;
+        if (it.t.kind === "panel") x += it.w + 12;
+        else if (it.t.el === bar) x += it.w + 6 + ARROW_W + 6;
+        else x += it.w + 12;
+        if (it.h > maxH) maxH = it.h;
+      }
+      cw = x + PAD; ch = maxH + PAD * 2;
+      oxOf = function(it) { return it.r.left - pos[it.t.el.id]; };
+      var drawArrows = { pos: pos };
+    } else {
+      let maxR = -Infinity, maxB = -Infinity;
+      for (const it of infos) {
+        maxR = Math.max(maxR, it.r.left + it.w);
+        maxB = Math.max(maxB, it.r.top + it.h);
+      }
+      cw = maxR - minLeft + PAD * 2; ch = maxB - minTop + PAD * 2;
+      oxOf = function(it) { return minLeft - PAD; };
+      var drawArrows = null;
     }
-    if (minX === Infinity) return null;
-    const bw = maxX - minX + PAD * 2, bh = maxY - minY + PAD * 2;
     const canvas = document.createElement("canvas");
-    canvas.width = bw * SCALE; canvas.height = bh * SCALE;
+    canvas.width = Math.round(cw * SCALE); canvas.height = Math.round(ch * SCALE);
     const ctx = canvas.getContext("2d");
     ctx.scale(SCALE, SCALE);
-    for (const t of exportTargets()) {
-      if (t.kind === "bar") drawBarToCanvas(ctx, t.el, minX - PAD, minY - PAD);
-      else drawPanelToCanvas(ctx, t.el, minX - PAD, minY - PAD);
+    for (const it of infos) {
+      if (it.t.kind === "bar") drawBarToCanvas(ctx, it.t.el, oxOf(it), oy);
+      else drawPanelToCanvas(ctx, it.t.el, oxOf(it), oy);
+    }
+    if (drawArrows) {
+      const pos = drawArrows.pos;
+      const ax1 = pos[bar2.id] - ARROW_W - 6 + 6;
+      const ax2 = pos[bar2.id] - 10;
+      // Titel einmal ueber der Pfeilspalte
+      ctx.font = "700 10px 'Segoe UI', Arial, sans-serif";
+      ctx.fillStyle = "#c9a55f";
+      ctx.textAlign = "center"; ctx.textBaseline = "top";
+      ctx.fillText(LANG === "de" ? "NACH BENUTZUNG" : "AFTER USE",
+        (ax1 + ax2) / 2, PAD + 4, ARROW_W);
+      ctx.textAlign = "left";
+      // Ein Pfeil pro abweichender Reihe (Hoehe wie die Leistenreihen)
+      const rowEls = bar2.querySelectorAll(".bar-row");
+      for (let r = 0; r < rowCount && r < rowEls.length; r++) {
+        if (!rows2[r]) continue;
+        const same = rowEquals(rows[r], rows2[r]);
+        if (same) continue;                                  // identisch: kein Pfeil
+        const rr = rowEls[r].getBoundingClientRect();
+        drawArrowToCanvas(ctx, ax1, ax2, rr.top - oy + rr.height / 2);
+      }
     }
     return canvas;
   }
-
   function splitterCardMetrics() {
     const panelEl = document.getElementById("splitterPanel");
     const mc = document.createElement("canvas").getContext("2d");
@@ -1978,9 +2071,153 @@
     });
   }
 
-  async function exportPngCommon(mode, isRetry) {
+  function buildListPngCanvas() {
+    const m = splitterCardMetrics();
+    if (m.rows.length === 0) return null;
+    const SCALE = 2, PAD = 8;
+    const spl = document.getElementById("splitterPanel");
+    const r = spl.getBoundingClientRect();
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round((m.width + PAD * 2) * SCALE);
+    canvas.height = Math.round((m.height + PAD * 2) * SCALE);
+    const ctx = canvas.getContext("2d");
+    ctx.scale(SCALE, SCALE);
+    drawPanelToCanvas(ctx, spl, r.left - PAD, r.top - PAD);
+    return canvas;
+  }
+
+  function skillIconSrc(skill) {
+    if (!skill || !skill.file) return null;
+    return iconUrls[skill.file.toLowerCase()] || (ACTIONS_DIR + "/" + skill.file);
+  }
+
+  function loadLogoImg(src) {
+    return new Promise(function(res) {
+      if (!src) { res(null); return; }
+      const im = new Image();
+      im.onload = function() { res(im); };
+      im.onerror = function() { res(null); };
+      im.src = src;
+    });
+  }
+  
+  async function buildComboListPngCanvas() {
+    const SCALE = 2, PAD = 10;
+    // 1) Sammeln: Skill -> Kombi-Index -> Anzahl
+    const groups = new Map();
+    function addEntry(en) {
+      const sk = skillById(en.id);
+      if (!sk || sk.combos.length === 0) return;
+      const ci = effectiveCombo(en, sk);
+      if (ci === null) return;
+      let g = groups.get(sk.nameEn);
+      if (!g) { g = { skill: sk, counts: new Map() }; groups.set(sk.nameEn, g); }
+      g.counts.set(ci, (g.counts.get(ci) || 0) + 1);
+    }
+    for (let r = 0; r < rowCount; r++) {
+      (rows[r] || []).forEach(addEntry);
+      if (rows2 && rows2[r] && !rowEquals(rows[r], rows2[r])) (rows2[r] || []).forEach(addEntry);
+    }
+    if (groups.size === 0) return null;
+    const F_SKILL = "700 13px 'Segoe UI', Arial, sans-serif";
+    const F_HEAD = "700 12px 'Segoe UI', Arial, sans-serif";
+    const F_LINE = "12px 'Segoe UI', Arial, sans-serif";
+    const LINE_H = 16, SKILL_H = 22, HEAD_H = 16, GROUP_GAP = 10;
+    const IND_SKILL = 30, IND_HEAD = 26, IND_LINE = 44;
+	const OFF_SKILL = 38, OFF_HEAD = 34, OFF_LINE = 52;
+    const nameOf = function(f) { return f ? (LANG === "de" ? f.nameDe : f.nameEn) : "?"; };
+    // 2) Layout: Liste von Zeilen mit Font/Indent + Endhoehe
+    const layout = [];
+    for (const g of groups.values()) {
+      const total = Array.from(g.counts.values()).reduce(function(a, b) { return a + b; }, 0);
+      layout.push({ type: "skill", skill: g.skill, total: total });
+      Array.from(g.counts.keys()).sort(function(a, b) { return a - b; }).forEach(function(ci) {
+        const n = g.counts.get(ci);
+        layout.push({ type: "head", text: n + "\u00d7 " + t("comboWord") + (n !== 1 ? "en" : "") });
+        // Fragmente der Kombi, Dubletten zusammenzaehlen
+        const agg = new Map();
+        parseCombo(g.skill.combos[ci]).forEach(function(p) {
+          agg.set(p.name, (agg.get(p.name) || 0) + p.count);
+        });
+        Array.from(agg.keys()).forEach(function(fname) {
+          const cnt = agg.get(fname);
+          const f = fragmentByName(fname);
+          layout.push({ type: "line", text: (cnt > 1 ? cnt + "\u00d7 " : "") + nameOf(f) });
+        });
+      });
+      layout.push({ type: "gap" });
+    }
+    // Gap nur ZWISCHEN Gruppen (nach der letzten Gruppe keins)
+    const clean = [];
+    layout.forEach(function(it) {
+      if (it.type === "gap" && (clean.length === 0 || clean[clean.length - 1].type === "gap")) return;
+      clean.push(it);
+    });
+    while (clean.length && clean[clean.length - 1].type === "gap") clean.pop();
+    // Hoehe berechnen
+    let ch = PAD + 34;
+    for (const it of clean) {
+      if (it.type === "skill") ch += SKILL_H;
+      else if (it.type === "head") ch += HEAD_H;
+      else if (it.type === "line") ch += LINE_H;
+      else ch += GROUP_GAP;
+    }
+    ch += PAD;
+    // Breite messen (alle Texte einmal zeichnen-messbar machen)
+    const mc = document.createElement("canvas").getContext("2d");
+    let maxW = 200;
+    for (const it of clean) {
+      if (it.type === "skill") { mc.font = F_SKILL; maxW = Math.max(maxW, OFF_SKILL + mc.measureText(it.total + "\u00d7  " + displayName(it.skill)).width); }
+      else if (it.type === "head") { mc.font = F_HEAD; maxW = Math.max(maxW, OFF_HEAD + mc.measureText(it.text).width); }
+      else if (it.type === "line") { mc.font = F_LINE; maxW = Math.max(maxW, OFF_LINE + mc.measureText(it.text).width); }
+    }
+    maxW = Math.max(maxW, 130);            // Titel "LOGOS-KOMBILISTE" sichern
+    const cw = maxW + PAD * 2 + 16;        // +16 = Sicherheitsrand rechts
+    // 3) Icons laden
+    for (const it of clean) {
+      if (it.type === "skill") it.img = await loadLogoImg(skillIconSrc(it.skill));
+    }
+    // 4) Zeichnen — Canvas hat ab hier DIE Hoehe des fertigen Layouts
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(cw * SCALE); canvas.height = Math.round(ch * SCALE);
+    const ctx = canvas.getContext("2d");
+    ctx.scale(SCALE, SCALE);
+    ctx.fillStyle = "#272627";
+    roundRect(ctx, PAD, PAD, cw - PAD * 2, ch - PAD * 2, 10); ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = "#3d8484";
+    roundRect(ctx, PAD + 1, PAD + 1, cw - PAD * 2 - 2, ch - PAD * 2 - 2, 10); ctx.stroke();
+    ctx.fillStyle = "#7fd4d4"; ctx.font = "700 12px 'Segoe UI', Arial, sans-serif";
+    ctx.textBaseline = "top";
+    ctx.fillText(LANG === "de" ? "LOGOS-KOMBILISTE" : "LOGOS COMBO LIST", PAD + 12, PAD + 10);
+    const ix = PAD + 12;
+    let y = PAD + 34;
+    for (const it of clean) {
+      if (it.type === "skill") {
+        ctx.textBaseline = "middle"; ctx.font = F_SKILL; ctx.fillStyle = "#eeeeee";
+        if (it.img) { try { ctx.drawImage(it.img, ix, y + SKILL_H / 2 - 10, 20, 20); } catch (e) {} }
+        ctx.fillText(it.total + "\u00d7  " + displayName(it.skill), ix + IND_SKILL - 4, y + SKILL_H / 2);
+        y += SKILL_H;
+      } else if (it.type === "head") {
+        ctx.textBaseline = "middle"; ctx.font = F_HEAD; ctx.fillStyle = "#ffe9a8";
+        ctx.fillText(it.text, ix + IND_HEAD - 4, y + HEAD_H / 2);
+        y += HEAD_H;
+      } else if (it.type === "line") {
+        ctx.textBaseline = "middle"; ctx.font = F_LINE; ctx.fillStyle = "#cccccc";
+        ctx.fillText(it.text, ix + IND_LINE - 4, y + LINE_H / 2);
+        y += LINE_H;
+      } else {
+        y += GROUP_GAP;
+      }
+    }
+    return canvas;
+  }
+  async function exportPngCommon(kind, mode, isRetry) {
     if (isRetry === undefined) isRetry = false;
-    const canvas = buildPngCanvas();
+    const canvas = (kind === "combolist") ? await buildComboListPngCanvas()
+                 : (kind === "list") ? buildListPngCanvas()
+                 : (kind === "plan") ? buildPngCanvas(true)
+                 : buildPngCanvas(false);
+    if (!canvas) { showToast(t("pngFail")); return; }
     if (!canvas) { showToast(t("pngFail")); return; }
     try {
       const blob = await new Promise(function(res, rej) {
@@ -2060,7 +2297,6 @@
     document.getElementById("selTitle").textContent = t("selTitle");
     document.getElementById("footerNote").textContent = t("footer");
     document.getElementById("btnExportPng").textContent = t("btnExpPng");
-    document.getElementById("btnCopyPng").addEventListener("click", function() { exportPngCommon("clipboard", false); });
 	document.getElementById("btnCopyPng").textContent = t("btnCopyPng");
     document.getElementById("btnLang").textContent = t("langBtn");
     btnReset.title = t("clear");
@@ -2075,8 +2311,6 @@
     try { localStorage.setItem(STORE_KEY + ".lang", LANG); } catch (e) {}
     applyLanguage();
   });
-  document.getElementById("btnExportPng").addEventListener("click", function() { exportPng(false); });
-
   btnPlus.addEventListener("click", function() {
     if (rowCount < MAX_ROWS) { rowCount++; rows.push([]); if (rows2) rows2.push([]); refreshAll(); warn.textContent = ""; }
   });
@@ -2094,9 +2328,68 @@
     else rows2 = rows.map(function() { return []; });
     refreshAll();
   });
+  
+    function closeExportPop() {
+    const p = document.getElementById("exportPop");
+    p.classList.remove("show");
+    p.innerHTML = "";
+  }
+
+  function openExportPop(ev, clipMode) {
+    ev.stopPropagation();
+    closeComboPop();
+    const p = document.getElementById("exportPop");
+    p.innerHTML = "";
+    const h = document.createElement("h4");
+    h.appendChild(document.createTextNode(t("expTitle")));
+    h.appendChild(document.createTextNode(t("expTitle") + (clipMode ? " \u2192 " + t("btnCopyPng") : "")));
+    const x = document.createElement("button");
+    x.className = "exp-x";
+    x.textContent = "\u2715";
+    x.addEventListener("click", closeExportPop);
+    h.appendChild(x);
+    p.appendChild(h);
+    function opt(kind, title, sub, off) {
+      const b = document.createElement("button");
+      b.className = "exp-opt" + (off ? " off" : "");
+      const bo = document.createElement("b");
+      bo.textContent = title;
+      b.appendChild(bo);
+      const sp = document.createElement("span");
+      sp.textContent = off ? t("expPlanOff") : sub;
+      b.appendChild(sp);
+      if (!off) b.addEventListener("click", function() {
+        closeExportPop();
+        exportPngCommon(kind, clipMode ? "clipboard" : "download", false);
+      });
+      p.appendChild(b);
+    }
+    opt("view", t("expView"), t("expViewSub"), false);
+    opt("plan", t("expPlan"), t("expPlanSub"), !rows2);
+    opt("list", t("expList"), t("expListSub"), false);
+    opt("combolist", t("expCombo"), t("expComboSub"), false);
+    p.classList.add("show");
+    let px = ev.clientX + 10, py = ev.clientY + 10;
+    const pr = p.getBoundingClientRect();
+    if (px + pr.width > window.innerWidth - 8) px = Math.max(8, ev.clientX - pr.width - 10);
+    if (py + pr.height > window.innerHeight - 8) py = Math.max(8, ev.clientY - pr.height - 10);
+    p.style.left = px + "px";
+    p.style.top = py + "px";
+  }
+
+  document.getElementById("btnExportPng").addEventListener("click", function(ev) {
+    openExportPop(ev, false);
+  });
+  document.getElementById("btnCopyPng").addEventListener("click", function(ev) {
+    openExportPop(ev, true);
+  });
+  
   document.addEventListener("click", function(e) {
     const pop = document.getElementById("comboPop");
     if (pop.classList.contains("show") && !pop.contains(e.target) && !e.target.closest(".pct-badge, .pct-cell")) closeComboPop();
+    const ep = document.getElementById("exportPop");
+    if (ep.classList.contains("show") && !ep.contains(e.target)
+        && !e.target.closest("#btnExportPng") && !e.target.closest("#btnCopyPng")) closeExportPop();
   });
   document.getElementById("btnSplitters").addEventListener("click", function() {
   splitterPanelVisible = !splitterPanelVisible;
