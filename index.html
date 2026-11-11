@@ -254,6 +254,55 @@
     .skill-grid { grid-template-columns: repeat(10, 42px); grid-auto-rows: 42px; }
     .logo-panel { width: 210px; }
   }
+    .mobile-action-row, .mobile-export-row { display: none; }
+
+  @media (max-width: 700px) {
+    body { padding: 14px 10px; }
+    h1 { font-size: 18px; }
+    .subtitle { margin-bottom: 10px; }
+    .toolbar { margin-bottom: 10px; }
+    .toolbar button#btnLang { padding: 8px 14px; font-size: 14px; }
+    .main-area, .layout { width: 100%; }
+    .layout { flex-direction: column; align-items: stretch; gap: 14px; }
+
+    /* Aktionsreihe ÜBER dem Skill-Grid (BA + Splitter, wandern per JS hierher) */
+    .mobile-action-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .mobile-action-row button {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+      background: #2a2a2a; color: #ddd; border: 1px solid #444; border-radius: 8px;
+      padding: 9px 10px; font-size: 13px; cursor: pointer;
+    }
+    .mobile-action-row button img { width: 22px; height: 22px; object-fit: contain; }
+    .mobile-action-row button.active {
+      background: #357070; border-color: #7fd4d4;
+      box-shadow: 0 0 8px rgba(127,212,212,.5);
+    }
+
+    .logo-panel { width: auto; }
+    .skill-grid { grid-template-columns: repeat(7, 44px); grid-auto-rows: 44px; }
+
+    /* Leisten-Block: Splitter-Liste + Steuerung UNTER die Leisten stapeln */
+    .bars-outer { flex-direction: column; }
+    .bar-aside { width: 100%; }
+    .splitter-panel { width: 100%; }
+
+    /* Merkliste & Combo-Summary auf Mobile weg (Skill-Infos kommen in Schritt 2 als Popup) */
+    .bottom-row .selected-panel { display: none; }
+    .combo-summary { display: none !important; }
+
+    /* Export-Buttons ganz unten (wandern per JS hierher) */
+    .mobile-export-row { display: flex; gap: 8px; margin-top: 14px; }
+    .mobile-export-row button {
+      flex: 1; background: #2c5f63; color: #dff5f5; border: 1px solid #3d8484;
+      border-radius: 8px; padding: 11px 8px; font-size: 13px; cursor: pointer;
+    }
+
+    /* PNG-Export: Desktop-Geometrie ERZWINGEN, damit das PNG auf dem Handy
+       exakt so aussieht wie am Desktop (Splitter-Karte NEBEN den Leisten). */
+    html.export-desktop-layout .bars-outer { flex-direction: row; }
+    html.export-desktop-layout .bar-aside { width: auto; }
+    html.export-desktop-layout .splitter-panel { width: 230px; }
+  }
     /* --- Export-Popup --- */
   #exportPop { position:fixed; z-index:1001; background:#10201f; border:1px solid #3d8484;
     border-radius:10px; padding:10px; display:none; width:300px; box-shadow:0 4px 14px rgba(0,0,0,.55); }
@@ -304,6 +353,7 @@
     <h2 id="logoTitle"></h2>
     <div id="logoList"></div>
   </div>
+  <div class="mobile-action-row" id="mobileActionRow"></div>
   <div class="skill-panel" id="skillPanel">
     <h2 id="panelTitle"></h2>
     <div class="skill-grid" id="skillGrid"></div>
@@ -340,6 +390,7 @@
   </div>                                         <!-- .layout ENDE -->
 
 <div class="bottom-row" id="bottomRow">
+<div class="mobile-export-row" id="mobileExportRow"></div>
   <div class="selected-panel">
     <h2 id="selTitle"></h2>
     <div class="selected-list" id="selectedList"></div>
@@ -470,6 +521,8 @@
   });
   
     const IS_TOUCH = window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
+	const MQ_MOBILE = window.matchMedia("(max-width: 700px)");
+    const isMobileLayout = function() { return MQ_MOBILE.matches; };
 
   function closeLogoInfoPop() {
     document.getElementById("logoInfoPop").classList.remove("show");
@@ -732,6 +785,7 @@
 
   let ROW_H = 44;
   function computeRowHeight() {
+	if (isMobileLayout()) { ROW_H = 44; return; }
     const panelH = panel.offsetHeight;
     const inner = panelH - BAR_V_PAD - BAR_BORDER;
     const overhead = (MAX_ROWS - 1) * DIV_H + (2 * MAX_ROWS - 2) * BAR_GAP;
@@ -944,6 +998,7 @@
     const img = makeImg(skill);
     img.onload = function() { tile.classList.add("has-img"); tile.appendChild(img); };
     tile.addEventListener("click", function() {
+	  if (isMobileLayout()) { addSkillToBar(skill.id); return; }
       if (selected.indexOf(skill.id) !== -1) { warnOnce(t("alreadyList")); return; }
       selected.push(skill.id);
       refreshAll();
@@ -959,11 +1014,18 @@
     grid.appendChild(tile);
   }
 
-  for (let i = SKILLS.length; i < GRID_COLS * GRID_ROWS; i++) {
-    const ph = document.createElement("div");
-    ph.className = "empty-slot";
-    grid.appendChild(ph);
+  function fillGridPlaceholders() {
+    grid.querySelectorAll(".empty-slot").forEach(function(el) { el.remove(); });
+    const cols = isMobileLayout() ? 7 : GRID_COLS;
+    const rowsM = isMobileLayout() ? 8 : GRID_ROWS;
+    const slots = Math.max(cols * rowsM, Math.ceil(SKILLS.length / cols) * cols);
+    for (let i = SKILLS.length; i < slots; i++) {
+      const ph = document.createElement("div");
+      ph.className = "empty-slot";
+      grid.appendChild(ph);
+    }
   }
+  fillGridPlaceholders();
 
   grid.addEventListener("dragover", function(e) {
     if (dragPayload && dragPayload.kind === "move") e.preventDefault();
@@ -1882,7 +1944,10 @@
   }
   function syncPanels() {
     const lp = document.querySelector(".logo-panel");
-    if (lp && panel.offsetHeight > 0) lp.style.maxHeight = panel.offsetHeight + "px";
+    if (lp) {
+      if (isMobileLayout()) lp.style.maxHeight = "";
+      else if (panel.offsetHeight > 0) lp.style.maxHeight = panel.offsetHeight + "px";
+    }
     const layout = document.querySelector(".layout");
     const row = document.getElementById("bottomRow");
     if (layout && row && panel.offsetWidth > 0) {
@@ -2343,10 +2408,16 @@
   }
   async function exportPngCommon(kind, mode, isRetry) {
     if (isRetry === undefined) isRetry = false;
-    const canvas = (kind === "combolist") ? await buildComboListPngCanvas()
-                 : (kind === "list") ? buildListPngCanvas()
-                 : (kind === "plan") ? buildPngCanvas(true)
-                 : buildPngCanvas(false);
+    document.documentElement.classList.add("export-desktop-layout");
+    let canvas = null;
+    try {
+      canvas = (kind === "combolist") ? await buildComboListPngCanvas()
+             : (kind === "list") ? buildListPngCanvas()
+             : (kind === "plan") ? buildPngCanvas(true)
+             : buildPngCanvas(false);
+    } finally {
+      document.documentElement.classList.remove("export-desktop-layout");
+    }
     if (!canvas) { showToast(t("pngFail")); return; }
     if (!canvas) { showToast(t("pngFail")); return; }
     try {
@@ -2588,6 +2659,34 @@
   loadState();
   window.addEventListener("load", function() { computeRowHeight(); refreshAll(); syncPanels(); fitScale(); });
   window.addEventListener("resize", function() { syncPanels(); fitScale(); });
+  
+  (function mobileButtonRelocation() {
+    const toolbar = document.querySelector(".toolbar");
+    const actRow = document.getElementById("mobileActionRow");
+    const expRow = document.getElementById("mobileExportRow");
+    const btnExp = document.getElementById("btnExportPng");
+    const btnCopy = document.getElementById("btnCopyPng");
+    const btnSpl = document.getElementById("btnSplitters");
+    const btnBA = document.getElementById("btnBar2");
+    function applyMobileDom() {
+      if (MQ_MOBILE.matches) {
+        actRow.appendChild(btnBA);   // Reihenfolge: BA zuerst, dann Splitter
+        actRow.appendChild(btnSpl);
+        expRow.appendChild(btnExp);
+        expRow.appendChild(btnCopy);
+      } else {
+        toolbar.appendChild(btnExp); // Desktop-Reihenfolge wiederherstellen
+        toolbar.appendChild(btnCopy);
+        toolbar.appendChild(btnSpl);
+        toolbar.appendChild(btnBA);
+      }
+      fillGridPlaceholders();
+      computeRowHeight();
+      refreshAll();
+    }
+    applyMobileDom();
+    MQ_MOBILE.addEventListener("change", applyMobileDom);
+  })();
   
   (async function initFolder() {
     try {
