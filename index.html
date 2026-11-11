@@ -2515,7 +2515,15 @@
           showToast(t("pngCopied"));
           return;
         } catch (e2) {
-          // Browser hat es blockiert -> Fallback: Download
+          try {
+            const file = new File([blob], "logos-leiste.png", { type: "image/png" });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              await navigator.share({ files: [file] });
+              return;
+            }
+          } catch (e3) {
+            if (e3 && e3.name === "AbortError") return; // User hat Teilen abgebrochen
+          }
         }
       }
       const a = document.createElement("a");
