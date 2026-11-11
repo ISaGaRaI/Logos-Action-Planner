@@ -247,7 +247,7 @@ const CLASS_LINES = [
 const LOGOGRAM_INFO_LINES = [
   "Conceptual Logogram | bronze chest; Sprite | Pyros: Bronze-Truhe; Elementare",
   "Fundamental Logogram | Pyros: bronze chest; Level 41 Thunderstorm Sprite; Level 58 Death Sprite; Level 65 Death Sprite; Chain 30 | Pyros: Bronze-Truhe; Level 41 Gewitter-Exergon; Level 58 Dunkel Exergon; Level 65 Dunkel Exergon; Pyros: Erfolgsträhne 30",
-  "Offensive Logogram | Pyros: gold chest; Hydatos: gold chest | Pyros: Gold-Truhe Hydatos: Gold-Truhe",
+  "Offensive Logogram | Pyros: gold chest; Hydatos: gold chest | Pyros: Gold-Truhe; Hydatos: Gold-Truhe",
   "Protective Logogram | Pyros: gold chest; Hydatos: bronze chest; Flauros; Askalphos; Lesath; Lamebrix; Glaukopis; Skoll | Pyros: Gold-Truhe; Hydatos: Bronze-Truhe; Flauros; Askalphos; Lesath; Wüterix-Söldner; Glaukopis; Skalli",
   "Curative Logogram | Pyros: silver chest; Hydatos: bronze chest; Leucosia; Graffiance; Aetolus; Iris; Lumber Jack; Penthesilea | Pyros: Silber-Truhe; Hydatos: Bronze-Truhe; Leukosia; Graffiance; Aetolus; Iris; Holzfäller; Penthesilea",
   "Tactical Logogram | Heat-Warped Lockbox; Moisture Warped Lockbox | Feuerversengte Schließkassette; Wassergeschliffene Schließkassette",

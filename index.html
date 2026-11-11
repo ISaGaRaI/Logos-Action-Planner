@@ -270,8 +270,9 @@
   #exportPop .exp-check { display:flex; align-items:center; gap:6px; font-size:12px;
     color:#ccc; margin-top:4px; cursor:pointer; user-select:none; }
   #exportPop .exp-x { background:none; border:none; color:#ff9b9b; cursor:pointer; font-size:13px; padding:0 2px; }
-  .logo-info { display:inline-block; margin-left:5px; cursor:help; font-size:10px;
-    line-height:1; color:#7fd4d4; opacity:.65; user-select:none; }
+  .logo-info { display:inline-block; margin-left:6px; cursor:help;
+    font-size:20px; font-weight:700; color:#7fd4d4; opacity:.75;
+    vertical-align:1px; user-select:none; text-shadow:0 0 1px rgba(127,212,212,.35); }
   .logo-info:hover { opacity:1; }
   #logoInfoPop { position:fixed; z-index:1001; background:#10201f; border:1px solid #3d8484;
     border-radius:8px; padding:8px 10px; display:none; max-width:240px;
@@ -279,6 +280,9 @@
   #logoInfoPop.show { display:block; }
   #logoInfoPop .li-t { font-size:11.5px; font-weight:700; color:#7fd4d4; margin-bottom:4px; }
   #logoInfoPop .li-s { font-size:11.5px; color:#d5eaea; line-height:1.55; }
+  .hl-g { color: #7ee787; font-weight: 600; }
+  .hl-r { color: #ff8b8b; font-weight: 600; }
+  .hl-y { color: #ffd76e; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -1404,7 +1408,7 @@
     const txt = d ? descTextOf(d) : "";
     const ds = document.createElement("span");
     ds.className = txt ? "tip-desc" : "tip-nodesc";
-    if (txt) fillSentences(ds, txt);
+    if (txt) { fillSentences(ds, txt); highlightDescKeywords(ds); }
     else ds.textContent = t("noDesc");
     textCol.appendChild(ds);
     main.appendChild(textCol);
@@ -1422,6 +1426,57 @@
     if (y + r.height > window.innerHeight - 8) y = Math.max(8, e.clientY - r.height - pad);
     tipEl.style.left = x + "px";
     tipEl.style.top = y + "px";
+  }
+  
+  const DESC_HIGHLIGHT_RULES = [
+    { cls: "hl-g", words: ["Duration", "Dauer"] },                              // gruen
+    { cls: "hl-r", words: ["Generates", "Feindseligkeit", "Enmity"] },           // rot
+    { cls: "hl-y", words: ["Additional Effect", "Zusatzeffekt", "Vermächtnis", "Wisdom"] } // gelb
+  ];
+
+  function highlightDescKeywords(rootEl) {
+    if (!rootEl || !DESC_HIGHLIGHT_RULES.length) return;
+    // Regex bauen: Alternation aller Woerter mit Wortgrenzen, case-insensitive.
+    // "Additional Effect" (mit Leerzeichen) wird intern als \s+ gematcht,
+    // damit Zeilenumbrueche/leerzeichen-Varianten nicht den Match killen.
+    const parts = [];
+    const classOf = {};
+    for (const rule of DESC_HIGHLIGHT_RULES) {
+      for (const w of rule.words) {
+        parts.push(w.replace(/ /g, "\\s+"));
+        classOf[w.toLowerCase()] = rule.cls;
+      }
+    }
+    const re = new RegExp("(^|[^\\p{L}\\p{N}_])((" + parts.join("|") + "))(?![\\p{L}\\p{N}_])",
+      "giu");
+    // Alle Textknoten unter rootEl durchgehen und Treffer einwickeln
+    const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function(node) {
+      if (!node.nodeValue || !node.nodeValue.trim()) return;
+      let m;
+      let lastIdx = 0, out = null;
+      re.lastIndex = 0;
+      while ((m = re.exec(node.nodeValue)) !== null) {
+        if (!out) out = document.createDocumentFragment();
+        const before = node.nodeValue.slice(lastIdx, m.index);
+        if (before) out.appendChild(document.createTextNode(before));
+        const bnd = m[1]; 
+        if (bnd) out.appendChild(document.createTextNode(bnd));
+        const hit = m[2];
+        const sp = document.createElement("span");
+        sp.className = classOf[hit.toLowerCase()] || "hl-y";
+        sp.textContent = hit;
+        out.appendChild(sp);
+        lastIdx = m.index + m[0].length;
+      }
+      if (out) {
+        const rest = node.nodeValue.slice(lastIdx);
+        if (rest) out.appendChild(document.createTextNode(rest));
+        node.parentNode.replaceChild(out, node);
+      }
+    });
   }
 
   function bindTooltip(el, getSkill) {
