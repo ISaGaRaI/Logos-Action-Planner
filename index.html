@@ -257,6 +257,10 @@
     .mobile-action-row, .mobile-export-row { display: none; }
 
   @media (max-width: 700px) {
+    .skill-info { display:flex; align-items:center; justify-content:center;
+      position:absolute; top:1px; right:1px; width:14px; height:14px;
+      font-size:9px; font-weight:700; color:#7fd4d4;
+      background:rgba(16,32,31,.85); border-radius:50%; z-index:2; }
     body { padding: 14px 10px; }
     h1 { font-size: 18px; }
     .subtitle { margin-bottom: 10px; }
@@ -282,7 +286,10 @@
     .skill-grid { grid-template-columns: repeat(7, 44px); grid-auto-rows: 44px; }
 
     /* Leisten-Block: Splitter-Liste + Steuerung UNTER die Leisten stapeln */
-	.bars-wrap { flex-direction: column; }
+    .bars-wrap { flex-direction: row; }
+    .logos-bar { width: auto; min-width: 96px; }
+    .bar-row { gap: 8px; }
+    .bar-empty { max-width: 90px; }
     .bars-outer { flex-direction: column; }
     .bar-aside { width: 100%; }
     .splitter-panel { width: 100%; }
@@ -333,6 +340,19 @@
   .hl-g { color: #7ee787; font-weight: 600; }
   .hl-r { color: #ff8b8b; font-weight: 600; }
   .hl-y { color: #ffd76e; font-weight: 600; }
+  .skill-info { display: none; }
+  /* Skill-Info-Popup (mobil) */
+  #skillInfoPop { position:fixed; z-index:1001; background:#10201f; color:#e8f4f4;
+    border:1px solid #3d8484; border-radius:8px; padding:10px 12px; display:none;
+    max-width:280px; box-shadow:0 4px 14px rgba(0,0,0,.55); }
+  #skillInfoPop.show { display:block; }
+  #skillInfoPop .si-t { font-size:13px; font-weight:700; color:#bfe3e3; margin-bottom:4px; }
+  #skillInfoPop .si-d { font-size:12.5px; line-height:1.55; }
+  #skillInfoPop .si-no { color:#6e8a8a; font-style:italic; font-size:11.5px; }
+  #skillInfoPop .si-jobs { display:flex; flex-direction:row; gap:4px; margin-top:6px; flex-wrap:wrap; }
+  #skillInfoPop .si-jobs img { width:22px; height:22px; object-fit:contain; }
+  #skillInfoPop .si-add { margin-top:8px; width:100%; background:#2c5f63; color:#dff5f5;
+    border:1px solid #3d8484; border-radius:8px; padding:8px; font-size:13px; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -404,6 +424,7 @@
 <div id="comboPop"></div>
 <div id="exportPop"></div>
 <div id="logoInfoPop"></div>
+<div id="skillInfoPop"></div>
 <div id="toast"></div>
 <div id="tooltip"></div>
 
@@ -998,6 +1019,16 @@
     tile.appendChild(makeFallback(skill.id));
     const img = makeImg(skill);
     img.onload = function() { tile.classList.add("has-img"); tile.appendChild(img); };
+    const inf = document.createElement("span");
+    inf.className = "skill-info";
+    inf.textContent = "\u2139";
+    tile.appendChild(inf);
+    inf.addEventListener("click", function(ev) {
+      ev.stopPropagation();
+      const pop = document.getElementById("skillInfoPop");
+      if (pop.classList.contains("show") && pop.dataset.sid === skill.id) closeSkillInfoPop();
+      else { pop.dataset.sid = skill.id; showSkillInfoPop(inf, skill); }
+    });
     tile.addEventListener("click", function() {
 	  if (isMobileLayout()) { addSkillToBar(skill.id); return; }
       if (selected.indexOf(skill.id) !== -1) { warnOnce(t("alreadyList")); return; }
@@ -1547,6 +1578,53 @@
     el.addEventListener("mouseenter", function(e) { fillTip(getSkill()); moveTip(e); });
     el.addEventListener("mousemove", moveTip);
     el.addEventListener("mouseleave", function() { tipEl.classList.remove("show"); });
+  }
+  
+    function closeSkillInfoPop() {
+    document.getElementById("skillInfoPop").classList.remove("show");
+  }
+  function showSkillInfoPop(anchorEl, skill) {
+    const pop = document.getElementById("skillInfoPop");
+    pop.innerHTML = "";
+    const ti = document.createElement("div");
+    ti.className = "si-t";
+    ti.textContent = displayName(skill);
+    pop.appendChild(ti);
+    const d = descriptionOf(skill);
+    const txt = d ? descTextOf(d) : "";
+    const ds = document.createElement("div");
+    if (txt) { ds.className = "si-d"; fillSentences(ds, txt); highlightDescKeywords(ds); }
+    else { ds.className = "si-no"; ds.textContent = t("noDesc"); }
+    pop.appendChild(ds);
+    const clsList = d ? classesOf(d) : [];
+    if (clsList.length > 0) {
+      const jb = document.createElement("div");
+      jb.className = "si-jobs";
+      for (const g of groupClasses(clsList)) {
+        if (g.role && g.role.file) jb.appendChild(makeClassImg(g.role.file, roleDisplayName(g.role)));
+        g.jobs.forEach(function(c) {
+          const e = classEntry(c);
+          if (e && e.file) jb.appendChild(makeClassImg(e.file, c));
+        });
+      }
+      pop.appendChild(jb);
+    }
+    const add = document.createElement("button");
+    add.className = "si-add";
+    add.textContent = t("addBar");
+    add.addEventListener("click", function(ev) {
+      ev.stopPropagation();
+      addSkillToBar(skill.id);
+      closeSkillInfoPop();
+    });
+    pop.appendChild(add);
+    pop.classList.add("show");
+    const ar = anchorEl.getBoundingClientRect();
+    const pr = pop.getBoundingClientRect();
+    let px = 8, py = ar.bottom + 8;
+    if (py + pr.height > window.innerHeight - 8) py = Math.max(8, ar.top - pr.height - 8);
+    pop.style.left = px + "px";
+    pop.style.top = py + "px";
   }
   
   function mnemeTotal(comboText) {
@@ -2644,6 +2722,8 @@
     if (ep.classList.contains("show") && !ep.contains(e.target)
         && !e.target.closest("#btnExportPng") && !e.target.closest("#btnCopyPng")) closeExportPop();
 	if (!e.target.closest(".logo-info")) closeLogoInfoPop();
+    const sip = document.getElementById("skillInfoPop");
+    if (sip.classList.contains("show") && !sip.contains(e.target) && !e.target.closest(".skill-info")) closeSkillInfoPop();
   });
   document.getElementById("btnSplitters").addEventListener("click", function() {
   splitterPanelVisible = !splitterPanelVisible;
