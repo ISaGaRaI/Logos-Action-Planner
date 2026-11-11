@@ -270,6 +270,15 @@
   #exportPop .exp-check { display:flex; align-items:center; gap:6px; font-size:12px;
     color:#ccc; margin-top:4px; cursor:pointer; user-select:none; }
   #exportPop .exp-x { background:none; border:none; color:#ff9b9b; cursor:pointer; font-size:13px; padding:0 2px; }
+  .logo-info { display:inline-block; margin-left:5px; cursor:help; font-size:10px;
+    line-height:1; color:#7fd4d4; opacity:.65; user-select:none; }
+  .logo-info:hover { opacity:1; }
+  #logoInfoPop { position:fixed; z-index:1001; background:#10201f; border:1px solid #3d8484;
+    border-radius:8px; padding:8px 10px; display:none; max-width:240px;
+    box-shadow:0 4px 14px rgba(0,0,0,.55); }
+  #logoInfoPop.show { display:block; }
+  #logoInfoPop .li-t { font-size:11.5px; font-weight:700; color:#7fd4d4; margin-bottom:4px; }
+  #logoInfoPop .li-s { font-size:11.5px; color:#d5eaea; line-height:1.55; }
 </style>
 </head>
 <body>
@@ -338,6 +347,7 @@
 <div class="footer-note" id="footerNote"></div>
 <div id="comboPop"></div>
 <div id="exportPop"></div>
+<div id="logoInfoPop"></div>
 <div id="toast"></div>
 <div id="tooltip"></div>
 
@@ -444,6 +454,70 @@
       LOGOGRAMS.push({ file: parts[0], nameEn: parts[1], nameDe: parts[2] || parts[1], items: parts.slice(3).filter(Boolean) });
     }
   })();
+  
+    const LOGOGRAM_INFO = {};
+  (typeof LOGOGRAM_INFO_LINES !== "undefined" ? LOGOGRAM_INFO_LINES : []).forEach(function(line) {
+    const p = line.split("|").map(function(s) { return s.trim(); });
+    if (p.length < 3 || !p[0]) return;
+    LOGOGRAM_INFO[p[0]] = {
+      en: p[1] ? p[1].split(";").map(function(s) { return s.trim(); }).filter(Boolean) : [],
+      de: p[2] ? p[2].split(";").map(function(s) { return s.trim(); }).filter(Boolean) : []
+    };
+  });
+  
+    const IS_TOUCH = window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
+
+  function closeLogoInfoPop() {
+    document.getElementById("logoInfoPop").classList.remove("show");
+  }
+
+  function showLogoInfoPop(anchorEl, lg) {
+    const info = LOGOGRAM_INFO[lg.nameEn];
+    if (!info) return;
+    const srcs = LANG === "de" ? info.de : info.en;
+    if (!srcs.length) return;
+    const pop = document.getElementById("logoInfoPop");
+    pop.innerHTML = "";
+    const ti = document.createElement("div");
+    ti.className = "li-t";
+    ti.textContent = logoName(lg);
+    pop.appendChild(ti);
+    srcs.forEach(function(s) {
+      const li = document.createElement("div");
+      li.className = "li-s";
+      li.textContent = s;
+      pop.appendChild(li);
+    });
+    pop.classList.add("show");
+    const ar = anchorEl.getBoundingClientRect();
+    const pr = pop.getBoundingClientRect();
+    let px = ar.right + 8, py = ar.top;
+    if (px + pr.width > window.innerWidth - 8) px = Math.max(8, ar.left - pr.width - 8);
+    if (py + pr.height > window.innerHeight - 8) py = Math.max(8, window.innerHeight - pr.height - 8);
+    pop.style.left = px + "px";
+    pop.style.top = py + "px";
+  }
+
+  // An jedes Logogramm-Element haengen: ℹ️ nur wenn Daten vorhanden.
+  function attachLogoInfo(hostEl, lg) {
+    if (!LOGOGRAM_INFO[lg.nameEn]) return;
+    const inf = document.createElement("span");
+    inf.className = "logo-info";
+    inf.textContent = "\u2139";
+    hostEl.appendChild(inf);
+    if (IS_TOUCH) {
+      inf.addEventListener("click", function(ev) {
+        ev.stopPropagation();
+        const pop = document.getElementById("logoInfoPop");
+        if (pop.classList.contains("show")) closeLogoInfoPop();
+        else showLogoInfoPop(inf, lg);
+      });
+    } else {
+      inf.addEventListener("mouseenter", function() { showLogoInfoPop(inf, lg); });
+      inf.addEventListener("mouseleave", closeLogoInfoPop);
+    }
+  }
+  
   function logoName(l) { return LANG === "de" ? l.nameDe : l.nameEn; }
   function logogramsFor(actionName) {
     const key = (actionName || "").trim().toLowerCase();
@@ -1579,6 +1653,7 @@
       const nm = document.createElement("span");
       nm.textContent = logoName(lg);
       sum.appendChild(nm);
+      attachLogoInfo(sum, lg);
       det.appendChild(sum);
       const body = document.createElement("div");
       body.className = "logo-items";
@@ -2376,6 +2451,57 @@
     p.style.left = px + "px";
     p.style.top = py + "px";
   }
+  
+  function closeLogoInfoPop() {
+    document.getElementById("logoInfoPop").classList.remove("show");
+  }
+
+  function showLogoInfoPop(anchorEl, lg) {
+    const info = LOGOGRAM_INFO[lg.nameEn];
+    if (!info) return;
+    const srcs = LANG === "de" ? info.de : info.en;
+    if (!srcs.length) return;
+    const pop = document.getElementById("logoInfoPop");
+    pop.innerHTML = "";
+    const ti = document.createElement("div");
+    ti.className = "li-t";
+    ti.textContent = logoName(lg);
+    pop.appendChild(ti);
+    srcs.forEach(function(s) {
+      const li = document.createElement("div");
+      li.className = "li-s";
+      li.textContent = s;
+      pop.appendChild(li);
+    });
+    pop.classList.add("show");
+    const ar = anchorEl.getBoundingClientRect();
+    const pr = pop.getBoundingClientRect();
+    let px = ar.right + 8, py = ar.top;
+    if (px + pr.width > window.innerWidth - 8) px = Math.max(8, ar.left - pr.width - 8);
+    if (py + pr.height > window.innerHeight - 8) py = Math.max(8, window.innerHeight - pr.height - 8);
+    pop.style.left = px + "px";
+    pop.style.top = py + "px";
+  }
+
+  // An jedes Logogramm-Element haengen: ℹ️ nur wenn Daten vorhanden.
+  function attachLogoInfo(hostEl, lg) {
+    if (!LOGOGRAM_INFO[lg.nameEn]) return;
+    const inf = document.createElement("span");
+    inf.className = "logo-info";
+    inf.textContent = "\u2139";
+    hostEl.appendChild(inf);
+    if (IS_TOUCH) {
+      inf.addEventListener("click", function(ev) {
+        ev.stopPropagation();
+        const pop = document.getElementById("logoInfoPop");
+        if (pop.classList.contains("show")) closeLogoInfoPop();
+        else showLogoInfoPop(inf, lg);
+      });
+    } else {
+      inf.addEventListener("mouseenter", function() { showLogoInfoPop(inf, lg); });
+      inf.addEventListener("mouseleave", closeLogoInfoPop);
+    }
+  }
 
   document.getElementById("btnExportPng").addEventListener("click", function(ev) {
     openExportPop(ev, false);
@@ -2390,6 +2516,7 @@
     const ep = document.getElementById("exportPop");
     if (ep.classList.contains("show") && !ep.contains(e.target)
         && !e.target.closest("#btnExportPng") && !e.target.closest("#btnCopyPng")) closeExportPop();
+	if (!e.target.closest(".logo-info")) closeLogoInfoPop();
   });
   document.getElementById("btnSplitters").addEventListener("click", function() {
   splitterPanelVisible = !splitterPanelVisible;
