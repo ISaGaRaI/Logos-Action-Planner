@@ -282,6 +282,7 @@
     .skill-grid { grid-template-columns: repeat(7, 44px); grid-auto-rows: 44px; }
 
     /* Leisten-Block: Splitter-Liste + Steuerung UNTER die Leisten stapeln */
+	.bars-wrap { flex-direction: column; }
     .bars-outer { flex-direction: column; }
     .bar-aside { width: 100%; }
     .splitter-panel { width: 100%; }
@@ -1542,10 +1543,12 @@
   }
 
   function bindTooltip(el, getSkill) {
+    if (IS_TOUCH || isMobileLayout()) { tipEl.classList.remove("show"); return; }
     el.addEventListener("mouseenter", function(e) { fillTip(getSkill()); moveTip(e); });
     el.addEventListener("mousemove", moveTip);
     el.addEventListener("mouseleave", function() { tipEl.classList.remove("show"); });
   }
+  
   function mnemeTotal(comboText) {
     return parseCombo(comboText).reduce(function(n, p) { return n + p.count; }, 0);
   }
@@ -1956,10 +1959,8 @@
   }
   
   function fitScale() {
-    // 1) Zoom zuruecksetzen, damit wir die ECHTEN Masze messen
+    if (isMobileLayout()) { document.documentElement.style.zoom = 1; return; }
     document.documentElement.style.zoom = 1;
-    // 2) Linkste und rechteste Kante aller sichtbaren Hauptelemente vermessen
-    //    (fixe Popups ausnehmen, die verfaelschen das Bild)
     let minLeft = Infinity, maxRight = -Infinity;
     for (const el of document.body.children) {
       if (el.id === "tooltip" || el.id === "toast" || el.id === "comboPop") continue;
