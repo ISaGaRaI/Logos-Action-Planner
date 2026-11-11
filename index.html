@@ -287,8 +287,13 @@
     .bar-row { gap: 8px; }
     .bar-empty { max-width: 90px; }
     .bars-outer { flex-direction: column; }
-    .bar-aside { width: 100%; }
-    .splitter-panel { width: 100%; }
+    .bar-aside { display: contents; }
+    .bar-controls-vertical { order: 1; flex-direction: row; }
+    .bars-wrap { order: 2; flex-direction: row; }
+    .logos-bar { width: auto; min-width: 96px; }
+    .bar-row { gap: 8px; }
+    .bar-empty { max-width: 90px; }
+    .splitter-panel { order: 3; width: 100%; }
 
     /* Merkliste & Combo-Summary auf Mobile weg (Skill-Infos kommen in Schritt 2 als Popup) */
     .bottom-row .selected-panel { display: none; }
