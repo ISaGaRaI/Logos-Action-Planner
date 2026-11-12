@@ -246,12 +246,12 @@ const CLASS_LINES = [
 // Format: "Name EN" | "Source EN;Source EN;..." | "Quelle DE;Quelle DE;..."
 const LOGOGRAM_INFO_LINES = [
   "Conceptual Logogram | bronze chest; Sprite | Pyros: Bronze-Truhe; Elementare",
-  "Fundamental Logogram | Pyros: bronze chest; Level 41 Thunderstorm Sprite; Level 58 Death Sprite; Level 65 Death Sprite; Chain 30 | Pyros: Bronze-Truhe; Level 41 Gewitter-Exergon; Level 58 Dunkel Exergon; Level 65 Dunkel Exergon; Pyros: Erfolgsträhne 30",
+  "Fundamental Logogram | Pyros: bronze chest; Level 41 Thunderstorm Sprite; Level 58 Death Sprite; Level 65 Death Sprite;Pyros: Chain 30 | Pyros: Bronze-Truhe; Level 41 Gewitter-Exergon; Level 58 Dunkel Exergon; Level 65 Dunkel Exergon; Pyros: Erfolgsträhne 30",
   "Offensive Logogram | Pyros: gold chest; Hydatos: gold chest | Pyros: Gold-Truhe; Hydatos: Gold-Truhe",
   "Protective Logogram | Pyros: gold chest; Hydatos: bronze chest; Flauros; Askalphos; Lesath; Lamebrix; Glaukopis; Skoll | Pyros: Gold-Truhe; Hydatos: Bronze-Truhe; Flauros; Askalphos; Lesath; Wüterix-Söldner; Glaukopis; Skalli",
   "Curative Logogram | Pyros: silver chest; Hydatos: bronze chest; Leucosia; Graffiance; Aetolus; Iris; Lumber Jack; Penthesilea | Pyros: Silber-Truhe; Hydatos: Bronze-Truhe; Leukosia; Graffiance; Aetolus; Iris; Holzfäller; Penthesilea",
   "Tactical Logogram | Heat-Warped Lockbox; Moisture Warped Lockbox | Feuerversengte Schließkassette; Wassergeschliffene Schließkassette",
   "Inimical Logogram | Hydatos: bronze chest; Hydatos: silver chest; Pyros: Level 52 Snowstorm Sprite Adaptation; Pyros: Level 54 Thunder Sprite Adaptation; Pyros: Level 55 Typhoon Sprite Adaptation; The Sophist; Grand Duke Batym; Eldthurs; Dux; Ying-Yang | Hydatos: Bronze-Truhe; Hydatos: Silber-Truhe; Pyros: Level 52 Schneesturm-Exergon; Level 54 Gewitter-Exergon; Level 55 Taifun-Exergon; Der Sophist; Großherzog Batym; Eldthurs; Dux; Ying-Yang",
-  "Mitigative Logogram | Hydatos: silver chest; Level 43 Ember Sprite Adaptation; Level 46 Thunderstorm Sprite; Level 46 Thunderstorm Sprite Adaptation; Undead Adaptation | Hydatos: Silber-Truhe; Level 43 Asche-Exergon Adaptation Level 46 Gewitter-Exergon Adaptation; Untote Adaptation",
-  "Obscure Logogram | Chest in Balders Arsenal; Chain 30 | Truhe in Balders Arsenal; Erfolgsträhne 30",
+  "Mitigative Logogram | Hydatos: silver chest; Level 43 Ember Sprite Adaptation; Level 46 Thunderstorm Sprite; Level 46 Thunderstorm Sprite Adaptation; Undead Adaptation | Hydatos: Silber-Truhe; Level 43 Asche-Exergon Adaptation; Level 46 Gewitter-Exergon Adaptation; Untote Adaptation",
+  "Obscure Logogram | Chest in Balders Arsenal;Hydatos: Chain 30 | Truhe in Balders Arsenal; Hydatos: Erfolgsträhne 30",
 ];
