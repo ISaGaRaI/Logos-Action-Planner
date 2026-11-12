@@ -1,0 +1,2749 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eureka Logos Planner</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #1a1a1a; color: #e8e8e8;
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; padding: 24px 16px;
+  }
+  h1 { font-size: 22px; margin-bottom: 4px; letter-spacing: 1px; }
+  .subtitle { color: #999; font-size: 13px; margin-bottom: 14px; }
+  .toolbar { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 8px; margin-bottom: 14px; }
+  .toolbar button {
+    background: #2a2a2a; color: #ddd; border: 1px solid #444;
+    border-radius: 6px; padding: 5px 12px; cursor: pointer; font-size: 12px;
+  }
+  .toolbar button:hover { background: #3a3a3a; }
+  .toolbar button.primary { background: #2c5f63; border-color: #3d8484; }
+  .toolbar button.primary:hover { background: #357070; }
+  .layout { display: flex; gap: 28px; align-items: flex-start; flex-wrap: nowrap; }
+  
+  .toolbar button.icon-btn { padding: 3px; display: flex; align-items: center; }
+  .toolbar button.icon-btn img { width: 22px; height: 22px; object-fit: contain; }
+  .toolbar button.active { background: #357070; border-color: #7fd4d4; box-shadow: 0 0 8px rgba(127,212,212,.5); }
+
+  .skill-panel { background-color: #272627; border: 1px solid #141414; border-radius: 10px; padding: 10px; }
+  .skill-panel h2 { font-size: 14px; color: #bbb; margin: 2px 2px 10px 2px; font-weight: 600; }
+  .skill-grid { display: grid; grid-template-columns: repeat(10, 48px); grid-auto-rows: 48px; gap: 6px; }
+  .skill {
+    background: #1d1d1d; border: 1px solid #3a3a3a; border-radius: 6px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; position: relative;
+    transition: border-color .15s, transform .1s; padding: 2px;
+  }
+  .skill:hover { border-color: #7fd4d4; transform: translateY(-2px); }
+  .skill img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+  .skill .fallback {
+    display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;
+    font-size: 13px; font-weight: 700; border-radius: 5px; color: #fff; pointer-events: none;
+  }
+  .skill.has-img .fallback { display: none; }
+  .skill.used { border-color: #7fa86a; }
+  .skill.used::after {
+    content: attr(data-count); position: absolute; top: -6px; right: -6px;
+    background: #4a6b35; color: #eaf5df; font-size: 10px; font-weight: 700;
+    min-width: 15px; height: 15px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; padding: 0 3px;
+    border: 1px solid #6b8f52;
+  }
+  .skill.logo-hit { border-color: #ffe9a8; box-shadow: 0 0 10px rgba(255,233,168,.85); transform: translateY(-2px); }
+  .empty-slot { background: transparent; border: 1px dashed #333; border-radius: 6px; }
+
+  .bar-section { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .bar-wrapper { display: flex; flex-direction: row; align-items: flex-start; gap: 10px; }
+  .bar-controls-vertical { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+  .bar-controls-vertical button {
+    background: #2a2a2a; color: #eee; border: 1px solid #555; border-radius: 6px;
+    width: 32px; height: 32px; font-size: 17px; line-height: 1; cursor: pointer; padding: 0;
+    display: flex; align-items: center; justify-content: center; transition: background .12s, border-color .12s;
+  }
+  .bar-controls-vertical button:hover { background: #454545; border-color: #7fd4d4; }
+  .bar-controls-vertical button:disabled { opacity: .3; cursor: default; background: #262626; border-color: #3a3a3a; }
+  .bar-controls-vertical button.clear-btn { background: #432c2c; border-color: #7a4a4a; color: #f0d9d9; }
+  .bar-controls-vertical button.clear-btn:hover { background: #5a3838; }
+  .slot-count { font-size: 11px; color: #888; text-align: center; letter-spacing: .3px; }
+
+  .logos-bar {
+    width: 216px; padding: 3px;
+    background: linear-gradient(180deg, #3d8484 0%, #2c5f63 60%, #27555a 100%);
+    border: 5px solid #6e5233; outline: 1px solid #3f2f1d; border-radius: 10px;
+    box-shadow: 0 0 0 3px rgba(110,82,51,.35), inset 0 0 18px rgba(0,0,0,.35);
+    display: flex; flex-direction: column; justify-content: space-between; gap: 4px;
+    transition: height .25s ease;
+  }
+  .bar-row { display: flex; flex-direction: row; justify-content: center; gap: 12px; align-items: center; border-radius: 6px; }
+  .bar-row.drop-hover { outline: 1px dashed #b8e4e4; outline-offset: -2px; background: rgba(255,255,255,.05); }
+  .bar-divider {
+    height: 3px; border-radius: 2px; flex-shrink: 0;
+    background: linear-gradient(90deg, rgba(110,82,51,0) 0%, #6e5233 12%, #8a6a3f 50%, #6e5233 88%, rgba(110,82,51,0) 100%);
+    box-shadow: 0 1px 2px rgba(0,0,0,.5);
+  }
+  .bar-skill {
+    background: rgba(18, 42, 44, .6); border: 2px solid rgba(110, 82, 51, .95); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 1px;
+    position: relative; transition: transform .12s;
+  }
+  .bar-skill:hover { transform: scale(1.06); }
+  .bar-skill img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+  .bar-skill .fallback {
+    display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;
+    font-size: 12px; font-weight: 700; color: #fff; border-radius: 5px; pointer-events: none;
+  }
+  .bar-skill .remove-hint {
+    position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+    font-size: 10px; color: #ffe9a8; white-space: nowrap; opacity: 0; transition: opacity .15s; pointer-events: none;
+  }
+  .bar-skill:hover .remove-hint { opacity: 1; }
+  .bar-empty { color: #bfe3e3; font-size: 11px; text-align: center; align-self: center; max-width: 140px; line-height: 1.4; user-select: none; }
+  .bar-full-warning { color: #ff9b9b; font-size: 12px; min-height: 16px; text-align: center; }
+
+  .bottom-row { position: relative; margin-top: 10px; width: 100%; }
+  .main-area { display: flex; flex-direction: column; align-items: flex-start; }
+  .selected-panel { width: 100%; background-color: #272627; border: 1px solid #141414; border-radius: 10px; padding: 14px 16px; }
+  .selected-panel h2 { font-size: 15px; color: #bbb; margin-bottom: 10px; font-weight: 600; }
+  .selected-list { display: flex; flex-direction: column; gap: 6px; }
+  .sel-item { background: #1d1d1d; border: 1px solid #333; border-radius: 8px; overflow: hidden; }
+  .sel-item summary {
+    cursor: pointer; padding: 8px 12px; font-size: 14px;
+    display: flex; align-items: center; gap: 10px; list-style: none; user-select: none;
+  }
+  .sel-item summary::-webkit-details-marker { display: none; }
+  .sel-item summary::before { content: "\25B8"; color: #7fd4d4; transition: transform .15s; }
+  .sel-item[open] summary::before { transform: rotate(90deg); }
+  .sel-item summary:hover { background: #232323; }
+  .sel-item .icon-preview { width: 26px; height: 26px; object-fit: contain; border-radius: 4px; background: #151515; padding: 1px; }
+  .sel-count { background: #4a6b35; color: #eaf5df; border: 1px solid #6b8f52; font-size: 10.5px; font-weight: 700; border-radius: 8px; padding: 1px 7px; margin-left: 2px; flex-shrink: 0; }
+  .sel-count.one { visibility: hidden; }
+  .sel-body { padding: 4px 14px 12px 34px; color: #ccc; font-size: 13px; line-height: 1.7; }
+  .sel-body .section-label { display: block; font-weight: 700; font-size: 11.5px; letter-spacing: 1px; margin: 8px 0 2px 0; }
+  .sel-body .lbl-desc { color: #7fd4d4; }
+  .sel-body .lbl-role { color: #e0b060; }
+  .sel-body .lbl-combo { color: #a8c86a; }
+  .sel-body .skill-desc { color: #ddd; font-size: 13px; line-height: 1.65; border-left: 3px solid #3d8484; padding-left: 10px; }
+  .sel-body .role-groups { display: flex; flex-direction: row; flex-wrap: wrap; gap: 14px; border-left: 3px solid #8a6a3f; padding-left: 10px; margin-top: 2px; }
+  .role-group { display: flex; flex-direction: column; gap: 3px; min-width: 100px; }
+  .role-group-header {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 700; letter-spacing: .8px; color: #c9a55f;
+    border-bottom: 1px solid #4a3a22; padding-bottom: 2px; margin-bottom: 2px; text-transform: uppercase;
+  }
+  .sel-body .recipe-line { display: list-item; list-style: disc; margin-left: 16px; }
+  .sel-body .combo-num { color: #a8c86a; margin-right: 4px; }
+  .sel-body .no-data { color: #777; font-style: italic; }
+  .selected-empty { color: #777; font-size: 13px; font-style: italic; }
+  .footer-note { margin-top: 22px; color: #777; font-size: 12px; text-align: center; max-width: 820px; line-height: 1.5; }
+  #toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #2c5f63; color: #dff5f5; border: 1px solid #3d8484;
+    padding: 8px 18px; border-radius: 8px; font-size: 13px;
+    opacity: 0; transition: opacity .25s; pointer-events: none; max-width: 90vw; text-align: center;
+  }
+  #toast.show { opacity: 1; }
+  #tooltip {
+    position: fixed; z-index: 999; background: #10201f; color: #e8f4f4;
+    border: 1px solid #3d8484; border-radius: 8px; padding: 8px 12px;
+    font-size: 12.5px; line-height: 1.55; max-width: 500px;
+    pointer-events: none; opacity: 0; transition: opacity .1s; box-shadow: 0 4px 14px rgba(0,0,0,.55);
+  }
+  #tooltip.show { opacity: 1; }
+  #tooltip .tip-main { display: flex; flex-direction: row; gap: 10px; align-items: flex-start; }
+  #tooltip .tip-text { flex: 1; min-width: 0; }
+  #tooltip .tip-text b { display: block; color: #bfe3e3; margin-bottom: 3px; font-size: 13px; }
+  #tooltip .tip-nodesc { display: block; color: #6e8a8a; font-style: italic; font-size: 11.5px; }
+  #tooltip .tip-desc { display: block; max-width: 500px; }
+  #tooltip .tip-sep { display: block; height: 1px; background: #2a4a48; margin: 5px 0; }
+  #tooltip .tip-roles { display: flex; flex-direction: row; gap: 1px; align-items: flex-start; margin-top: 1px; }
+  #tooltip .tip-role-row { display: flex; flex-direction: column; gap: 3px; }
+  #tooltip .tip-jobs { display: flex; flex-direction: column; gap: 2px; padding-top: 2px; }
+  #tooltip .tip-job {
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(46,42,32,.5); border-radius: 6px;
+    padding: 1px; width: fit-content;
+  }
+  .logo-panel { background:#272627; border:1px solid #141414; border-radius:10px; padding:10px; overflow-y:auto; width:230px; flex-shrink:0; }
+  .logo-panel h2 { font-size:14px; color:#bbb; margin:2px 2px 10px 2px; font-weight:600; }
+  .logo-item { background:#1d1d1d; border:1px solid #333; border-radius:8px; margin-bottom:6px; overflow:hidden; }
+  .logo-item summary { cursor:pointer; padding:6px 10px; font-size:13px; display:flex; align-items:center; gap:8px; list-style:none; user-select:none; }
+  .logo-item summary::-webkit-details-marker { display:none; }
+  .logo-item summary::before { content:"\25B8"; color:#7fd4d4; transition:transform .15s; }
+  .logo-item[open] summary::before { transform:rotate(90deg); }
+  .logo-item summary:hover { background:#232323; }
+  .logo-item .logo-icon { width:24px; height:24px; object-fit:contain; border-radius:4px; background:#151515; padding:1px; }
+  .logo-items { padding:2px 10px 10px 24px; display:flex; flex-wrap:wrap; gap:6px; }
+  .logo-chip { display:flex; align-items:center; gap:4px; background:rgba(46,42,32,.5); border:1px solid #3a3a3a; border-radius:6px; padding:2px 6px 2px 2px; font-size:11.5px; color:#ccc; }
+  .logo-chip img { width:18px; height:18px; object-fit:contain; }
+  .logo-chip.chip-active { border-color: #ffe9a8; background: rgba(255,233,168,.18); }
+  .sel-body .recipe-line { cursor:pointer; border-radius:6px; padding:1px 6px; }
+  .sel-body .recipe-line:hover { background:#232323; }
+  .sel-body .recipe-line.picked { background:rgba(61,132,132,.25); outline:1px solid #3d8484; }
+  .splitter-panel { display:none; background:#272627; border:1px solid #3d8484; border-radius:10px; padding:10px 12px; width:230px; }
+  .splitter-panel.show { display:block; }
+  .splitter-panel h3 { font-size:12px; color:#7fd4d4; letter-spacing:1px; display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; text-transform:uppercase; }
+  .splitter-panel h3 button { background:none; border:none; color:#ff9b9b; cursor:pointer; font-size:14px; }
+  .splitter-row { display:flex; align-items:center; gap:6px; font-size:12px; color:#ccc; padding:2px 0; }
+  .splitter-row img { width:20px; height:20px; object-fit:contain; }
+  .splitter-row .n { margin-left:auto; color:#ffe9a8; font-weight:700; }
+  .combo-summary { display: none; position: absolute; left: calc(100% + 14px); top: 0; width: 340px;
+    background: #272627; border: 1px solid #141414; border-radius: 10px; padding: 12px 14px; }
+  .combo-summary .cs-pieces { flex-direction: column; align-items: flex-start; gap: 3px; }
+  .combo-summary .plus { display: none; }
+  .combo-summary.show { display: block; }
+  .combo-summary h3 { font-size: 14px; color: #bbb; font-weight: 600; margin-bottom: 8px; }
+  .combo-skill { background: #1d1d1d; border: 1px solid #333; border-radius: 8px; padding: 6px 8px; margin-bottom: 6px; }
+  .combo-skill .cs-head { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #bfe3e3; margin-bottom: 4px; }
+  .combo-skill .cs-head img { width: 20px; height: 20px; object-fit: contain; }
+  .combo-skill .cs-pieces { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 11.5px; color: #ccc; }
+  .combo-skill .cs-pieces img { width: 16px; height: 16px; object-fit: contain; vertical-align: -3px; }
+  .combo-skill .plus { color: #a8c86a; margin: 0 2px; }
+  .sel-actions { margin-left: auto; display: flex; gap: 4px; }
+  .sel-btn { background: #2a2a2a; border: 1px solid #555; color: #ddd; border-radius: 6px; cursor: pointer;
+    font-size: 13px; line-height: 1; padding: 2px 7px; }
+  .sel-btn:hover { background: #454545; border-color: #7fd4d4; }
+  .sel-btn.rm { border-color: #7a4a4a; color: #f0d9d9; }
+  .bars-outer { display:flex; gap:10px; align-items:flex-start; }
+  .bars-wrap { display:flex; gap:10px; align-items:flex-start; }
+  .bar-col { display:flex; flex-direction:column; align-items:center; position:relative; }
+  .bar-col .logos-bar { margin-top:6px; }
+  .bar-head { display:none; position:absolute; top:-22px; left:42px; width:216px; height:18px;
+    line-height:18px; font-size:11px; letter-spacing:1.2px; color:#c9a55f;
+    text-transform:uppercase; font-weight:700; text-align:left; white-space:nowrap;
+    z-index:6; pointer-events:none; }
+  .bar-head.on { display:block; }
+  #bar2Block .bar-head { left:0; }
+  .bar-aside { display:flex; gap:10px; align-items:flex-start; }
+  #bar2Block { display:none; }
+  #bar2Block.show { display:flex; }
+  .pct-q { color:#aaa; border-color:#666; }
+  .pct-100 { color:#d3f0b8; background:#3f6b2f; border-color:#7fa86a; }
+  .pct-70 { color:#f2ecc0; background:#6b6230; border-color:#c9bb60; }
+  .pct-50 { color:#ffd9ae; background:#6b4d24; border-color:#cf9050; }
+  .pct-30 { color:#ffc4c4; background:#6b3030; border-color:#cc7070; }
+  #comboPop { position:fixed; z-index:1000; background:#10201f; border:1px solid #3d8484;
+    border-radius:8px; padding:8px; display:none; max-width:320px; box-shadow:0 4px 14px rgba(0,0,0,.55); }
+  #comboPop.show { display:block; }
+  #comboPop h4 { font-size:12px; color:#bfe3e3; margin:0 0 6px 2px; }
+  #comboPop .pop-line { display:flex; align-items:center; flex-wrap:wrap; gap:4px; font-size:12px;
+    color:#ccc; padding:4px 6px; border-radius:6px; cursor:pointer; }
+  #comboPop .pop-line:hover { background:rgba(127,212,212,.15); }
+  #comboPop .pop-line.pop-picked { outline:1px solid #3d8484; background:rgba(61,132,132,.25); }
+  #comboPop .pop-line img { width:16px; height:16px; object-fit:contain; }
+  #comboPop .pop-x { float:right; background:none; border:none; color:#ff9b9b; cursor:pointer; font-size:13px; padding:0 2px; }
+  #comboPop .pop-skill-head { display:flex; align-items:center; gap:6px; font-size:12px;
+    color:#ffe9a8; font-weight:700; margin:6px 2px 2px 2px; }
+  #comboPop .pop-skill-head img { width:18px; height:18px; object-fit:contain; }
+  #comboPop .pop-sep { height:1px; background:#2a4a48; margin:7px 2px; }
+  .bar-flex { display:flex; gap:4px; align-items:flex-start; }
+  .pct-col { width:38px; display:flex; flex-direction:column; gap:4px; padding:8px 0; flex-shrink:0; }
+  .pct-cell { display:flex; align-items:center; justify-content:center; font-size:10.5px;
+    font-weight:700; border:1px solid; border-radius:6px; background:#1d1d1d; cursor:pointer; user-select:none; }
+  .pct-cell.pct-q { color:#aaa; border-color:#555; }
+  .pct-cell.pct-100 { color:#d3f0b8; border-color:#7fa86a; }
+  .pct-cell.pct-70 { color:#f2ecc0; border-color:#c9bb60; }
+  .pct-cell.pct-50 { color:#ffd9ae; border-color:#cf9050; }
+  .pct-cell.pct-30 { color:#ffc4c4; border-color:#cc7070; }
+  .pct-cell.pct-take { color:#9fe0e0; border-color:#3d8484; background:#1d3030; cursor:default; }
+  .pct-spacer { height:3px; flex-shrink:0; }
+  .cs-src { display:inline-flex; align-items:center; gap:2px; margin-left:4px; vertical-align:-2px; opacity:.85; }
+  .cs-src img { width:13px; height:13px; object-fit:contain; }
+  @media (max-width: 1600px) {
+    .skill-grid { grid-template-columns: repeat(10, 42px); grid-auto-rows: 42px; }
+    .logo-panel { width: 210px; }
+  }
+    .mobile-action-row, .mobile-export-row { display: none; }
+
+  @media (max-width: 700px) {
+    body { padding: 14px 10px; }
+    h1 { font-size: 18px; }
+    .subtitle { margin-bottom: 10px; }
+    .toolbar { margin-bottom: 10px; }
+    .toolbar button#btnLang { padding: 8px 14px; font-size: 14px; }
+    .main-area, .layout { width: 100%; }
+    .layout { flex-direction: column; align-items: stretch; gap: 14px; }
+
+    /* Aktionsreihe ÜBER dem Skill-Grid (BA + Splitter, wandern per JS hierher) */
+    .mobile-action-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .mobile-action-row button {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+      background: #2a2a2a; color: #ddd; border: 1px solid #444; border-radius: 8px;
+      padding: 9px 10px; font-size: 13px; cursor: pointer;
+    }
+    .mobile-action-row button img { width: 22px; height: 22px; object-fit: contain; }
+    .mobile-action-row button.active {
+      background: #357070; border-color: #7fd4d4;
+      box-shadow: 0 0 8px rgba(127,212,212,.5);
+    }
+
+    .logo-panel { width: auto; }
+    .skill-grid { grid-template-columns: repeat(7, 44px); grid-auto-rows: 44px; }
+
+    /* Leisten-Block: Splitter-Liste + Steuerung UNTER die Leisten stapeln */
+    .bars-wrap { flex-direction: row; }
+    .logos-bar { width: auto; min-width: 96px; }
+    .bar-row { gap: 8px; }
+    .bar-empty { max-width: 90px; }
+    .bars-outer { flex-direction: column; }
+    .bar-aside { display: contents; }
+    .bar-controls-vertical { order: 1; flex-direction: row; }
+    .bars-wrap { order: 2; flex-direction: row; }
+    .logos-bar { width: auto; min-width: 96px; }
+    .bar-row { gap: 8px; }
+    .bar-empty { max-width: 90px; }
+    .splitter-panel { order: 3; width: 100%; }
+
+    /* Merkliste & Combo-Summary auf Mobile weg (Skill-Infos kommen in Schritt 2 als Popup) */
+    .bottom-row .selected-panel { display: none; }
+    .combo-summary { display: none !important; }
+
+    /* Export-Buttons ganz unten (wandern per JS hierher) */
+    .mobile-export-row { display: flex; gap: 8px; margin-top: 14px; }
+    .mobile-export-row button {
+      flex: 1; background: #2c5f63; color: #dff5f5; border: 1px solid #3d8484;
+      border-radius: 8px; padding: 11px 8px; font-size: 13px; cursor: pointer;
+    }
+    .skill-info { display:flex !important; align-items:center; justify-content:center;
+      position:absolute; top:1px; right:1px; width:15px; height:15px;
+      font-size:9px; font-weight:700; color:#7fd4d4;
+      background:rgba(16,32,31,.85); border-radius:50%; z-index:2; }
+
+    /* PNG-Export: Desktop-Geometrie ERZWINGEN, damit das PNG auf dem Handy
+       exakt so aussieht wie am Desktop (Splitter-Karte NEBEN den Leisten). */
+    html.export-desktop-layout .bars-outer { flex-direction: row; }
+    html.export-desktop-layout .bar-aside { width: auto; }
+    html.export-desktop-layout .splitter-panel { width: 230px; }
+	.subtitle { display: none; }
+  }
+    /* --- Export-Popup --- */
+  #exportPop { position:fixed; z-index:1001; background:#10201f; border:1px solid #3d8484;
+    border-radius:10px; padding:10px; display:none; width:300px; box-shadow:0 4px 14px rgba(0,0,0,.55); }
+  #exportPop.show { display:block; }
+  #exportPop h4 { font-size:12px; color:#bfe3e3; margin:0 0 8px 2px; display:flex;
+    justify-content:space-between; align-items:center; }
+  #exportPop .exp-opt { display:block; width:100%; text-align:left; background:#1d3030;
+    border:1px solid #3d8484; border-radius:8px; padding:7px 10px; margin-bottom:6px;
+    color:#dff5f5; cursor:pointer; font-size:12.5px; }
+  #exportPop .exp-opt:hover { background:#26403f; }
+  #exportPop .exp-opt b { display:block; font-size:13px; color:#7fd4d4; }
+  #exportPop .exp-opt span { display:block; font-size:11px; color:#9db8b8; margin-top:1px; }
+  #exportPop .exp-opt.off { opacity:.4; cursor:not-allowed; }
+  #exportPop .exp-check { display:flex; align-items:center; gap:6px; font-size:12px;
+    color:#ccc; margin-top:4px; cursor:pointer; user-select:none; }
+  #exportPop .exp-x { background:none; border:none; color:#ff9b9b; cursor:pointer; font-size:13px; padding:0 2px; }
+  .logo-info { display:inline-block; margin-left:6px; cursor:help;
+    font-size:20px; font-weight:700; color:#7fd4d4; opacity:.75;
+    vertical-align:1px; user-select:none; text-shadow:0 0 1px rgba(127,212,212,.35); }
+  .logo-info:hover { opacity:1; }
+  #logoInfoPop { position:fixed; z-index:1001; background:#10201f; border:1px solid #3d8484;
+    border-radius:8px; padding:8px 10px; display:none; max-width:240px;
+    box-shadow:0 4px 14px rgba(0,0,0,.55); }
+  #logoInfoPop.show { display:block; }
+  #logoInfoPop .li-t { font-size:11.5px; font-weight:700; color:#7fd4d4; margin-bottom:4px; }
+  #logoInfoPop .li-s { font-size:11.5px; color:#d5eaea; line-height:1.55; }
+  .hl-g { color: #7ee787; font-weight: 600; }
+  .hl-r { color: #ff8b8b; font-weight: 600; }
+  .hl-y { color: #ffd76e; font-weight: 600; }
+  .skill-info { display: none; }
+  /* Skill-Info-Popup (mobil) */
+  #skillInfoPop { position:fixed; z-index:1001; background:#10201f; color:#e8f4f4;
+    border:1px solid #3d8484; border-radius:8px; padding:10px 12px; display:none;
+    max-width:280px; box-shadow:0 4px 14px rgba(0,0,0,.55); }
+  #skillInfoPop.show { display:block; }
+  #skillInfoPop .si-t { font-size:13px; font-weight:700; color:#bfe3e3; margin-bottom:4px; }
+  #skillInfoPop .si-d { font-size:12.5px; line-height:1.55; }
+  #skillInfoPop .si-no { color:#6e8a8a; font-style:italic; font-size:11.5px; }
+  #skillInfoPop .si-jobs { display:flex; flex-direction:row; gap:4px; margin-top:6px; flex-wrap:wrap; }
+  #skillInfoPop .si-jobs img { width:22px; height:22px; object-fit:contain; }
+  #skillInfoPop .si-add { margin-top:8px; width:100%; background:#2c5f63; color:#dff5f5;
+    border:1px solid #3d8484; border-radius:8px; padding:8px; font-size:13px; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<h1>&#9876; EUREKA LOGOS PLANNER</h1>
+<link rel="icon" type="image/png" href="divers/BAprepare.png">
+<div class="subtitle" id="subtitle"></div>
+
+<div class="main-area">
+<div class="toolbar">
+  <button id="btnLang" title="Language / Sprache">&#127760;</button>
+  <button id="btnExportPng" class="primary"></button>
+   <button id="btnCopyPng" class="primary"></button>
+  <button id="btnSplitters" title="Splitter ein-/ausblenden" class="icon-btn"><img src="divers/logo.png" alt="Splitter"></button>
+  <button id="btnBar2" title="BA Prepare" class="icon-btn"><img src="divers/BAprepare.png" alt="BA Prepare"></button>
+</div>
+<div class="layout">
+  <div class="logo-panel">
+    <h2 id="logoTitle"></h2>
+    <div id="logoList"></div>
+  </div>
+  <div class="mobile-action-row" id="mobileActionRow"></div>
+  <div class="skill-panel" id="skillPanel">
+    <h2 id="panelTitle"></h2>
+    <div class="skill-grid" id="skillGrid"></div>
+  </div>
+  <div class="bar-section">                      <!-- Ö 1 -->
+    <div class="bars-outer">                     <!-- Ö 2 -->
+      <div class="bars-wrap">                    <!-- Ö 3 -->
+        <div class="bar-col">
+          <div class="bar-head" id="barHead1"></div>
+          <div class="bar-flex">
+            <div class="pct-col" id="pctCol1"></div>
+            <div class="logos-bar" id="logosBar"></div>
+          </div>
+        </div>                                  <!-- Zu 4 -->
+        <div class="bar-col" id="bar2Block">
+          <div class="bar-head" id="barHead2"></div>
+          <div class="bar-flex">
+            <div class="logos-bar" id="logosBar2"></div>
+            <div class="pct-col" id="pctCol2"></div>
+          </div>
+        </div>                                 <!-- Zu 4 -->
+      </div>                                     <!-- Zu 3: bars-wrap ENDE -->
+      <div class="bar-aside">                    <!-- Ö 3 -->
+        <div class="splitter-panel" id="splitterPanel"></div>
+        <div class="bar-controls-vertical">
+          <button id="slotPlus" title="Mehr Reihen / More rows">+</button>
+          <button id="slotMinus" title="Weniger Reihen / Fewer rows">&minus;</button>
+          <button id="resetBtn" class="clear-btn" title="Leeren / Clear">&times;</button>
+        </div>
+      </div>                                     <!-- Zu 3: bar-aside ENDE -->
+    </div>                                       <!-- Zu 2: bars-outer ENDE -->
+    <div class="bar-full-warning" id="warning"></div>
+  </div>   <!-- Zu 1: bar-section ENDE -->
+  </div>                                         <!-- .layout ENDE -->
+
+<div class="bottom-row" id="bottomRow">
+<div class="mobile-export-row" id="mobileExportRow"></div>
+  <div class="selected-panel">
+    <h2 id="selTitle"></h2>
+    <div class="selected-list" id="selectedList"></div>
+  </div>
+  <div class="combo-summary" id="comboSummary"></div>
+</div>
+</div>
+
+<div class="footer-note" id="footerNote"></div>
+<div id="comboPop"></div>
+<div id="exportPop"></div>
+<div id="logoInfoPop"></div>
+<div id="skillInfoPop"></div>
+<div id="toast"></div>
+<div id="tooltip"></div>
+
+<!-- LADE ZUERST DIE DATEN -->
+<script src="data.js"></script>
+
+<script>
+  const ACTIONS_DIR = "logos_icons";
+  const FRAGMENTS_DIR = "logos_fragment_icons";
+  const CLASS_ROLE_DIR = "class_role";
+
+  let LANG = (navigator.language || "").toLowerCase().startsWith("de") ? "de" : "en";
+
+  const ROLES = [];
+  (function parseRoles() {
+    for (const line of ROLE_LINES) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("#")) continue;
+      const parts = trimmed.split("|").map(p => p.trim().replace(/^"|"$/g, ""));
+      if (parts.length < 2 || !parts[0]) continue;
+      ROLES.push({ file: parts[0], nameEn: parts[1], nameDe: parts[2] || parts[1] });
+    }
+  })();
+  function roleDisplayName(role) { return LANG === "de" ? role.nameDe : role.nameEn; }
+
+  const CLASSES = {};
+  (function parseClasses() {
+    for (const line of CLASS_LINES) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("#")) continue;
+      const parts = trimmed.split("|").map(p => p.trim().replace(/^"|"$/g, ""));
+      if (parts.length < 2 || !parts[0]) continue;
+      CLASSES[parts[1].toLowerCase()] = { file: parts[0], nameDe: parts[2] || parts[1], role: parts[3] || "" };
+    }
+  })();
+  function classEntry(name) { return CLASSES[name.trim().toLowerCase()] || null; }
+  function classDisplay(name) {
+    const e = classEntry(name);
+    if (LANG === "de") return e ? e.nameDe : name.trim();
+    return name.trim();
+  }
+  function classRoleKey(name) {
+    const e = classEntry(name);
+    return e && e.role ? e.role.trim().toLowerCase() : "";
+  }
+
+  function groupClasses(clsList) {
+    const expanded = [];
+    for (const cls of clsList) {
+      const c = cls.trim().toLowerCase();
+      const roleMatch = ROLES.find(function(r) {
+        return r.nameEn.toLowerCase() === c || r.nameDe.toLowerCase() === c;
+      });
+      if (roleMatch) {
+        const rk = roleMatch.nameEn.toLowerCase();
+        for (const key of Object.keys(CLASSES)) {
+          const e = CLASSES[key];
+          if (e.role && e.role.trim().toLowerCase() === rk) expanded.push(key);
+        }
+      } else {
+        expanded.push(cls);
+      }
+    }
+    const seen = new Set();
+    const uniq = expanded.filter(function(x) {
+      const k = x.toLowerCase();
+      if (seen.has(k)) return false;
+      seen.add(k); return true;
+    });
+    const groups = ROLES.map(r => ({ role: r, jobs: [] }));
+    const other = [];
+    for (const cls of uniq) {
+      const key = classRoleKey(cls);
+      const g = groups.find(g => g.role.nameEn.toLowerCase() === key);
+      if (g) g.jobs.push(cls); else other.push(cls);
+    }
+    const out = groups.filter(g => g.jobs.length > 0);
+    if (other.length > 0) out.push({ role: null, jobs: other });
+    return out;
+  }
+
+  const FRAGMENTS = [];
+  (function parseFragments() {
+    for (const line of MNEMEN_LINES) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("#")) continue;
+      const parts = trimmed.split("|").map(p => p.trim().replace(/^"|"$/g, ""));
+      if (parts.length < 3 || !parts[0] || !parts[1]) continue;
+      FRAGMENTS.push({ file: parts[0], nameEn: parts[1], nameDe: parts[2] || parts[1] });
+    }
+  })();
+  function fragmentByName(name) {
+    const key = name.trim().toLowerCase();
+    return FRAGMENTS.find(f => f.nameEn.toLowerCase() === key) || null;
+  }
+
+  const LOGOGRAMS = [];
+  (function parseLogograms() {
+    for (const line of LOGOGRAM_LINES) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("#")) continue;
+      const parts = trimmed.split("|").map(p => p.trim().replace(/^"|"$/g, ""));
+      if (parts.length < 4 || !parts[0]) continue;
+      LOGOGRAMS.push({ file: parts[0], nameEn: parts[1], nameDe: parts[2] || parts[1], items: parts.slice(3).filter(Boolean) });
+    }
+  })();
+  
+    const LOGOGRAM_INFO = {};
+  (typeof LOGOGRAM_INFO_LINES !== "undefined" ? LOGOGRAM_INFO_LINES : []).forEach(function(line) {
+    const p = line.split("|").map(function(s) { return s.trim(); });
+    if (p.length < 3 || !p[0]) return;
+    LOGOGRAM_INFO[p[0]] = {
+      en: p[1] ? p[1].split(";").map(function(s) { return s.trim(); }).filter(Boolean) : [],
+      de: p[2] ? p[2].split(";").map(function(s) { return s.trim(); }).filter(Boolean) : []
+    };
+  });
+  
+    const IS_TOUCH = window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
+	const MQ_MOBILE = window.matchMedia("(max-width: 700px)");
+    const isMobileLayout = function() { return MQ_MOBILE.matches; };
+
+  function closeLogoInfoPop() {
+    document.getElementById("logoInfoPop").classList.remove("show");
+  }
+
+  function showLogoInfoPop(anchorEl, lg) {
+    const info = LOGOGRAM_INFO[lg.nameEn];
+    if (!info) return;
+    const srcs = LANG === "de" ? info.de : info.en;
+    if (!srcs.length) return;
+    const pop = document.getElementById("logoInfoPop");
+    pop.innerHTML = "";
+    const ti = document.createElement("div");
+    ti.className = "li-t";
+    ti.textContent = logoName(lg);
+    pop.appendChild(ti);
+    srcs.forEach(function(s) {
+      const li = document.createElement("div");
+      li.className = "li-s";
+      li.textContent = s;
+      pop.appendChild(li);
+    });
+    pop.classList.add("show");
+    const ar = anchorEl.getBoundingClientRect();
+    const pr = pop.getBoundingClientRect();
+    let px = ar.right + 8, py = ar.top;
+    if (px + pr.width > window.innerWidth - 8) px = Math.max(8, ar.left - pr.width - 8);
+    if (py + pr.height > window.innerHeight - 8) py = Math.max(8, window.innerHeight - pr.height - 8);
+    pop.style.left = px + "px";
+    pop.style.top = py + "px";
+  }
+
+  // An jedes Logogramm-Element haengen: ℹ️ nur wenn Daten vorhanden.
+  function attachLogoInfo(hostEl, lg) {
+    if (!LOGOGRAM_INFO[lg.nameEn]) return;
+    const inf = document.createElement("span");
+    inf.className = "logo-info";
+    inf.textContent = "\u2139";
+    hostEl.appendChild(inf);
+    if (IS_TOUCH) {
+      inf.addEventListener("click", function(ev) {
+        ev.stopPropagation();
+        const pop = document.getElementById("logoInfoPop");
+        if (pop.classList.contains("show")) closeLogoInfoPop();
+        else showLogoInfoPop(inf, lg);
+      });
+    } else {
+      inf.addEventListener("mouseenter", function() { showLogoInfoPop(inf, lg); });
+      inf.addEventListener("mouseleave", closeLogoInfoPop);
+    }
+  }
+  
+  function logoName(l) { return LANG === "de" ? l.nameDe : l.nameEn; }
+  function logogramsFor(actionName) {
+    const key = (actionName || "").trim().toLowerCase();
+    if (!key) return [];
+    return LOGOGRAMS.filter(function(l) {
+      return l.items.some(function(it) { return it.trim().toLowerCase() === key; });
+    });
+  }
+  
+  const DESCR = {};
+  (function parseDescriptions() {
+    for (const line of DESCRIPTION_LINES) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("#")) continue;
+      const parts = trimmed.split("|").map(p => p.trim().replace(/^"|"$/g, ""));
+      if (parts.length < 3 || !parts[0]) continue;
+      DESCR[parts[0].toLowerCase()] = { descDe: parts[1] || "", descEn: parts[2] || "", classes: parts[3] || "" };
+    }
+  })();
+  function descriptionOf(skill) {
+    if (!skill) return null;
+    return DESCR[(skill.nameEn || "").toLowerCase()] || null;
+  }
+  function descTextOf(d) { return LANG === "de" ? (d.descDe || "") : (d.descEn || ""); }
+  function classesOf(d) {
+    return (d.classes || "").split("+").map(function(s) { return s.trim(); }).filter(Boolean);
+  }
+
+  function parseCombo(text) {
+    return text.split("+").map(part => {
+      const p = part.trim();
+      if (!p) return null;
+      const m = p.match(/^(.*?)\s*[x\u00d7]\s*(\d+)$/i);
+      if (m) return { name: m[1].trim(), count: parseInt(m[2], 10) };
+      return { name: p, count: 1 };
+    }).filter(Boolean);
+  }
+
+  const SKILLS = [];
+  (function parseData() {
+    const seen = new Set();
+    for (const line of DATA_LINES) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("#")) continue;
+      const parts = trimmed.split("|").map(p => p.trim().replace(/^"|"$/g, ""));
+      if (parts.length < 3 || !parts[0]) continue;
+      const file = parts[0], nameEn = parts[1], nameDe = parts[2];
+      const combos = parts.slice(3);
+      if (!nameEn) continue;
+      if (seen.has(nameEn)) continue;
+      seen.add(nameEn);
+      SKILLS.push({
+        id: nameEn, file: file, nameEn: nameEn, nameDe: nameDe || nameEn,
+        combos: combos.filter(c => c && c.length > 0),
+      });
+    }
+    for (const n of NAMES) {
+      if (!seen.has(n)) SKILLS.push({ id: n, file: n + ".png", nameEn: n, nameDe: n, combos: [] });
+    }
+  })();
+
+  function displayName(skill) { return LANG === "de" ? skill.nameDe : skill.nameEn; }
+
+  const COPYRIGHT =
+    "FINAL FANTASY XIV \u00a92010 - 2026 SQUARE ENIX CO., LTD. FINAL FANTASY is a registered " +
+    "trademark of Square Enix Holdings Co., Ltd. All material used under license.";
+
+  const T = {
+    de: {
+      subtitle: "Alle Logos-Actions \u2013 Klick hinzuf\u00fcgen, per Drag & Drop gezielt platzieren",
+      panelTitle: "Logos-Actions (" + SKILLS.length + ")",
+      rows: function(r, cap) { return r + " Reihen \u00b7 " + cap + " Skills"; },
+      clear: "Leeren",
+      emptyHint: "Klicke links auf Skills oder ziehe sie hierher",
+      emptyHintM: "Tippe oben auf einen Skill, um ihn einzufügen",
+      full: "Leiste ist voll \u2013 f\u00fcge mit + eine Reihe hinzu oder nimm einen Skill raus.",
+      rowFull: "Diese Reihe ist voll (max. 2 Skills).",
+      btnExpPng: "\ud83d\uddbc Als PNG speichern",
+      btnCopyPng: "\ud83d\udccb In Zwischenablage",
+      pngCopied: "PNG in der Zwischenablage \u2013 einfach einf\u00fcgen!",
+      pngCopyFail: "Zwischenablage blockiert \u2013 PNG wurde stattdessen heruntergeladen.",
+	  pngNoShare: "Dieser Browser unterstützt Teilen nicht – PNG wurde heruntergeladen. Für den Teilen-Button bitte Chrome nutzen.",
+      pngOk: "PNG wurde heruntergeladen.",
+      pngAskFolder: "Browser blockiert den direkten Export \u2013 bitte im Dialog den Projekt-Ordner (mit dieser Datei) ausw\u00e4hlen, dann startet der Download automatisch.",
+      pngFail: "PNG-Export leider blockiert. Erneut klicken und im Dialog den Projekt-Ordner ausw\u00e4hlen \u2013 dann klappt es.",
+      resetConfirm: "Leiste wirklich leeren?",
+      selTitle: "Ausgew\u00e4hlte Logos-Actions & Kombinationen",
+      selEmpty: "Noch keine Skills ausgew\u00e4hlt \u2013 klicke links auf Icons, um sie hier aufzulisten.",
+      lblDesc: "BESCHREIBUNG",
+      lblRole: "ROLLE / KLASSEN",
+      lblCombo: "KOMBINATIONEN / FRAGMENTE",
+      combo: function(i) { return "Kombi " + i + ":"; },
+      noData: "F\u00fcr diesen Skill sind noch keine Kombinationen hinterlegt.",
+      hintRemove: "Klick zum Entfernen",
+      noDesc: "(noch keine Beschreibung hinterlegt)",
+      noRole: "Ohne Rolle",
+      footer: COPYRIGHT,
+      langBtn: "\ud83c\udf10 DE",
+      times: function(n) { return n + "\u00d7"; },
+	  src: "Quelle:",
+      splTitle: "Logos-Splitter",
+      alreadyList: "Steht bereits in der Liste.",
+      addBar: "In die Leiste",
+      rmList: "Aus der Liste entfernen",
+	  barHead1: "Start BA",
+      barHead2: "Nach nutzung ",
+      pickTitle: "Kombi wählen",
+      splEmpty: "Noch nichts \u2013 Skills mit Kombis in die Leiste ziehen.",
+      takeTip: "Ubernommen aus Leiste 1 \u2013 keine erneuten Mnemen notig.",
+	  expTitle: "Export w\u00e4hlen",
+      expView: "Logosbild",
+      expViewSub: "Leiste(n) + Einkaufsliste, wie sichtbar",
+      expPlan: "BA-Bauplan",
+      expPlanSub: "Mit \u201eDanach einbauen\u201c-Pfeilen (nur BA-Modus)",
+      expPlanOff: "\u2013 nur mit aktivierter Leiste 2 \u2013",
+      expList: "Einkaufsliste (PNG)",
+      expListSub: "Nur die Splitter-Liste als eigenes Bild",
+      expClip: "In Zwischenablage (statt Download)",
+      expCombo: "Logos-Kombiliste",
+      expComboSub: "Pro Skill: welche Kombis und wie oft",
+      comboWord: "Kombi",
+    },
+    en: {
+      subtitle: "All logos actions \u2013 click to add, drag & drop to place precisely",
+      panelTitle: "Logos Actions (" + SKILLS.length + ")",
+      rows: function(r, cap) { return r + " rows \u00b7 " + cap + " skills"; },
+      clear: "Clear",
+      emptyHint: "Click skills on the left or drag them here",
+      emptyHintM: "Tap a skill above to add it",
+      full: "Bar is full \u2013 add a row with + or remove a skill.",
+      rowFull: "This row is full (max. 2 skills).",
+      btnExpPng: "\ud83d\uddbc Save as PNG",
+      btnCopyPng: "\ud83d\udccb Copy to clipboard",
+      pngCopied: "PNG copied to clipboard \u2013 just paste it!",
+      pngCopyFail: "Clipboard blocked \u2013 PNG was downloaded instead.",
+      pngNoShare: "This browser can't share – PNG was downloaded. Please use Chrome for the share button.",
+      pngOk: "PNG downloaded.",
+      pngAskFolder: "Browser blocks direct export \u2013 please pick the project folder (containing this file) in the dialog, the download will then start automatically.",
+      pngFail: "PNG export blocked. Click again and pick the project folder in the dialog \u2013 then it works.",
+      resetConfirm: "Really clear the bar?",
+      selTitle: "Selected logos actions & combinations",
+      selEmpty: "No skills selected yet \u2013 click icons on the left to list them.",
+      lblDesc: "DESCRIPTION",
+      lblRole: "ROLE / CLASSES",
+      lblCombo: "COMBINATIONS / FRAGMENTS",
+      combo: function(i) { return "Combo " + i + ":"; },
+      noData: "No combinations stored for this skill yet.",
+      hintRemove: "Click to remove",
+      noDesc: "(no description yet)",
+      noRole: "No role",
+      footer: COPYRIGHT,
+      langBtn: "\ud83c\udf10 EN",
+      times: function(n) { return n + "x"; },      
+	  src: "Source:",
+      splTitle: "Logos Splitters",
+      alreadyList: "Already in the list.",
+      addBar: "Add to bar",
+      rmList: "Remove from list",
+      barHead1: "Start BA",
+      barHead2: "After Use",
+      pickTitle: "Choose combo",
+	  splEmpty: "Nothing yet \u2013 drag skills with combos into the bar.",
+      takeTip: "Carried over from Bar 1 \u2013 no extra mnemes needed.",
+      expTitle: "Choose export",
+      expView: "Logos image",
+      expViewSub: "Bar(s) + shopping list, as visible",
+      expPlan: "BA blueprint",
+      expPlanSub: "With \u201cafter use\u201d arrows (BA mode only)",
+      expPlanOff: "\u2013 requires Bar 2 active \u2013",
+      expList: "Shopping list (PNG)",
+      expListSub: "Only the splitter list as its own image",
+      expClip: "To clipboard (instead of download)",
+      expCombo: "Logos combo list",
+      expComboSub: "Per skill: which combos and how often",
+	  comboWord: "combo",
+    }
+  };
+  function t(key) { return T[LANG][key]; }
+
+  const PER_ROW = 2, MIN_ROWS = 3, MAX_ROWS = 6, GRID_COLS = 10, GRID_ROWS = 6;
+  const BAR_V_PAD = 2 * 3, BAR_BORDER = 2 * 5, DIV_H = 3, BAR_GAP = 4;
+  const STORE_KEY = "eurekaLogosPlanner.v3";
+  const OLD_STORE_KEY = "eurekaLogosPlanner.v2";
+
+  let rowCount = 3;
+  let rows = [[], [], []];
+  let pickedCombos = {};
+  let splitterPanelVisible = true;
+  let selected = [];
+    let rows2 = null;   
+  let uidSeq = 0;
+
+  const grid = document.getElementById("skillGrid");
+  const panel = document.getElementById("skillPanel");
+  const bar = document.getElementById("logosBar");
+  const bar2 = document.getElementById("logosBar2");
+  const warn = document.getElementById("warning");
+  const toast = document.getElementById("toast");
+  const tipEl = document.getElementById("tooltip");
+  const btnMinus = document.getElementById("slotMinus");
+  const btnPlus = document.getElementById("slotPlus");
+  const btnReset = document.getElementById("resetBtn");
+  
+
+  function capacity() { return rowCount * PER_ROW; }
+  function usedCount() { return rows.reduce(function(n, r) { return n + r.length; }, 0); }
+  function skillById(id) { return SKILLS.find(function(s) { return s.id === id; }); }
+  function warnOnce(msg) {
+    warn.textContent = msg;
+    setTimeout(function() { if (warn.textContent === msg) warn.textContent = ""; }, 2500);
+  }
+
+  let ROW_H = 44;
+  function computeRowHeight() {
+	if (isMobileLayout()) { ROW_H = 44; return; }
+    const panelH = panel.offsetHeight;
+    const inner = panelH - BAR_V_PAD - BAR_BORDER;
+    const overhead = (MAX_ROWS - 1) * DIV_H + (2 * MAX_ROWS - 2) * BAR_GAP;
+    ROW_H = Math.max(30, Math.floor((inner - overhead) / MAX_ROWS));
+  }
+  function barHeightFor(r) {
+    const overhead = (r - 1) * DIV_H + (2 * r - 2) * BAR_GAP;
+    return BAR_V_PAD + BAR_BORDER + r * ROW_H + overhead;
+  }
+
+  function initials(name) {
+    return name.split(/\s+/).map(function(w) { return w[0]; }).join("").slice(0, 3).toUpperCase();
+  }
+  function hueOf(name) {
+    let h = 0;
+    for (const c of name) h = (h * 31 + c.charCodeAt(0)) % 360;
+    return h;
+  }
+  function makeFallback(name) {
+    const el = document.createElement("span");
+    el.className = "fallback";
+    el.textContent = initials(name);
+    el.style.background = "hsl(" + hueOf(name) + ", 38%, 34%)";
+    return el;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function(c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function fillSentences(el, text) {
+    if (!text) return;
+    var parts = text.split(". ");
+    for (var i = 0; i < parts.length; i++) {
+      if (i > 0) el.appendChild(document.createElement("br"));
+      var s = parts[i];
+      if (i < parts.length - 1) s = s + ".";
+      el.appendChild(document.createTextNode(s));
+    }
+  }
+
+  let dirHandle = null;
+  let iconUrls = {};
+
+  function idbOpen() {
+    return new Promise(function(res, rej) {
+      const rq = indexedDB.open("eurekaLogosPlanner", 1);
+      rq.onupgradeneeded = function() { rq.result.createObjectStore("kv"); };
+      rq.onsuccess = function() { res(rq.result); };
+      rq.onerror = function() { rej(rq.error); };
+    });
+  }
+
+  async function idbSet(k, v) {
+    const db = await idbOpen();
+    return new Promise(function(res, rej) {
+      const tx = db.transaction("kv", "readwrite");
+      tx.objectStore("kv").put(v, k);
+      tx.oncomplete = res;
+      tx.onerror = function() { rej(tx.error); };
+    });
+  }
+
+  async function idbGet(k) {
+    const db = await idbOpen();
+    return new Promise(function(res, rej) {
+      const tx = db.transaction("kv", "readonly");
+      const rq = tx.objectStore("kv").get(k);
+      rq.onsuccess = function() { res(rq.result); };
+      rq.onerror = function() { rej(tx.error); };
+    });
+  }
+
+  async function getSubDir(name) {
+    try { return await dirHandle.getDirectoryHandle(name, { create: false }); }
+    catch (e) { return null; }
+  }
+
+  async function scanIcons() {
+    iconUrls = {};
+    if (!dirHandle) return;
+    for (const dirName of [ACTIONS_DIR, FRAGMENTS_DIR, CLASS_ROLE_DIR]) {
+      const sub = await getSubDir(dirName);
+      if (!sub) continue;
+      try {
+        for await (const entry of sub.entries()) {
+          const name = entry[0], handle = entry[1];
+          if (handle.kind === "file") {
+            try { iconUrls[name.toLowerCase()] = URL.createObjectURL(await handle.getFile()); }
+            catch (e) {}
+          }
+        }
+      } catch (e) {}
+    }
+  }
+
+  function iconUrlFor(file) {
+    return iconUrls[file.toLowerCase()] || (ACTIONS_DIR + "/" + file);
+  }
+
+  function refreshImages() {
+    document.querySelectorAll("img[data-file]").forEach(function(im) {
+      im.src = iconUrls[im.dataset.file];
+    });
+  }
+
+  function makeImg(skill) {
+    const img = document.createElement("img");
+    img.dataset.file = skill.file;
+    img.src = iconUrlFor(skill.file);
+    img.alt = skill.id;
+    return img;
+  }
+
+  function makeClassImg(file, alt) {
+    const img = document.createElement("img");
+    img.dataset.file = file;
+    img.src = iconUrls[file.toLowerCase()] || (CLASS_ROLE_DIR + "/" + file);
+    img.alt = alt;
+    img.loading = "lazy";
+    img.style.width = CLASS_ICON_PX + "px";
+    img.style.height = CLASS_ICON_PX + "px";
+    img.style.objectFit = "contain";
+    img.onerror = function() { img.remove(); };
+    return img;
+  }
+
+  function makeJobChip(cls) {
+    const chip = document.createElement("span");
+    chip.className = "tip-job";
+    const e = classEntry(cls);
+    if (e && e.file) chip.appendChild(makeClassImg(e.file, cls));
+    else chip.textContent = classDisplay(cls);
+    return chip;
+  }
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(function() { toast.classList.remove("show"); }, 3800);
+  }
+
+  function updateTileMarkers() {
+    const counts = {};
+    for (const r of rows) for (const en of r) counts[en.id] = (counts[en.id] || 0) + 1;
+    grid.querySelectorAll(".skill").forEach(function(tile) {
+      const n = counts[tile.dataset.id] || 0;
+      if (n > 0) { tile.classList.add("used"); tile.dataset.count = n; }
+      else { tile.classList.remove("used"); delete tile.dataset.count; }
+    });
+  }
+
+  let dragPayload = null;
+
+  function clearDropHighlights() {
+    bar.querySelectorAll(".bar-row").forEach(function(r) { r.classList.remove("drop-hover"); });
+  }
+
+  function insertionIndex(rowEl, x) {
+    const skills = Array.prototype.slice.call(rowEl.querySelectorAll(".bar-skill"));
+    for (let i = 0; i < skills.length; i++) {
+      const b = skills[i].getBoundingClientRect();
+      if (x < b.left + b.width / 2) return i;
+    }
+    return skills.length;
+  }
+
+  function handleDropOnRow(r, e, rowEl, dataArr) {
+    if (!dragPayload) return;
+    let idx = Math.min(insertionIndex(rowEl, e.clientX), PER_ROW);
+    if (dragPayload.kind === "new") {
+      if (dataArr[r].length >= PER_ROW) { warnOnce(t("rowFull")); dragPayload = null; return; }
+      let combo = null;
+      if (typeof pickedCombos[dragPayload.id] === "number") combo = pickedCombos[dragPayload.id];
+      const sk = skillById(dragPayload.id);
+      if (combo === null && sk && sk.combos.length === 1) combo = 0;
+      dataArr[r].splice(idx, 0, { uid: ++uidSeq, id: dragPayload.id, combo: combo });
+    } else {
+      const fr = dragPayload.r, fi = dragPayload.i, srcArr = dragPayload.arr || rows;
+      const entry = srcArr[fr][fi];
+      if (!entry) { dragPayload = null; return; }
+      srcArr[fr].splice(fi, 1);
+      if (srcArr === dataArr && fr === r && fi < idx) idx--;
+      if (dataArr[r].length >= PER_ROW) {
+        srcArr[fr].splice(fi, 0, entry);
+        warnOnce(t("rowFull"));
+        dragPayload = null;
+        refreshAll();
+        return;
+      }
+      dataArr[r].splice(idx, 0, entry);
+    }
+    dragPayload = null;
+    refreshAll();
+  }
+
+  document.addEventListener("dragend", function() {
+    dragPayload = null;
+    clearDropHighlights();
+    tipEl.classList.remove("show");
+  });
+
+  for (const skill of SKILLS) {
+    const tile = document.createElement("div");
+    tile.className = "skill";
+    tile.dataset.id = skill.id;
+    tile.appendChild(makeFallback(skill.id));
+    const img = makeImg(skill);
+    img.onload = function() { tile.classList.add("has-img"); tile.appendChild(img); };
+    const inf = document.createElement("span");
+    inf.className = "skill-info";
+    inf.textContent = "\u2139";
+    tile.appendChild(inf);
+    inf.addEventListener("click", function(ev) {
+      ev.stopPropagation();
+      const pop = document.getElementById("skillInfoPop");
+      if (pop.classList.contains("show") && pop.dataset.sid === skill.id) closeSkillInfoPop();
+      else { pop.dataset.sid = skill.id; showSkillInfoPop(inf, skill); }
+    });
+    tile.addEventListener("click", function() {
+	  if (isMobileLayout()) { addSkillToBar(skill.id); return; }
+      if (selected.indexOf(skill.id) !== -1) { warnOnce(t("alreadyList")); return; }
+      selected.push(skill.id);
+      refreshAll();
+    });
+    tile.draggable = true;
+    tile.addEventListener("dragstart", function(e) {
+      dragPayload = { kind: "new", id: skill.id };
+      e.dataTransfer.effectAllowed = "copyMove";
+      e.dataTransfer.setData("text/plain", skill.id);
+      tipEl.classList.remove("show");
+    });
+    bindTooltip(tile, function() { return skill; });
+    grid.appendChild(tile);
+  }
+
+  function fillGridPlaceholders() {
+    grid.querySelectorAll(".empty-slot").forEach(function(el) { el.remove(); });
+    const cols = isMobileLayout() ? 7 : GRID_COLS;
+    const rowsM = isMobileLayout() ? 8 : GRID_ROWS;
+    const slots = Math.max(cols * rowsM, Math.ceil(SKILLS.length / cols) * cols);
+    for (let i = SKILLS.length; i < slots; i++) {
+      const ph = document.createElement("div");
+      ph.className = "empty-slot";
+      grid.appendChild(ph);
+    }
+  }
+  fillGridPlaceholders();
+
+  grid.addEventListener("dragover", function(e) {
+    if (dragPayload && dragPayload.kind === "move") e.preventDefault();
+  });
+
+  grid.addEventListener("drop", function(e) {
+    e.preventDefault();
+    if (dragPayload && dragPayload.kind === "move") {
+      dragPayload.arr.splice(dragPayload.i, 1);
+      dragPayload = null;
+      refreshAll();
+    }
+  });
+
+  function removeFromRow(r, i) {
+    rows[r].splice(i, 1);
+    refreshAll();
+  }
+
+  function renderBarInto(barEl, dataRows) {
+    barEl.innerHTML = "";
+    barEl.style.height = barHeightFor(rowCount) + "px";
+    const skillSize = Math.max(22, ROW_H - 6);
+    for (let r = 0; r < rowCount; r++) {
+      const rowEl = document.createElement("div");
+      rowEl.className = "bar-row";
+      rowEl.style.height = ROW_H + "px";
+      rowEl.style.justifyContent = dataRows[r].length > 1 ? "space-evenly" : "center";
+      dataRows[r].forEach(function(en, i) {
+        const skill = skillById(en.id);
+        if (!skill) return;
+        const el = document.createElement("div");
+        el.className = "bar-skill";
+        el.style.width = skillSize + "px";
+        el.style.height = skillSize + "px";
+        const hint = document.createElement("span");
+        hint.className = "remove-hint";
+        hint.textContent = "\u2715";
+        el.appendChild(hint);
+        el.appendChild(makeFallback(skill.id));
+        const img = makeImg(skill);
+        img.onload = function() { el.innerHTML = ""; el.appendChild(hint); el.appendChild(img); };
+        el.addEventListener("click", function() { dataRows[r].splice(i, 1); refreshAll(); });
+        el.draggable = true;
+        el.addEventListener("dragstart", function(e) {
+          e.stopPropagation();
+          dragPayload = { kind: "move", r: r, i: i, arr: dataRows };
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", en.id);
+          tipEl.classList.remove("show");
+        });
+        bindTooltip(el, function() { return skill; });
+        if (skill.combos.length > 0) {
+          const ci = effectiveCombo(en, skill);
+          const bd = document.createElement("span");
+          if (ci === null) { bd.className = "pct-badge pct-q"; bd.textContent = "?%"; }
+          else {
+            const info = pctInfo(mnemeTotal(skill.combos[ci]));
+            bd.className = "pct-badge " + info.cls;
+            bd.textContent = info.pct + "%";
+          }
+          el.appendChild(bd);
+          bd.addEventListener("click", function(ev) {
+            ev.stopPropagation();
+            openComboPop(ev, en, skill);
+          });
+        }
+        rowEl.appendChild(el);
+      });
+      if (rowEl.children.length === 0 && dataRows === rows && usedCount() === 0 && r === 0) {
+        const hint = document.createElement("div");
+        hint.className = "bar-empty";
+        hint.textContent = isMobileLayout() ? t("emptyHintM") : t("emptyHint");
+        rowEl.appendChild(hint);
+      }
+      rowEl.addEventListener("dragover", function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = (dragPayload && dragPayload.kind === "move") ? "move" : "copy";
+        rowEl.classList.add("drop-hover");
+      });
+      rowEl.addEventListener("dragleave", function(e) {
+        if (!rowEl.contains(e.relatedTarget)) rowEl.classList.remove("drop-hover");
+      });
+      rowEl.addEventListener("drop", function(e) {
+        e.preventDefault();
+        rowEl.classList.remove("drop-hover");
+        handleDropOnRow(r, e, rowEl, dataRows);
+      });
+      barEl.appendChild(rowEl);
+      if (r < rowCount - 1) {
+        const div = document.createElement("div");
+        div.className = "bar-divider";
+        barEl.appendChild(div);
+      }
+    }
+   }
+  
+  function rowPctInfo(dataRows, r) {
+    let total = 0, unknown = false, hasCombo = false;
+    for (const en of dataRows[r]) {
+      const skill = skillById(en.id);
+      if (!skill || skill.combos.length === 0) continue;
+      hasCombo = true;
+      const ci = effectiveCombo(en, skill);
+      if (ci === null || !skill.combos[ci]) { unknown = true; continue; }
+      total += mnemeTotal(skill.combos[ci]);
+    }
+    if (!hasCombo) return null;
+    if (unknown) return { cls: "pct-q", text: "?%" };
+    const info = pctInfo(total);
+    return { cls: info.cls, text: info.pct + "%" };
+  }
+  function renderPctCol(colEl, dataRows) {
+    if (!colEl) return;
+    colEl.innerHTML = "";
+    const isBar2 = (dataRows === rows2);
+    for (let r = 0; r < rowCount; r++) {
+      const cell = document.createElement("div");
+      cell.className = "pct-cell";
+      cell.style.height = ROW_H + "px";
+      let taken = false;
+      if (isBar2 && rows2 && rows2[r] && rows2[r].length > 0 && rowEquals(rows[r], rows2[r])) {
+        cell.classList.add("pct-take");
+        cell.textContent = "\u2713";
+        cell.title = t("takeTip");
+        taken = true;
+      } else {
+        const info = rowPctInfo(dataRows, r);
+        if (info) {
+          cell.classList.add(info.cls);
+          cell.textContent = info.text;
+          cell.title = t("pickTitle");
+          cell.addEventListener("click", function(ev) {
+            ev.stopPropagation();
+            openRowComboPop(cell, dataRows, r);
+          });
+        } else {
+          cell.style.visibility = "hidden";
+        }
+      }
+      void taken;
+      colEl.appendChild(cell);
+      if (r < rowCount - 1) {
+        const sp = document.createElement("div");
+        sp.className = "pct-spacer";
+        colEl.appendChild(sp);
+      }
+    }
+  }
+
+  function renderBar() {
+    renderBarInto(bar, rows);
+    renderPctCol(document.getElementById("pctCol1"), rows);
+    if (rows2) {
+      renderBarInto(bar2, rows2);
+      renderPctCol(document.getElementById("pctCol2"), rows2);
+    }
+    updateBaMode();
+  }
+
+  function openComboPop(ev, entry, skill) {
+    const pop = document.getElementById("comboPop");
+    pop.innerHTML = "";
+    const h = document.createElement("h4");
+    const x = document.createElement("button");
+    x.className = "pop-x";
+    x.textContent = "\u2715";
+    x.addEventListener("click", closeComboPop);
+    h.appendChild(x);
+    h.appendChild(document.createTextNode(displayName(skill) + " \u2013 " + t("pickTitle")));
+    pop.appendChild(h);
+    skill.combos.forEach(function(comboText, ci) {
+      const line = document.createElement("div");
+      const cur = effectiveCombo(entry, skill);
+      line.className = "pop-line" + (cur === ci ? " pop-picked" : "");
+      parseCombo(comboText).forEach(function(piece, pi) {
+        if (pi > 0) line.appendChild(document.createTextNode("+"));
+        const frag = fragmentByName(piece.name);
+        if (frag) {
+          const fi = document.createElement("img");
+          fi.src = iconUrls[frag.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + frag.file);
+          fi.alt = frag.nameEn;
+          line.appendChild(fi);
+          const nm = document.createElement("span");
+          nm.textContent = LANG === "de" ? frag.nameDe : frag.nameEn;
+          line.appendChild(nm);
+        } else {
+          line.appendChild(document.createTextNode(piece.name));
+        }
+        if (piece.count > 1) line.appendChild(document.createTextNode(" " + t("times")(piece.count)));
+      });
+      const info = pctInfo(mnemeTotal(comboText));
+      const pct = document.createElement("span");
+      pct.className = info.cls;
+      pct.textContent = info.pct + "%";
+      pct.style.cssText = "margin-left:auto;font-weight:700;font-size:11.5px;padding:0 4px;border-radius:6px;border:1px solid;background:#222;";
+      line.appendChild(pct);
+      line.addEventListener("click", function() {
+        entry.combo = ci;
+        closeComboPop();
+        refreshAll();
+      });
+      pop.appendChild(line);
+    });
+    pop.classList.add("show");
+    const cr = ev.currentTarget.getBoundingClientRect();
+    const pr = pop.getBoundingClientRect();
+    let px = cr.right + 8, py = cr.top;
+    if (px + pr.width > window.innerWidth - 8) px = Math.max(8, cr.left - pr.width - 8);
+    if (py + pr.height > window.innerHeight - 8) py = Math.max(8, window.innerHeight - pr.height - 8);
+  }
+  
+    let comboPopPos = null;
+  
+  function openRowComboPop(anchorEl, dataRows, r, keepPos) {
+    const pop = document.getElementById("comboPop");
+    pop.innerHTML = "";
+    const list = [];
+    for (const en of dataRows[r]) {
+      const sk = skillById(en.id);
+      if (sk && sk.combos.length > 0) list.push({ en: en, skill: sk });
+    }
+    if (list.length === 0) return;
+    const h = document.createElement("h4");
+    const x = document.createElement("button");
+    x.className = "pop-x";
+    x.textContent = "\u2715";
+    x.addEventListener("click", closeComboPop);
+    h.appendChild(x);
+    h.appendChild(document.createTextNode(t("pickTitle")));
+    pop.appendChild(h);
+    list.forEach(function(item, si) {
+      if (si > 0) {
+        const sep = document.createElement("div");
+        sep.className = "pop-sep";
+        pop.appendChild(sep);
+      }
+      const sh = document.createElement("div");
+      sh.className = "pop-skill-head";
+      sh.appendChild(makeImg(item.skill));
+      const nm = document.createElement("span");
+      nm.textContent = displayName(item.skill);
+      sh.appendChild(nm);
+      if (effectiveCombo(item.en, item.skill) === null) {
+        const q = document.createElement("span");
+        q.textContent = " ?";
+        q.style.cssText = "color:#aaa;font-weight:400;";
+        sh.appendChild(q);
+      }
+      pop.appendChild(sh);
+      item.skill.combos.forEach(function(comboText, ci) {
+        const line = document.createElement("div");
+        const cur = effectiveCombo(item.en, item.skill);
+        line.className = "pop-line" + (cur === ci ? " pop-picked" : "");
+        parseCombo(comboText).forEach(function(piece, pi) {
+          if (pi > 0) line.appendChild(document.createTextNode("+"));
+          const frag = fragmentByName(piece.name);
+          if (frag) {
+            const fi = document.createElement("img");
+            fi.src = iconUrls[frag.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + frag.file);
+            fi.alt = frag.nameEn;
+            line.appendChild(fi);
+            const nmf = document.createElement("span");
+            nmf.textContent = LANG === "de" ? frag.nameDe : frag.nameEn;
+            line.appendChild(nmf);
+          } else {
+            line.appendChild(document.createTextNode(piece.name));
+          }
+          if (piece.count > 1) line.appendChild(document.createTextNode(" " + t("times")(piece.count)));
+        });
+        const info = pctInfo(mnemeTotal(comboText));
+        const pct = document.createElement("span");
+        pct.className = info.cls;
+        pct.textContent = info.pct + "%";
+        pct.style.cssText = "margin-left:auto;font-weight:700;font-size:11.5px;padding:0 4px;border-radius:6px;border:1px solid;background:#222;";
+        line.appendChild(pct);
+        line.addEventListener("click", function(ev) {
+          ev.stopPropagation();
+          item.en.combo = ci;
+          const allSet = list.every(function(it) {
+            return effectiveCombo(it.en, it.skill) !== null;
+          });
+          if (allSet) { closeComboPop(); refreshAll(); }
+          else { refreshAll(); openRowComboPop(anchorEl, dataRows, r, true); }
+        });
+        pop.appendChild(line);
+      });
+    });
+    pop.classList.add("show");
+    if (!keepPos || !comboPopPos) {
+      const cr = anchorEl.getBoundingClientRect();
+      const pr = pop.getBoundingClientRect();
+      let px = cr.right + 8, py = cr.top;
+      if (px + pr.width > window.innerWidth - 8) px = Math.max(8, cr.left - pr.width - 8);
+      if (py + pr.height > window.innerHeight - 8) py = Math.max(8, window.innerHeight - pr.height - 8);
+      comboPopPos = { x: px, y: py };
+    }
+    pop.style.left = comboPopPos.x + "px";
+    pop.style.top = comboPopPos.y + "px";
+  }
+  
+
+  function closeComboPop() {
+    comboPopPos = null;
+    document.getElementById("comboPop").classList.remove("show");
+  }
+
+  function updateBaMode() {
+    const on = !!rows2;
+    document.getElementById("bar2Block").classList.toggle("show", on);
+    document.getElementById("barHead1").classList.toggle("on", on);
+    document.getElementById("barHead2").classList.toggle("on", on);
+    document.getElementById("barHead1").textContent = on ? t("barHead1") : "";
+    document.getElementById("barHead2").textContent = t("barHead2");
+    document.getElementById("btnBar2").classList.toggle("active", on);
+  }
+
+  function makeRoleHeader(g, forTooltip) {
+    const head = document.createElement(forTooltip ? "div" : "div");
+    head.className = forTooltip ? "tip-role-head" : "role-group-header";
+    if (g.role) {
+      if (g.role.file) head.appendChild(makeClassImg(g.role.file, g.role.nameEn));
+      const rn = document.createElement("span");
+      rn.textContent = roleDisplayName(g.role);
+      head.appendChild(rn);
+    } else {
+      const rn = document.createElement("span");
+      rn.textContent = t("noRole");
+      head.appendChild(rn);
+    }
+    return head;
+  }
+
+  function makeTooltipRoleGroups(clsList) {
+    const wrap = document.createElement("div");
+    wrap.className = "tip-roles";
+    for (const g of groupClasses(clsList)) {
+      const row = document.createElement("div");
+      row.className = "tip-role-row";
+      const jobs = document.createElement("div");
+      jobs.className = "tip-jobs";
+      g.jobs.forEach(function(cls) { jobs.appendChild(makeJobChip(cls)); });
+      row.appendChild(jobs);
+      wrap.appendChild(row);
+    }
+    return wrap;
+  }
+
+  function makeBodyRoleGroups(clsList) {
+    const wrap = document.createElement("div");
+    wrap.className = "role-groups";
+    for (const g of groupClasses(clsList)) {
+      const grp = document.createElement("div");
+      grp.className = "role-group";
+      grp.appendChild(makeRoleHeader(g, false));
+      const jobs = document.createElement("div");
+      jobs.className = "tip-jobs";
+      g.jobs.forEach(function(cls) { jobs.appendChild(makeJobChip(cls)); });
+      grp.appendChild(jobs);
+      wrap.appendChild(grp);
+    }
+    return wrap;
+  }
+
+  function fillTip(skill) {
+    if (!skill) { tipEl.classList.remove("show"); return; }
+    tipEl.innerHTML = "";
+    const main = document.createElement("div");
+    main.className = "tip-main";
+    const textCol = document.createElement("div");
+    textCol.className = "tip-text";
+    const b = document.createElement("b");
+    b.textContent = displayName(skill);
+    textCol.appendChild(b);
+    const d = descriptionOf(skill);
+    const txt = d ? descTextOf(d) : "";
+    const ds = document.createElement("span");
+    ds.className = txt ? "tip-desc" : "tip-nodesc";
+    if (txt) { fillSentences(ds, txt); highlightDescKeywords(ds); }
+    else ds.textContent = t("noDesc");
+    textCol.appendChild(ds);
+    main.appendChild(textCol);
+    const clsList = d ? classesOf(d) : [];
+    if (clsList.length > 0) main.appendChild(makeTooltipRoleGroups(clsList));
+    tipEl.appendChild(main);
+    tipEl.classList.add("show");
+  }
+
+  function moveTip(e) {
+    const pad = 14;
+    let x = e.clientX + pad, y = e.clientY + pad;
+    const r = tipEl.getBoundingClientRect();
+    if (x + r.width > window.innerWidth - 8) x = Math.max(8, e.clientX - r.width - pad);
+    if (y + r.height > window.innerHeight - 8) y = Math.max(8, e.clientY - r.height - pad);
+    tipEl.style.left = x + "px";
+    tipEl.style.top = y + "px";
+  }
+  
+  const DESC_HIGHLIGHT_RULES = [
+    { cls: "hl-g", words: ["Duration", "Dauer", "Cure Potency", "Heilpotenzial"] },                              // gruen
+    { cls: "hl-r", words: ["Generates", "Feindseligkeit", "Enmity"] },           // rot
+    { cls: "hl-y", words: ["Additional Effect", "Zusatzeffekt", "Vermächtnis", "Wisdom", "Vermächtnisfähigkeiten", "replacement"] } // gelb
+  ];
+
+  function highlightDescKeywords(rootEl) {
+    if (!rootEl || !DESC_HIGHLIGHT_RULES.length) return;
+    // Regex bauen: Alternation aller Woerter mit Wortgrenzen, case-insensitive.
+    // "Additional Effect" (mit Leerzeichen) wird intern als \s+ gematcht,
+    // damit Zeilenumbrueche/leerzeichen-Varianten nicht den Match killen.
+    const parts = [];
+    const classOf = {};
+    for (const rule of DESC_HIGHLIGHT_RULES) {
+      for (const w of rule.words) {
+        parts.push(w.replace(/ /g, "\\s+"));
+        classOf[w.toLowerCase()] = rule.cls;
+      }
+    }
+    const re = new RegExp("(^|[^\\p{L}\\p{N}_])((" + parts.join("|") + "))(?![\\p{L}\\p{N}_])",
+      "giu");
+    // Alle Textknoten unter rootEl durchgehen und Treffer einwickeln
+    const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function(node) {
+      if (!node.nodeValue || !node.nodeValue.trim()) return;
+      let m;
+      let lastIdx = 0, out = null;
+      re.lastIndex = 0;
+      while ((m = re.exec(node.nodeValue)) !== null) {
+        if (!out) out = document.createDocumentFragment();
+        const before = node.nodeValue.slice(lastIdx, m.index);
+        if (before) out.appendChild(document.createTextNode(before));
+        const bnd = m[1]; 
+        if (bnd) out.appendChild(document.createTextNode(bnd));
+        const hit = m[2];
+        const sp = document.createElement("span");
+        sp.className = classOf[hit.toLowerCase()] || "hl-y";
+        sp.textContent = hit;
+        out.appendChild(sp);
+        lastIdx = m.index + m[0].length;
+      }
+      if (out) {
+        const rest = node.nodeValue.slice(lastIdx);
+        if (rest) out.appendChild(document.createTextNode(rest));
+        node.parentNode.replaceChild(out, node);
+      }
+    });
+  }
+
+  function bindTooltip(el, getSkill) {
+    if (IS_TOUCH || isMobileLayout()) { tipEl.classList.remove("show"); return; }
+    el.addEventListener("mouseenter", function(e) { fillTip(getSkill()); moveTip(e); });
+    el.addEventListener("mousemove", moveTip);
+    el.addEventListener("mouseleave", function() { tipEl.classList.remove("show"); });
+  }
+  
+    function closeSkillInfoPop() {
+    document.getElementById("skillInfoPop").classList.remove("show");
+  }
+  function showSkillInfoPop(anchorEl, skill) {
+    const pop = document.getElementById("skillInfoPop");
+    pop.innerHTML = "";
+    const ti = document.createElement("div");
+    ti.className = "si-t";
+    ti.textContent = displayName(skill);
+    pop.appendChild(ti);
+    const d = descriptionOf(skill);
+    const txt = d ? descTextOf(d) : "";
+    const ds = document.createElement("div");
+    if (txt) { ds.className = "si-d"; fillSentences(ds, txt); highlightDescKeywords(ds); }
+    else { ds.className = "si-no"; ds.textContent = t("noDesc"); }
+    pop.appendChild(ds);
+    const clsList = d ? classesOf(d) : [];
+    if (clsList.length > 0) {
+      const jb = document.createElement("div");
+      jb.className = "si-jobs";
+      for (const g of groupClasses(clsList)) {
+        if (g.role && g.role.file) jb.appendChild(makeClassImg(g.role.file, roleDisplayName(g.role)));
+        g.jobs.forEach(function(c) {
+          const e = classEntry(c);
+          if (e && e.file) jb.appendChild(makeClassImg(e.file, c));
+        });
+      }
+      pop.appendChild(jb);
+    }
+    const add = document.createElement("button");
+    add.className = "si-add";
+    add.textContent = t("addBar");
+    add.addEventListener("click", function(ev) {
+      ev.stopPropagation();
+      addSkillToBar(skill.id);
+      closeSkillInfoPop();
+    });
+    pop.appendChild(add);
+    pop.classList.add("show");
+    const ar = anchorEl.getBoundingClientRect();
+    const pr = pop.getBoundingClientRect();
+    let px = 8, py = ar.bottom + 8;
+    if (py + pr.height > window.innerHeight - 8) py = Math.max(8, ar.top - pr.height - 8);
+    pop.style.left = px + "px";
+    pop.style.top = py + "px";
+  }
+  
+  function mnemeTotal(comboText) {
+    return parseCombo(comboText).reduce(function(n, p) { return n + p.count; }, 0);
+  }
+  function pctInfo(count) {
+    if (count <= 3) return { pct: 100, cls: "pct-100" };
+    if (count === 4) return { pct: 70, cls: "pct-70" };
+    if (count === 5) return { pct: 50, cls: "pct-50" };
+    return { pct: 30, cls: "pct-30" };
+  }
+  function effectiveCombo(en, skill) {
+    if (typeof en.combo === "number") return en.combo;
+    if (skill && skill.combos.length === 1) return 0;
+    return null;
+  }
+  function addSkillToBar(id) {
+    let target = -1, arr = rows;
+    for (let r = 0; r < rows.length; r++) if (rows[r].length < PER_ROW) { target = r; break; }
+    if (target === -1 && rows2) {
+      arr = rows2;
+      for (let r = 0; r < rows2.length; r++) if (rows2[r].length < PER_ROW) { target = r; break; }
+    }
+    if (target === -1) { warnOnce(t("full")); return; }
+    let combo = null;
+    if (typeof pickedCombos[id] === "number") combo = pickedCombos[id];
+    const skill = skillById(id);
+    if (combo === null && skill && skill.combos.length === 1) combo = 0;
+    arr[target].push({ uid: ++uidSeq, id: id, combo: combo });
+    refreshAll();
+  }
+
+  function renderSelectedList() {
+    const list = document.getElementById("selectedList");
+    const openIds = new Set();
+    list.querySelectorAll("details.sel-item[open]").forEach(function(d) { openIds.add(d.dataset.sid); });
+    list.innerHTML = "";
+    const flat = selected.slice();
+    if (flat.length === 0) {
+      const p = document.createElement("div");
+      p.className = "selected-empty";
+      p.textContent = t("selEmpty");
+      list.appendChild(p);
+      return;
+    }
+    const counts = new Map();
+    for (const id of flat) counts.set(id, (counts.get(id) || 0) + 1);
+    for (const [id, count] of counts) {
+      const skill = skillById(id);
+      if (!skill) continue;
+      const det = document.createElement("details");
+      det.className = "sel-item";
+	  det.dataset.sid = id;
+      const sum = document.createElement("summary");
+      const icon = makeImg(skill);
+      icon.className = "icon-preview";
+      sum.appendChild(icon);
+      const txt = document.createElement("span");
+      txt.textContent = displayName(skill);
+      sum.appendChild(txt);
+
+      const badge = document.createElement("span");
+      badge.className = "sel-count" + (count > 1 ? "" : " one");
+      badge.textContent = t("times")(count);
+      sum.appendChild(badge);
+	  
+      const acts = document.createElement("span");
+      acts.className = "sel-actions";
+      const add = document.createElement("button");
+      add.className = "sel-btn";
+      add.textContent = "+";
+      add.title = t("addBar");
+      add.addEventListener("click", function() { addSkillToBar(skill.id); });
+      acts.appendChild(add);
+      const rm = document.createElement("button");
+      rm.className = "sel-btn rm";
+      rm.textContent = "\u2715";
+      rm.title = t("rmList");
+      rm.addEventListener("click", function() {
+        const ix = selected.indexOf(skill.id);
+        if (ix !== -1) selected.splice(ix, 1);
+        refreshAll();
+      });
+      acts.appendChild(rm);
+      sum.appendChild(acts);
+
+      det.appendChild(sum);
+      const body = document.createElement("div");
+      body.className = "sel-body";
+
+      const d = descriptionOf(skill);
+      const dtxt = d ? descTextOf(d) : "";
+      if (dtxt) {
+        const dl = document.createElement("span");
+        dl.className = "section-label lbl-desc";
+        dl.textContent = t("lblDesc");
+        body.appendChild(dl);
+        const dp = document.createElement("div");
+        dp.className = "skill-desc";
+        fillSentences(dp, dtxt);
+        body.appendChild(dp);
+      }
+
+      const clsList = d ? classesOf(d) : [];
+      if (clsList.length > 0) {
+        const rl = document.createElement("span");
+        rl.className = "section-label lbl-role";
+        rl.textContent = t("lblRole");
+        body.appendChild(rl);
+        body.appendChild(makeBodyRoleGroups(clsList));
+      }
+
+      if (skill.combos.length > 0) {
+        const cl = document.createElement("span");
+        cl.className = "section-label lbl-combo";
+        cl.textContent = t("lblCombo");
+        body.appendChild(cl);
+        let picked = pickedCombos[skill.id];
+        if (picked === undefined && skill.combos.length === 1) picked = 0;
+        skill.combos.forEach(function(comboText, i) {
+          const li = document.createElement("div");
+          li.className = "recipe-line" + (picked === i ? " picked" : "");
+          const num = document.createElement("span");
+          num.className = "combo-num";
+          num.textContent = t("combo")(i + 1) + " ";
+          li.appendChild(num);
+          const pieces = parseCombo(comboText);
+          pieces.forEach(function(piece, pi) {
+            if (pi > 0) li.appendChild(document.createTextNode("  +  "));
+            const frag = fragmentByName(piece.name);
+            if (frag) {
+              const fi = document.createElement("img");
+              fi.dataset.file = frag.file;
+              fi.src = iconUrls[frag.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + frag.file);
+              fi.alt = frag.nameEn;
+              fi.style.cssText = "width:18px;height:18px;vertical-align:-3px;margin-right:3px;object-fit:contain;";
+              li.appendChild(fi);
+              const nm = document.createElement("span");
+              nm.textContent = LANG === "de" ? frag.nameDe : frag.nameEn;
+              li.appendChild(nm);
+            } else {
+              const nm = document.createElement("span");
+              nm.textContent = piece.name;
+              li.appendChild(nm);
+            }
+            if (piece.count > 1) {
+              const cnt = document.createElement("span");
+              cnt.textContent = " " + t("times")(piece.count);
+              li.appendChild(cnt);
+            }
+          });
+          li.title = "Klick zum Auswählen";
+          li.addEventListener("click", function() {
+            if (pickedCombos[skill.id] === i) delete pickedCombos[skill.id];
+            else pickedCombos[skill.id] = i;
+            refreshAll();
+          });
+          body.appendChild(li);
+        });
+      } else {
+        const nd = document.createElement("div");
+        nd.className = "no-data";
+        nd.textContent = t("noData");
+        body.appendChild(nd);
+      }
+      det.appendChild(body);
+      if (openIds.has(id)) det.open = true;
+      list.appendChild(det);
+    }
+  }
+
+  const activeMnemes = new Set();
+  function refreshMnemeHits() {
+    grid.querySelectorAll(".skill.logo-hit").forEach(function(tile) { tile.classList.remove("logo-hit"); });
+    if (activeMnemes.size === 0) return;
+    grid.querySelectorAll(".skill").forEach(function(tile) {
+      const sk = skillById(tile.dataset.id);
+      if (!sk) return;
+      let hit = false;
+      outer: for (const c of sk.combos) {
+        for (const piece of parseCombo(c)) {
+          if (activeMnemes.has(piece.name.trim().toLowerCase())) { hit = true; break outer; }
+        }
+      }
+      if (hit) tile.classList.add("logo-hit");
+    });
+  }
+  function makeItemChip(name) {
+    const chip = document.createElement("span");
+    chip.className = "logo-chip";
+    const frag = fragmentByName(name);
+    if (frag) {
+      const im = document.createElement("img");
+      im.src = iconUrls[frag.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + frag.file);
+      im.alt = frag.nameEn;
+      im.onerror = function() { im.remove(); };
+      chip.appendChild(im);
+    }
+    const nm = document.createElement("span");
+    nm.textContent = frag ? (LANG === "de" ? frag.nameDe : frag.nameEn) : name;
+    chip.appendChild(nm);
+    chip.addEventListener("click", function() {
+      const key = name.trim().toLowerCase();
+      if (activeMnemes.has(key)) { activeMnemes.delete(key); chip.classList.remove("chip-active"); }
+      else { activeMnemes.add(key); chip.classList.add("chip-active"); }
+      refreshMnemeHits();
+    });
+    return chip;
+  }
+  function renderLogoList() {
+    const host = document.getElementById("logoList");
+    if (!host) return;
+    host.innerHTML = "";
+    for (const lg of LOGOGRAMS) {
+      const det = document.createElement("details");
+      det.className = "logo-item";
+      const sum = document.createElement("summary");
+      const im = document.createElement("img");
+      im.className = "logo-icon";
+      im.src = iconUrls[lg.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + lg.file);
+      im.alt = logoName(lg);
+      im.onerror = function() { im.remove(); };
+      sum.appendChild(im);
+      const nm = document.createElement("span");
+      nm.textContent = logoName(lg);
+      sum.appendChild(nm);
+      attachLogoInfo(sum, lg);
+      det.appendChild(sum);
+      const body = document.createElement("div");
+      body.className = "logo-items";
+      lg.items.forEach(function(it) { body.appendChild(makeItemChip(it)); });
+      det.appendChild(body);
+      host.appendChild(det);
+    }
+  }
+
+  function rowEquals(a, b) {
+    if (!a || !b) return false;
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i].id !== b[i].id) return false;
+      const sa = skillById(a[i].id);
+      const sb = skillById(b[i].id);
+      if (effectiveCombo(a[i], sa) !== effectiveCombo(b[i], sb)) return false;
+    }
+    return true;
+  }
+
+  function aggregateSplitters() {
+    const totals = {};
+    function addRow(list) {
+      for (const en of list) {
+        const skill = skillById(en.id);
+        if (!skill || skill.combos.length === 0) continue;
+        const ci = effectiveCombo(en, skill);
+        if (ci === null || !skill.combos[ci]) continue;
+        for (const piece of parseCombo(skill.combos[ci])) {
+          const key = piece.name.toLowerCase();
+          if (!totals[key]) totals[key] = { name: piece.name, count: 0, frag: fragmentByName(piece.name) };
+          totals[key].count += piece.count;
+        }
+      }
+    }
+    for (let r = 0; r < rows.length; r++) addRow(rows[r]);
+    if (rows2) {
+      for (let r = 0; r < rows2.length; r++) {
+        if (rows[r] && rows2[r] && rows2[r].length > 0 && rowEquals(rows[r], rows2[r])) continue;
+        addRow(rows2[r]);
+      }
+    }
+    return Object.values(totals);
+  }
+  function renderSplitterPanel() {
+    const panel = document.getElementById("splitterPanel");
+    if (!panel) return;
+    const items = aggregateSplitters();
+    panel.innerHTML = "";
+    const btnSpl = document.getElementById("btnSplitters");
+    if (btnSpl) btnSpl.classList.toggle("active", splitterPanelVisible);
+    if (!splitterPanelVisible) { panel.classList.remove("show"); return; }
+    panel.classList.add("show");
+    if (items.length === 0) {
+      const h = document.createElement("h3");
+      h.textContent = t("splTitle");
+      const x = document.createElement("button");
+      x.textContent = "\u2715";
+      x.title = "Ausblenden";
+      x.addEventListener("click", function() { splitterPanelVisible = false; renderSplitterPanel(); });
+      h.appendChild(x);
+      panel.appendChild(h);
+      const p = document.createElement("div");
+      p.style.cssText = "color:#777;font-size:12px;font-style:italic;padding:6px 2px;";
+      p.textContent = t("splEmpty");
+      panel.appendChild(p);
+      return;
+    }
+    const h = document.createElement("h3");
+    h.textContent = t("splTitle");
+    const x = document.createElement("button");
+    x.textContent = "\u2715";
+    x.title = "Ausblenden";
+    x.addEventListener("click", function() { splitterPanelVisible = false; renderSplitterPanel(); });
+    h.appendChild(x);
+    panel.appendChild(h);
+    items.forEach(function(it) {
+      const row = document.createElement("div");
+      row.className = "splitter-row";
+      if (it.frag) {
+        const im = document.createElement("img");
+        im.src = iconUrls[it.frag.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + it.frag.file);
+        im.alt = it.frag.nameEn;
+        im.onerror = function() { im.remove(); };
+        row.appendChild(im);
+        const nm = document.createElement("span");
+        nm.textContent = LANG === "de" ? it.frag.nameDe : it.frag.nameEn;
+        row.appendChild(nm);
+      } else {
+        row.textContent = it.name;
+      }
+      const n = document.createElement("span");
+      n.className = "n";
+      n.textContent = t("times")(it.count);
+      row.appendChild(n);
+      panel.appendChild(row);
+    });
+  }
+  
+    function logogramsContaining(itemName) {
+    const key = (itemName || "").trim().toLowerCase();
+    if (!key) return [];
+    return LOGOGRAMS.filter(function(l) {
+      return l.items.some(function(it) { return it.trim().toLowerCase() === key; });
+    });
+  }
+  
+  function renderComboSummary() {
+    const host = document.getElementById("comboSummary");
+    if (!host) return;
+    host.innerHTML = "";
+    const done = new Set();
+    let any = false;
+    for (const id of selected) {
+      const skill = skillById(id);
+      if (!skill || skill.combos.length === 0 || done.has(id)) continue;
+      done.add(id);
+      let picked = pickedCombos[skill.id];
+      if (picked === undefined && skill.combos.length === 1) picked = 0;
+      if (picked === undefined || !skill.combos[picked]) continue;
+      any = true;
+      const box = document.createElement("div");
+      box.className = "combo-skill";
+      const head = document.createElement("div");
+      head.className = "cs-head";
+      const im = makeImg(skill);
+      im.style.cssText = "width:20px;height:20px;object-fit:contain;";
+      head.appendChild(im);
+      const nm = document.createElement("span");
+      nm.textContent = displayName(skill);
+      head.appendChild(nm);
+      box.appendChild(head);
+      const pieces = document.createElement("div");
+      pieces.className = "cs-pieces";
+      parseCombo(skill.combos[picked]).forEach(function(piece, pi) {
+        const li = document.createElement("div");
+        li.className = "cs-piece";
+        li.style.cssText = "display:flex;align-items:center;gap:4px;flex-wrap:wrap;";
+        const frag = fragmentByName(piece.name);
+        if (frag) {
+          const fi = document.createElement("img");
+          fi.src = iconUrls[frag.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + frag.file);
+          fi.alt = frag.nameEn;
+          li.appendChild(fi);
+        }
+        const pn = document.createElement("span");
+        pn.textContent = " " + (frag ? (LANG === "de" ? frag.nameDe : frag.nameEn) : piece.name);
+        if (piece.count > 1) pn.textContent += " " + t("times")(piece.count);
+        li.appendChild(pn);
+        const lgSrcs = logogramsContaining(piece.name);
+        if (lgSrcs.length > 0) {
+          const src = document.createElement("span");
+          src.className = "cs-src";
+          src.title = lgSrcs.map(logoName).join(", ");
+          lgSrcs.forEach(function(lg) {
+            const im = document.createElement("img");
+            im.src = iconUrls[lg.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + lg.file);
+            im.alt = logoName(lg);
+            im.onerror = function() { im.remove(); };
+            src.appendChild(im);
+          });
+          li.appendChild(src);
+        }
+        pieces.appendChild(li);
+      });
+      box.appendChild(pieces);
+      host.appendChild(box);
+    }
+    host.classList.toggle("show", any);
+  }
+  function syncPanels() {
+    const lp = document.querySelector(".logo-panel");
+    if (lp) {
+      if (isMobileLayout()) lp.style.maxHeight = "";
+      else if (panel.offsetHeight > 0) lp.style.maxHeight = panel.offsetHeight + "px";
+    }
+    const layout = document.querySelector(".layout");
+    const row = document.getElementById("bottomRow");
+    if (layout && row && panel.offsetWidth > 0) {
+      row.style.width = (panel.getBoundingClientRect().right - layout.getBoundingClientRect().left) + "px";
+    }
+  }
+  
+  function fitScale() {
+    if (isMobileLayout()) { document.documentElement.style.zoom = 1; return; }
+    document.documentElement.style.zoom = 1;
+    let minLeft = Infinity, maxRight = -Infinity;
+    for (const el of document.body.children) {
+      if (el.id === "tooltip" || el.id === "toast" || el.id === "comboPop") continue;
+      const r = el.getBoundingClientRect();
+      if (r.width === 0) continue;
+      if (r.left < minLeft) minLeft = r.left;
+      if (r.left + r.width > maxRight) maxRight = r.left + r.width;
+    }
+    if (minLeft === Infinity) return;
+    // 3) Benoetigte Breite = rechte Kante minus linke Kante (faengt den
+    //    linken Ueberhang mit ein, den scrollWidth uebersehen wuerde)
+    const needed = maxRight - minLeft;
+    const avail = window.innerWidth;
+    // 4) Zoom setzen: 1 = Original, sonst proportional verkleinern (min. 0.5)
+    let z = 1;
+    if (needed > avail && needed > 0) z = Math.max(0.5, avail / needed);
+    document.documentElement.style.zoom = z;
+  }
+
+  function refreshAll() {
+    renderBar();
+    renderSelectedList();
+    updateTileMarkers();
+    updateSlotLabel();
+    renderSplitterPanel();
+    saveState();
+	renderComboSummary();
+	syncPanels();
+    fitScale();     
+  }
+
+  function updateSlotLabel() {
+    btnMinus.disabled = (rowCount <= MIN_ROWS);
+    btnPlus.disabled = (rowCount >= MAX_ROWS);
+  }
+
+  function mapBarEntries(src) {
+    const out = [];
+    for (const it of src) {
+      if (typeof it === "string" && skillById(it)) out.push({ uid: ++uidSeq, id: it, combo: null });
+      else if (it && skillById(it.id)) out.push({ uid: ++uidSeq, id: it.id, combo: (typeof it.combo === "number" ? it.combo : null) });
+    }
+    return out;
+  }
+
+  function stateObj() {
+    return { app: "eureka-logos-planner", rows: rows, rows2: rows2, selected: selected.slice(), combos: pickedCombos };
+  }
+
+  function saveState() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(stateObj())); } catch (e) {}
+  }
+
+  function chunkPairs(arr, n) {
+    const out = [];
+    let i = 0;
+    while (out.length < n) { out.push(arr.slice(i, i + PER_ROW)); i += PER_ROW; }
+    return out;
+  }
+
+  function applyState(st) {
+    let newRows = null;
+    if (st && Array.isArray(st.rows)) newRows = st.rows;
+    else if (st && Array.isArray(st.skills)) newRows = chunkPairs(st.skills, st.rows || 3);
+    if (!newRows) return false;
+    rowCount = Math.max(MIN_ROWS, Math.min(MAX_ROWS, newRows.length || MIN_ROWS));
+    pickedCombos = (st && st.combos && typeof st.combos === "object") ? st.combos : {};
+    if (st && Array.isArray(st.selected)) {
+      selected = st.selected.filter(function(id) { return !!skillById(id); });
+    } else {
+      const seenS = new Set();
+      for (const r of newRows) for (const it of r) seenS.add(typeof it === "string" ? it : it.id);
+      selected = Array.from(seenS);
+    }
+    rows = [];
+    uidSeq = 0;
+    for (let r = 0; r < rowCount; r++) rows.push(mapBarEntries(newRows[r] || []).slice(0, PER_ROW));
+    if (st && Array.isArray(st.rows2)) {
+      rows2 = [];
+      for (let r = 0; r < rowCount; r++) rows2.push(mapBarEntries(st.rows2[r] || []).slice(0, PER_ROW));
+    } else rows2 = null;
+    computeRowHeight();
+    refreshAll();
+    return true;
+  }
+
+  function loadState() {
+    try {
+      let raw = localStorage.getItem(STORE_KEY);
+      if (!raw) raw = localStorage.getItem(OLD_STORE_KEY);
+      if (!raw) return;
+      applyState(JSON.parse(raw));
+    } catch (e) {}
+  }
+
+  function waitForImages() {
+    const imgs = Array.prototype.slice.call(document.querySelectorAll("img[data-file]"));
+    return Promise.all(imgs.map(function(im) {
+      return im.complete ? Promise.resolve() : new Promise(function(res) { im.onload = res; im.onerror = res; });
+    }));
+  }
+
+  async function connectFolderForExport() {
+    if (!window.showDirectoryPicker) return false;
+    try {
+      if (dirHandle && (await dirHandle.queryPermission({ mode: "read" })) === "granted") return true;
+      showToast(t("pngAskFolder"));
+      dirHandle = await window.showDirectoryPicker({ mode: "read" });
+      try { await idbSet("projectDir", dirHandle); } catch (e) {}
+      await scanIcons();
+      refreshImages();
+      await waitForImages();
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function exportTargets() {
+    const targets = [ { el: bar, kind: "bar" } ];
+    if (rows2) targets.push({ el: bar2, kind: "bar" });
+    const spl = document.getElementById("splitterPanel");
+    if (rows2 === null || true) {           // Einkaufsliste immer, wenn sichtbar
+      if (spl && splitterPanelVisible && spl.classList.contains("show")) {
+        targets.push({ el: spl, kind: "panel" });
+      }
+    }
+    return targets;
+  }
+
+  function drawArrowToCanvas(ctx, xa, xb, y) {
+    const color = "#c9a55f";
+    ctx.strokeStyle = color; ctx.fillStyle = color;
+    ctx.lineWidth = 2.5; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(xa, y); ctx.lineTo(xb - 8, y); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(xb, y); ctx.lineTo(xb - 9, y - 5.5); ctx.lineTo(xb - 9, y + 5.5);
+    ctx.closePath(); ctx.fill();
+  }
+
+  function buildPngCanvas(withArrows) {
+    const SCALE = 2, PAD = 8;
+    const ARROW_W = 120;
+    const useArrows = !!(withArrows && rows2);
+    const targets = exportTargets();
+    const cardM = splitterCardMetrics();
+    const infos = targets.map(function(t) {
+      const r = t.el.getBoundingClientRect();
+      return { t: t, r: r,
+        w: (t.kind === "panel") ? cardM.width : r.width,
+        h: (t.kind === "panel") ? cardM.height : r.height };
+    });
+    if (infos.length === 0) return null;
+    const minTop = Math.min.apply(null, infos.map(function(it) { return it.r.top; }));
+    const minLeft = Math.min.apply(null, infos.map(function(it) { return it.r.left; }));
+    const oy = minTop - PAD;
+    let cw, ch, oxOf;
+    if (useArrows) {
+      const pos = {};
+      let x = PAD, maxH = 0;
+      for (const it of infos) {
+        pos[it.t.el.id] = x;
+        if (it.t.kind === "panel") x += it.w + 12;
+        else if (it.t.el === bar) x += it.w + 6 + ARROW_W + 6;
+        else x += it.w + 12;
+        if (it.h > maxH) maxH = it.h;
+      }
+      cw = x + PAD; ch = maxH + PAD * 2;
+      oxOf = function(it) { return it.r.left - pos[it.t.el.id]; };
+      var drawArrows = { pos: pos };
+    } else {
+      let maxR = -Infinity, maxB = -Infinity;
+      for (const it of infos) {
+        maxR = Math.max(maxR, it.r.left + it.w);
+        maxB = Math.max(maxB, it.r.top + it.h);
+      }
+      cw = maxR - minLeft + PAD * 2; ch = maxB - minTop + PAD * 2;
+      oxOf = function(it) { return minLeft - PAD; };
+      var drawArrows = null;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(cw * SCALE); canvas.height = Math.round(ch * SCALE);
+    const ctx = canvas.getContext("2d");
+    ctx.scale(SCALE, SCALE);
+    for (const it of infos) {
+      if (it.t.kind === "bar") drawBarToCanvas(ctx, it.t.el, oxOf(it), oy);
+      else drawPanelToCanvas(ctx, it.t.el, oxOf(it), oy);
+    }
+    if (drawArrows) {
+      const pos = drawArrows.pos;
+      const ax1 = pos[bar2.id] - ARROW_W - 6 + 6;
+      const ax2 = pos[bar2.id] - 10;
+      // Titel einmal ueber der Pfeilspalte
+      ctx.font = "700 10px 'Segoe UI', Arial, sans-serif";
+      ctx.fillStyle = "#c9a55f";
+      ctx.textAlign = "center"; ctx.textBaseline = "top";
+      ctx.fillText(LANG === "de" ? "NACH BENUTZUNG" : "AFTER USE",
+        (ax1 + ax2) / 2, PAD + 4, ARROW_W);
+      ctx.textAlign = "left";
+      // Ein Pfeil pro abweichender Reihe (Hoehe wie die Leistenreihen)
+      const rowEls = bar2.querySelectorAll(".bar-row");
+      for (let r = 0; r < rowCount && r < rowEls.length; r++) {
+        if (!rows2[r]) continue;
+        const same = rowEquals(rows[r], rows2[r]);
+        if (same) continue;                                  // identisch: kein Pfeil
+        const rr = rowEls[r].getBoundingClientRect();
+        drawArrowToCanvas(ctx, ax1, ax2, rr.top - oy + rr.height / 2);
+      }
+    }
+    return canvas;
+  }
+  function splitterCardMetrics() {
+    const panelEl = document.getElementById("splitterPanel");
+    const mc = document.createElement("canvas").getContext("2d");
+    const NAME_FONT = "12px 'Segoe UI', Arial, sans-serif";
+    mc.font = NAME_FONT;
+    const PAD_X = 12, TITLE_H = 32, MAX_NAME_W = 190, LINE_H = 14, ROW_PAD = 8;
+    const rowsData = [];
+    let hasImg = false;
+    const domRows = panelEl ? panelEl.querySelectorAll(".splitter-row") : [];
+    for (const row of domRows) {
+      const nEl = row.querySelector(".n");
+      const nameSpan = row.querySelector("span");
+      const cnt = nEl ? nEl.textContent : "";
+      const name = (nameSpan ? nameSpan.textContent : "").trim();
+      if (row.querySelector("img")) hasImg = true;
+      // Name in max 2 Zeilen brechen (Wortgrenzen)
+      const wrapped = [];
+      let rest = name;
+      while (mc.measureText(rest).width > MAX_NAME_W && wrapped.length < 1) {
+        let cut = rest.length;
+        while (cut > 1 && mc.measureText(rest.slice(0, cut)).width > MAX_NAME_W) cut--;
+        const sp = rest.lastIndexOf(" ", cut);
+        if (sp > 0) cut = sp;
+        wrapped.push(rest.slice(0, cut).trim());
+        rest = rest.slice(cut).trim();
+      }
+      wrapped.push(rest);
+      rowsData.push({ cnt: cnt, cntW: mc.measureText(cnt).width, wrapped: wrapped });
+    }
+    let width = 0;
+    for (const rd of rowsData) {
+      const nameW = Math.max.apply(null, rd.wrapped.map(function(w) { return mc.measureText(w).width; }));
+      const rowW = PAD_X + rd.cntW + 10 + (hasImg ? 20 + 8 : 0) + nameW + PAD_X;
+      width = Math.max(width, rowW);
+    }
+    let height = TITLE_H;
+    for (const rd of rowsData) {
+      height += Math.max(20, rd.wrapped.length * LINE_H) + ROW_PAD;
+    }
+    height += 6;
+    return { width: Math.max(width, 220), height: height, rows: rowsData, hasImg: hasImg,
+             PAD_X: PAD_X, TITLE_H: TITLE_H, LINE_H: LINE_H, ROW_PAD: ROW_PAD };
+  }
+
+  // Zeichnet die Einkaufslisten-Karte an der Position der DOM-Liste,
+  // aber mit eigener, gemessener Groesse.
+  function drawPanelToCanvas(ctx, panelEl, ox, oy) {
+    const m = splitterCardMetrics();
+    if (m.rows.length === 0) return;
+    const r = panelEl.getBoundingClientRect();
+    const x = r.left - ox, y = r.top - oy;
+    // Hintergrund-Karte in Eigenmas
+    ctx.fillStyle = "#272627";
+    roundRect(ctx, x, y, m.width, m.height, 10); ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = "#3d8484";
+    roundRect(ctx, x + 1, y + 1, m.width - 2, m.height - 2, 10); ctx.stroke();
+    // Titel (Text-Knoten des h3 ohne den X-Button)
+    const h3 = panelEl.querySelector("h3");
+    if (h3) {
+      let title = "";
+      h3.childNodes.forEach(function(n) { if (n.nodeType === 3) title += n.textContent; });
+      ctx.fillStyle = "#7fd4d4";
+      ctx.font = "700 12px 'Segoe UI', Arial, sans-serif";
+      ctx.textBaseline = "top";
+      ctx.fillText(title.trim().toUpperCase(), x + m.PAD_X, y + 12);
+    }
+    // Zeilen
+    const domRows = panelEl.querySelectorAll(".splitter-row");
+    let cy = y + m.TITLE_H;
+    domRows.forEach(function(row, ri) {
+      const rd = m.rows[ri];
+      const rowH = Math.max(20, rd.wrapped.length * m.LINE_H);
+      let tx = x + m.PAD_X;
+      // MENGE LINKS (gold, bold)
+      ctx.textBaseline = "middle";
+      ctx.font = "700 12px 'Segoe UI', Arial, sans-serif";
+      ctx.fillStyle = "#ffe9a8";
+      ctx.fillText(rd.cnt, tx, cy + rowH / 2);
+      tx += rd.cntW + 10;
+      // ICON
+      const img = row.querySelector("img");
+      if (img && img.complete && img.naturalWidth > 0) {
+        try { ctx.drawImage(img, tx, cy + (rowH - 20) / 2, 20, 20); } catch (e) {}
+        tx += 20 + 8;
+      }
+      // NAME (ggf. 2 Zeilen)
+      ctx.font = "12px 'Segoe UI', Arial, sans-serif";
+      ctx.fillStyle = "#cccccc";
+      const lines = rd.wrapped.length;
+      rd.wrapped.forEach(function(w, li) {
+        const ly = cy + rowH / 2 + (li - (lines - 1) / 2) * m.LINE_H;
+        ctx.fillText(w, tx, ly);
+      });
+      cy += rowH + m.ROW_PAD;
+    });
+  }
+
+  function buildListPngCanvas() {
+    const m = splitterCardMetrics();
+    if (m.rows.length === 0) return null;
+    const SCALE = 2, PAD = 8;
+    const spl = document.getElementById("splitterPanel");
+    const r = spl.getBoundingClientRect();
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round((m.width + PAD * 2) * SCALE);
+    canvas.height = Math.round((m.height + PAD * 2) * SCALE);
+    const ctx = canvas.getContext("2d");
+    ctx.scale(SCALE, SCALE);
+    drawPanelToCanvas(ctx, spl, r.left - PAD, r.top - PAD);
+    return canvas;
+  }
+
+  function skillIconSrc(skill) {
+    if (!skill || !skill.file) return null;
+    return iconUrls[skill.file.toLowerCase()] || (ACTIONS_DIR + "/" + skill.file);
+  }
+
+  function loadLogoImg(src) {
+    return new Promise(function(res) {
+      if (!src) { res(null); return; }
+      const im = new Image();
+      im.onload = function() { res(im); };
+      im.onerror = function() { res(null); };
+      im.src = src;
+    });
+  }
+  
+  async function buildComboListPngCanvas() {
+    const SCALE = 2, PAD = 10;
+    // 1) Sammeln: Skill -> Kombi-Index -> Anzahl
+    const groups = new Map();
+    function addEntry(en) {
+      const sk = skillById(en.id);
+      if (!sk || sk.combos.length === 0) return;
+      const ci = effectiveCombo(en, sk);
+      if (ci === null) return;
+      let g = groups.get(sk.nameEn);
+      if (!g) { g = { skill: sk, counts: new Map() }; groups.set(sk.nameEn, g); }
+      g.counts.set(ci, (g.counts.get(ci) || 0) + 1);
+    }
+    for (let r = 0; r < rowCount; r++) {
+      (rows[r] || []).forEach(addEntry);
+      if (rows2 && rows2[r] && !rowEquals(rows[r], rows2[r])) (rows2[r] || []).forEach(addEntry);
+    }
+    if (groups.size === 0) return null;
+    const F_SKILL = "700 13px 'Segoe UI', Arial, sans-serif";
+    const F_HEAD = "700 12px 'Segoe UI', Arial, sans-serif";
+    const F_LINE = "12px 'Segoe UI', Arial, sans-serif";
+    const LINE_H = 16, SKILL_H = 22, HEAD_H = 16, GROUP_GAP = 10;
+    const IND_SKILL = 30, IND_HEAD = 26, IND_LINE = 44;
+	const OFF_SKILL = 38, OFF_HEAD = 34, OFF_LINE = 52;
+    const nameOf = function(f) { return f ? (LANG === "de" ? f.nameDe : f.nameEn) : "?"; };
+    // 2) Layout: Liste von Zeilen mit Font/Indent + Endhoehe
+    const layout = [];
+    for (const g of groups.values()) {
+      const total = Array.from(g.counts.values()).reduce(function(a, b) { return a + b; }, 0);
+      layout.push({ type: "skill", skill: g.skill, total: total });
+      Array.from(g.counts.keys()).sort(function(a, b) { return a - b; }).forEach(function(ci) {
+        const n = g.counts.get(ci);
+        layout.push({ type: "head", text: n + "\u00d7 " + t("comboWord") + (n !== 1 ? "en" : "") });
+        // Fragmente der Kombi, Dubletten zusammenzaehlen
+        const agg = new Map();
+        parseCombo(g.skill.combos[ci]).forEach(function(p) {
+          agg.set(p.name, (agg.get(p.name) || 0) + p.count);
+        });
+        Array.from(agg.keys()).forEach(function(fname) {
+          const cnt = agg.get(fname);
+          const f = fragmentByName(fname);
+          layout.push({ type: "line", text: (cnt > 1 ? cnt + "\u00d7 " : "") + nameOf(f) });
+        });
+      });
+      layout.push({ type: "gap" });
+    }
+    // Gap nur ZWISCHEN Gruppen (nach der letzten Gruppe keins)
+    const clean = [];
+    layout.forEach(function(it) {
+      if (it.type === "gap" && (clean.length === 0 || clean[clean.length - 1].type === "gap")) return;
+      clean.push(it);
+    });
+    while (clean.length && clean[clean.length - 1].type === "gap") clean.pop();
+    // Hoehe berechnen
+    let ch = PAD + 34;
+    for (const it of clean) {
+      if (it.type === "skill") ch += SKILL_H;
+      else if (it.type === "head") ch += HEAD_H;
+      else if (it.type === "line") ch += LINE_H;
+      else ch += GROUP_GAP;
+    }
+    ch += PAD;
+    // Breite messen (alle Texte einmal zeichnen-messbar machen)
+    const mc = document.createElement("canvas").getContext("2d");
+    let maxW = 200;
+    for (const it of clean) {
+      if (it.type === "skill") { mc.font = F_SKILL; maxW = Math.max(maxW, OFF_SKILL + mc.measureText(it.total + "\u00d7  " + displayName(it.skill)).width); }
+      else if (it.type === "head") { mc.font = F_HEAD; maxW = Math.max(maxW, OFF_HEAD + mc.measureText(it.text).width); }
+      else if (it.type === "line") { mc.font = F_LINE; maxW = Math.max(maxW, OFF_LINE + mc.measureText(it.text).width); }
+    }
+    maxW = Math.max(maxW, 130);            // Titel "LOGOS-KOMBILISTE" sichern
+    const cw = maxW + PAD * 2 + 16;        // +16 = Sicherheitsrand rechts
+    // 3) Icons laden
+    for (const it of clean) {
+      if (it.type === "skill") it.img = await loadLogoImg(skillIconSrc(it.skill));
+    }
+    // 4) Zeichnen — Canvas hat ab hier DIE Hoehe des fertigen Layouts
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(cw * SCALE); canvas.height = Math.round(ch * SCALE);
+    const ctx = canvas.getContext("2d");
+    ctx.scale(SCALE, SCALE);
+    ctx.fillStyle = "#272627";
+    roundRect(ctx, PAD, PAD, cw - PAD * 2, ch - PAD * 2, 10); ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = "#3d8484";
+    roundRect(ctx, PAD + 1, PAD + 1, cw - PAD * 2 - 2, ch - PAD * 2 - 2, 10); ctx.stroke();
+    ctx.fillStyle = "#7fd4d4"; ctx.font = "700 12px 'Segoe UI', Arial, sans-serif";
+    ctx.textBaseline = "top";
+    ctx.fillText(LANG === "de" ? "LOGOS-KOMBILISTE" : "LOGOS COMBO LIST", PAD + 12, PAD + 10);
+    const ix = PAD + 12;
+    let y = PAD + 34;
+    for (const it of clean) {
+      if (it.type === "skill") {
+        ctx.textBaseline = "middle"; ctx.font = F_SKILL; ctx.fillStyle = "#eeeeee";
+        if (it.img) { try { ctx.drawImage(it.img, ix, y + SKILL_H / 2 - 10, 20, 20); } catch (e) {} }
+        ctx.fillText(it.total + "\u00d7  " + displayName(it.skill), ix + IND_SKILL - 4, y + SKILL_H / 2);
+        y += SKILL_H;
+      } else if (it.type === "head") {
+        ctx.textBaseline = "middle"; ctx.font = F_HEAD; ctx.fillStyle = "#ffe9a8";
+        ctx.fillText(it.text, ix + IND_HEAD - 4, y + HEAD_H / 2);
+        y += HEAD_H;
+      } else if (it.type === "line") {
+        ctx.textBaseline = "middle"; ctx.font = F_LINE; ctx.fillStyle = "#cccccc";
+        ctx.fillText(it.text, ix + IND_LINE - 4, y + LINE_H / 2);
+        y += LINE_H;
+      } else {
+        y += GROUP_GAP;
+      }
+    }
+    return canvas;
+  }
+  async function exportPngCommon(kind, mode, isRetry) {
+    if (isRetry === undefined) isRetry = false;
+    document.documentElement.classList.add("export-desktop-layout");
+    let canvas = null;
+    try {
+      canvas = (kind === "combolist") ? await buildComboListPngCanvas()
+             : (kind === "list") ? buildListPngCanvas()
+             : (kind === "plan") ? buildPngCanvas(true)
+             : buildPngCanvas(false);
+    } finally {
+      document.documentElement.classList.remove("export-desktop-layout");
+    }
+    if (!canvas) { showToast(t("pngFail")); return; }
+    try {
+      const blob = await new Promise(function(res, rej) {
+        try { canvas.toBlob(function(b) { b ? res(b) : rej(new Error("empty")); }, "image/png"); }
+        catch (err) { rej(err); }
+      });
+      if (mode === "clipboard") {
+        // 1) Zwischenablage (Desktop-Standard)
+        try {
+          await navigator.clipboard.write([ new ClipboardItem({ "image/png": blob }) ]);
+          showToast(t("pngCopied"));
+          return;
+        } catch (e2) {}
+        // 2) Teilen-Menue (Chrome mobil & Co.)
+        try {
+          const file = new File([blob], "logos-leiste.png", { type: "image/png" });
+          if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file] });
+            return;                                   // geteilt, fertig
+          }
+        } catch (e3) {
+          if (e3 && e3.name === "AbortError") return;  // Teilen vom User abgebrochen
+        }
+      }
+      // 3) Download (immer noch noetig?)
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "logos-leiste.png";
+      a.click();
+      URL.revokeObjectURL(a.href);
+      if (mode === "clipboard") {
+        // Ehrlicher Toast: hatte der Browser wenigstens Teilen gekonnt?
+        let canShareImg = false;
+        try {
+          const sf = new File([blob], "logos-leiste.png", { type: "image/png" });
+          canShareImg = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [sf] }));
+        } catch (e4) {}
+        showToast(canShareImg ? t("pngCopyFail") : t("pngNoShare"));
+      } else {
+        showToast(t("pngOk"));
+      }
+    } catch (e) {
+      if (!isRetry) {
+        const ok = await connectFolderForExport();
+        if (ok) { await exportPngCommon(kind, mode, true); return; }
+      }
+      showToast(t("pngFail"));
+    }
+  }   
+	 
+  function exportPng(isRetry) { return exportPngCommon("download", isRetry); }
+
+  // Zeichnet EINE Leiste (inkl. Rahmen-Optik) an ihre relative Position.
+  function drawBarToCanvas(ctx, barEl, ox, oy) {
+    const br = barEl.getBoundingClientRect();
+    const x = br.left - ox, y = br.top - oy, bw = br.width, bh = br.height;
+    const grad = ctx.createLinearGradient(0, y, 0, y + bh);
+    grad.addColorStop(0, "#3d8484"); grad.addColorStop(0.6, "#2c5f63"); grad.addColorStop(1, "#27555a");
+    ctx.fillStyle = grad;
+    roundRect(ctx, x, y, bw, bh, 10); ctx.fill();
+    ctx.lineWidth = 5; ctx.strokeStyle = "#6e5233";
+    roundRect(ctx, x + 2.5, y + 2.5, bw - 5, bh - 5, 8); ctx.stroke();
+    for (const el of barEl.querySelectorAll(".bar-skill, .bar-divider")) {
+      const r = el.getBoundingClientRect();
+      const ex = r.left - ox, ey = r.top - oy;
+      if (el.classList.contains("bar-divider")) {
+        const dg = ctx.createLinearGradient(ex, 0, ex + r.width, 0);
+        dg.addColorStop(0, "rgba(110,82,51,0)"); dg.addColorStop(.5, "#8a6a3f"); dg.addColorStop(1, "rgba(110,82,51,0)");
+        ctx.fillStyle = dg;
+        ctx.fillRect(ex, ey, r.width, r.height);
+      } else {
+        ctx.fillStyle = "rgba(18,42,44,.6)";
+        roundRect(ctx, ex, ey, r.width, r.height, 8); ctx.fill();
+        ctx.lineWidth = 2; ctx.strokeStyle = "rgba(110,82,51,.95)";
+        roundRect(ctx, ex + 1.5, ey + 1.5, r.width - 3, r.height - 3, 7); ctx.stroke();
+        const img = el.querySelector("img");
+        if (img && img.complete && img.naturalWidth > 0) {
+          try { ctx.drawImage(img, ex + 2, ey + 2, r.width - 4, r.height - 4); } catch (e) {}
+        }
+      }
+    }
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function applyLanguage() {
+    document.getElementById("subtitle").textContent = t("subtitle");
+    document.getElementById("panelTitle").textContent = t("panelTitle");
+    document.getElementById("selTitle").textContent = t("selTitle");
+    document.getElementById("footerNote").textContent = t("footer");
+    document.getElementById("btnExportPng").textContent = t("btnExpPng");
+	document.getElementById("btnCopyPng").textContent = t("btnCopyPng");
+    document.getElementById("btnLang").textContent = t("langBtn");
+    btnReset.title = t("clear");
+	const lt = document.getElementById("logoTitle");
+    if (lt) lt.textContent = LANG === "de" ? "LOGOGRAMME" : "LOGOGRAMS";
+    renderLogoList();
+    refreshAll();
+  }
+
+  document.getElementById("btnLang").addEventListener("click", function() {
+    LANG = LANG === "de" ? "en" : "de";
+    try { localStorage.setItem(STORE_KEY + ".lang", LANG); } catch (e) {}
+    applyLanguage();
+  });
+  btnPlus.addEventListener("click", function() {
+    if (rowCount < MAX_ROWS) { rowCount++; rows.push([]); if (rows2) rows2.push([]); refreshAll(); warn.textContent = ""; }
+  });
+  btnMinus.addEventListener("click", function() {
+    if (rowCount > MIN_ROWS) { rowCount--; rows.pop(); if (rows2) rows2.pop(); refreshAll(); }
+  });
+  btnReset.addEventListener("click", function() {
+    if (!confirm(t("resetConfirm"))) return;
+    rows = rows.map(function() { return []; });
+    if (rows2) rows2 = rows2.map(function() { return []; });
+    refreshAll();
+  });
+  document.getElementById("btnBar2").addEventListener("click", function() {
+    if (rows2) rows2 = null;
+    else rows2 = rows.map(function() { return []; });
+    refreshAll();
+  });
+  
+    function closeExportPop() {
+    const p = document.getElementById("exportPop");
+    p.classList.remove("show");
+    p.innerHTML = "";
+  }
+
+  function openExportPop(ev, clipMode) {
+    ev.stopPropagation();
+    closeComboPop();
+    const p = document.getElementById("exportPop");
+    p.innerHTML = "";
+    const h = document.createElement("h4");
+    h.appendChild(document.createTextNode(t("expTitle")));
+    h.appendChild(document.createTextNode(t("expTitle") + (clipMode ? " \u2192 " + t("btnCopyPng") : "")));
+    const x = document.createElement("button");
+    x.className = "exp-x";
+    x.textContent = "\u2715";
+    x.addEventListener("click", closeExportPop);
+    h.appendChild(x);
+    p.appendChild(h);
+    function opt(kind, title, sub, off) {
+      const b = document.createElement("button");
+      b.className = "exp-opt" + (off ? " off" : "");
+      const bo = document.createElement("b");
+      bo.textContent = title;
+      b.appendChild(bo);
+      const sp = document.createElement("span");
+      sp.textContent = off ? t("expPlanOff") : sub;
+      b.appendChild(sp);
+      if (!off) b.addEventListener("click", function() {
+        closeExportPop();
+        exportPngCommon(kind, clipMode ? "clipboard" : "download", false);
+      });
+      p.appendChild(b);
+    }
+    opt("view", t("expView"), t("expViewSub"), false);
+    opt("plan", t("expPlan"), t("expPlanSub"), !rows2);
+    opt("list", t("expList"), t("expListSub"), false);
+    opt("combolist", t("expCombo"), t("expComboSub"), false);
+    p.classList.add("show");
+    let px = ev.clientX + 10, py = ev.clientY + 10;
+    const pr = p.getBoundingClientRect();
+    if (px + pr.width > window.innerWidth - 8) px = Math.max(8, ev.clientX - pr.width - 10);
+    if (py + pr.height > window.innerHeight - 8) py = Math.max(8, ev.clientY - pr.height - 10);
+    p.style.left = px + "px";
+    p.style.top = py + "px";
+  }
+  
+  function closeLogoInfoPop() {
+    document.getElementById("logoInfoPop").classList.remove("show");
+  }
+
+  function showLogoInfoPop(anchorEl, lg) {
+    const info = LOGOGRAM_INFO[lg.nameEn];
+    if (!info) return;
+    const srcs = LANG === "de" ? info.de : info.en;
+    if (!srcs.length) return;
+    const pop = document.getElementById("logoInfoPop");
+    pop.innerHTML = "";
+    const ti = document.createElement("div");
+    ti.className = "li-t";
+    ti.textContent = logoName(lg);
+    pop.appendChild(ti);
+    srcs.forEach(function(s) {
+      const li = document.createElement("div");
+      li.className = "li-s";
+      li.textContent = s;
+      pop.appendChild(li);
+    });
+    pop.classList.add("show");
+    const ar = anchorEl.getBoundingClientRect();
+    const pr = pop.getBoundingClientRect();
+    let px = ar.right + 8, py = ar.top;
+    if (px + pr.width > window.innerWidth - 8) px = Math.max(8, ar.left - pr.width - 8);
+    if (py + pr.height > window.innerHeight - 8) py = Math.max(8, window.innerHeight - pr.height - 8);
+    pop.style.left = px + "px";
+    pop.style.top = py + "px";
+  }
+
+  // An jedes Logogramm-Element haengen: ℹ️ nur wenn Daten vorhanden.
+  function attachLogoInfo(hostEl, lg) {
+    if (!LOGOGRAM_INFO[lg.nameEn]) return;
+    const inf = document.createElement("span");
+    inf.className = "logo-info";
+    inf.textContent = "\u2139";
+    hostEl.appendChild(inf);
+    if (IS_TOUCH) {
+      inf.addEventListener("click", function(ev) {
+        ev.stopPropagation();
+        const pop = document.getElementById("logoInfoPop");
+        if (pop.classList.contains("show")) closeLogoInfoPop();
+        else showLogoInfoPop(inf, lg);
+      });
+    } else {
+      inf.addEventListener("mouseenter", function() { showLogoInfoPop(inf, lg); });
+      inf.addEventListener("mouseleave", closeLogoInfoPop);
+    }
+  }
+
+  document.getElementById("btnExportPng").addEventListener("click", function(ev) {
+    openExportPop(ev, false);
+  });
+  document.getElementById("btnCopyPng").addEventListener("click", function(ev) {
+    openExportPop(ev, true);
+  });
+  
+  document.addEventListener("click", function(e) {
+    const pop = document.getElementById("comboPop");
+    if (pop.classList.contains("show") && !pop.contains(e.target) && !e.target.closest(".pct-badge, .pct-cell")) closeComboPop();
+    const ep = document.getElementById("exportPop");
+    if (ep.classList.contains("show") && !ep.contains(e.target)
+        && !e.target.closest("#btnExportPng") && !e.target.closest("#btnCopyPng")) closeExportPop();
+	if (!e.target.closest(".logo-info")) closeLogoInfoPop();
+    const sip = document.getElementById("skillInfoPop");
+    if (sip.classList.contains("show") && !sip.contains(e.target) && !e.target.closest(".skill-info")) closeSkillInfoPop();
+  });
+  document.getElementById("btnSplitters").addEventListener("click", function() {
+  splitterPanelVisible = !splitterPanelVisible;
+  renderSplitterPanel();
+  });
+
+  try {
+    const savedLang = localStorage.getItem(STORE_KEY + ".lang");
+    if (savedLang === "de" || savedLang === "en") LANG = savedLang;
+  } catch (e) {}
+
+  computeRowHeight();
+  applyLanguage();
+  loadState();
+  window.addEventListener("load", function() { computeRowHeight(); refreshAll(); syncPanels(); fitScale(); });
+  window.addEventListener("resize", function() { syncPanels(); fitScale(); });
+  
+  (function mobileButtonRelocation() {
+    const toolbar = document.querySelector(".toolbar");
+    const actRow = document.getElementById("mobileActionRow");
+    const expRow = document.getElementById("mobileExportRow");
+    const btnExp = document.getElementById("btnExportPng");
+    const btnCopy = document.getElementById("btnCopyPng");
+    const btnSpl = document.getElementById("btnSplitters");
+    const btnBA = document.getElementById("btnBar2");
+    function applyMobileDom() {
+      if (MQ_MOBILE.matches) {
+        actRow.appendChild(btnBA);   // Reihenfolge: BA zuerst, dann Splitter
+        actRow.appendChild(btnSpl);
+        expRow.appendChild(btnExp);
+        expRow.appendChild(btnCopy);
+      } else {
+        toolbar.appendChild(btnExp); // Desktop-Reihenfolge wiederherstellen
+        toolbar.appendChild(btnCopy);
+        toolbar.appendChild(btnSpl);
+        toolbar.appendChild(btnBA);
+      }
+      fillGridPlaceholders();
+      computeRowHeight();
+      refreshAll();
+    }
+    applyMobileDom();
+    MQ_MOBILE.addEventListener("change", applyMobileDom);
+  })();
+  
+  (async function initFolder() {
+    try {
+      const h = await idbGet("projectDir");
+      if (h && window.showDirectoryPicker) {
+        dirHandle = h;
+        if ((await dirHandle.queryPermission({ mode: "read" })) === "granted") {
+          await scanIcons();
+          refreshImages();
+        }
+      }
+    } catch (e) {}
+  })();
+</script>
+</body>
+</html>
