@@ -315,6 +315,7 @@
     html.export-desktop-layout .bars-outer { flex-direction: row; }
     html.export-desktop-layout .bar-aside { width: auto; }
     html.export-desktop-layout .splitter-panel { width: 230px; }
+	.subtitle { display: none; }
   }
     /* --- Export-Popup --- */
   #exportPop { position:fixed; z-index:1001; background:#10201f; border:1px solid #3d8484;
@@ -676,12 +677,14 @@
       rows: function(r, cap) { return r + " Reihen \u00b7 " + cap + " Skills"; },
       clear: "Leeren",
       emptyHint: "Klicke links auf Skills oder ziehe sie hierher",
+      emptyHintM: "Tippe oben auf einen Skill, um ihn einzufügen",
       full: "Leiste ist voll \u2013 f\u00fcge mit + eine Reihe hinzu oder nimm einen Skill raus.",
       rowFull: "Diese Reihe ist voll (max. 2 Skills).",
       btnExpPng: "\ud83d\uddbc Als PNG speichern",
       btnCopyPng: "\ud83d\udccb In Zwischenablage",
       pngCopied: "PNG in der Zwischenablage \u2013 einfach einf\u00fcgen!",
       pngCopyFail: "Zwischenablage blockiert \u2013 PNG wurde stattdessen heruntergeladen.",
+	  pngNoShare: "Dieser Browser unterstützt Teilen nicht – PNG wurde heruntergeladen. Für den Teilen-Button bitte Chrome nutzen.",
       pngOk: "PNG wurde heruntergeladen.",
       pngAskFolder: "Browser blockiert den direkten Export \u2013 bitte im Dialog den Projekt-Ordner (mit dieser Datei) ausw\u00e4hlen, dann startet der Download automatisch.",
       pngFail: "PNG-Export leider blockiert. Erneut klicken und im Dialog den Projekt-Ordner ausw\u00e4hlen \u2013 dann klappt es.",
@@ -728,12 +731,14 @@
       rows: function(r, cap) { return r + " rows \u00b7 " + cap + " skills"; },
       clear: "Clear",
       emptyHint: "Click skills on the left or drag them here",
+      emptyHintM: "Tap a skill above to add it",
       full: "Bar is full \u2013 add a row with + or remove a skill.",
       rowFull: "This row is full (max. 2 skills).",
       btnExpPng: "\ud83d\uddbc Save as PNG",
       btnCopyPng: "\ud83d\udccb Copy to clipboard",
       pngCopied: "PNG copied to clipboard \u2013 just paste it!",
       pngCopyFail: "Clipboard blocked \u2013 PNG was downloaded instead.",
+      pngNoShare: "This browser can't share – PNG was downloaded. Please use Chrome for the share button.",
       pngOk: "PNG downloaded.",
       pngAskFolder: "Browser blocks direct export \u2013 please pick the project folder (containing this file) in the dialog, the download will then start automatically.",
       pngFail: "PNG export blocked. Click again and pick the project folder in the dialog \u2013 then it works.",
@@ -1135,7 +1140,7 @@
       if (rowEl.children.length === 0 && dataRows === rows && usedCount() === 0 && r === 0) {
         const hint = document.createElement("div");
         hint.className = "bar-empty";
-        hint.textContent = t("emptyHint");
+        hint.textContent = isMobileLayout() ? t("emptyHintM") : t("emptyHint");
         rowEl.appendChild(hint);
       }
       rowEl.addEventListener("dragover", function(e) {
@@ -1201,7 +1206,7 @@
       if (rowEl.children.length === 0 && dataRows === rows && usedCount() === 0 && r === 0) {
         const hint = document.createElement("div");
         hint.className = "bar-empty";
-        hint.textContent = t("emptyHint");
+        hint.textContent = isMobileLayout() ? t("emptyHintM") : t("emptyHint");
         rowEl.appendChild(hint);
       }
       rowEl.addEventListener("dragover", function(e) {
@@ -2503,44 +2508,55 @@
       document.documentElement.classList.remove("export-desktop-layout");
     }
     if (!canvas) { showToast(t("pngFail")); return; }
-    if (!canvas) { showToast(t("pngFail")); return; }
     try {
       const blob = await new Promise(function(res, rej) {
         try { canvas.toBlob(function(b) { b ? res(b) : rej(new Error("empty")); }, "image/png"); }
         catch (err) { rej(err); }
       });
       if (mode === "clipboard") {
+        // 1) Zwischenablage (Desktop-Standard)
         try {
           await navigator.clipboard.write([ new ClipboardItem({ "image/png": blob }) ]);
           showToast(t("pngCopied"));
           return;
-        } catch (e2) {
-          try {
-            const file = new File([blob], "logos-leiste.png", { type: "image/png" });
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-              await navigator.share({ files: [file] });
-              return;
-            }
-          } catch (e3) {
-            if (e3 && e3.name === "AbortError") return; // User hat Teilen abgebrochen
+        } catch (e2) {}
+        // 2) Teilen-Menue (Chrome mobil & Co.)
+        try {
+          const file = new File([blob], "logos-leiste.png", { type: "image/png" });
+          if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file] });
+            return;                                   // geteilt, fertig
           }
+        } catch (e3) {
+          if (e3 && e3.name === "AbortError") return;  // Teilen vom User abgebrochen
         }
       }
+      // 3) Download (immer noch noetig?)
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = "logos-leiste.png";
       a.click();
       URL.revokeObjectURL(a.href);
-      showToast(mode === "clipboard" ? t("pngCopyFail") : t("pngOk"));
+      if (mode === "clipboard") {
+        // Ehrlicher Toast: hatte der Browser wenigstens Teilen gekonnt?
+        let canShareImg = false;
+        try {
+          const sf = new File([blob], "logos-leiste.png", { type: "image/png" });
+          canShareImg = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [sf] }));
+        } catch (e4) {}
+        showToast(canShareImg ? t("pngCopyFail") : t("pngNoShare"));
+      } else {
+        showToast(t("pngOk"));
+      }
     } catch (e) {
       if (!isRetry) {
         const ok = await connectFolderForExport();
-        if (ok) { await exportPngCommon(mode, true); return; }
+        if (ok) { await exportPngCommon(kind, mode, true); return; }
       }
       showToast(t("pngFail"));
     }
-  }
-
+  }   
+	 
   function exportPng(isRetry) { return exportPngCommon("download", isRetry); }
 
   // Zeichnet EINE Leiste (inkl. Rahmen-Optik) an ihre relative Position.
