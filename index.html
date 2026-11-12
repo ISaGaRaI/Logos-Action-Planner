@@ -23,7 +23,7 @@
   .toolbar button.primary { background: #2c5f63; border-color: #3d8484; }
   .toolbar button.primary:hover { background: #357070; }
   .layout { display: flex; gap: 28px; align-items: flex-start; flex-wrap: nowrap; }
-  
+
   .toolbar button.icon-btn { padding: 3px; display: flex; align-items: center; }
   .toolbar button.icon-btn img { width: 22px; height: 22px; object-fit: contain; }
   .toolbar button.active { background: #357070; border-color: #7fd4d4; box-shadow: 0 0 8px rgba(127,212,212,.5); }
@@ -254,18 +254,16 @@
     .skill-grid { grid-template-columns: repeat(10, 42px); grid-auto-rows: 42px; }
     .logo-panel { width: 210px; }
   }
-    .mobile-action-row, .mobile-export-row { display: none; }
-
+  .mobile-action-row, .mobile-export-row { display: none; }
+  .skill-info { display: none; }
   @media (max-width: 700px) {
     body { padding: 14px 10px; }
     h1 { font-size: 18px; }
-    .subtitle { margin-bottom: 10px; }
+    .subtitle { display: none; }
     .toolbar { margin-bottom: 10px; }
     .toolbar button#btnLang { padding: 8px 14px; font-size: 14px; }
     .main-area, .layout { width: 100%; }
     .layout { flex-direction: column; align-items: stretch; gap: 14px; }
-
-    /* Aktionsreihe ÜBER dem Skill-Grid (BA + Splitter, wandern per JS hierher) */
     .mobile-action-row { display: flex; gap: 8px; flex-wrap: wrap; }
     .mobile-action-row button {
       flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -280,12 +278,6 @@
 
     .logo-panel { width: auto; }
     .skill-grid { grid-template-columns: repeat(7, 44px); grid-auto-rows: 44px; }
-
-    /* Leisten-Block: Splitter-Liste + Steuerung UNTER die Leisten stapeln */
-    .bars-wrap { flex-direction: row; }
-    .logos-bar { width: auto; min-width: 96px; }
-    .bar-row { gap: 8px; }
-    .bar-empty { max-width: 90px; }
     .bars-outer { flex-direction: column; }
     .bar-aside { display: contents; }
     .bar-controls-vertical { order: 1; flex-direction: row; }
@@ -294,18 +286,14 @@
     .bar-row { gap: 8px; }
     .bar-empty { max-width: 90px; }
     .splitter-panel { order: 3; width: 100%; }
-
-    /* Merkliste & Combo-Summary auf Mobile weg (Skill-Infos kommen in Schritt 2 als Popup) */
     .bottom-row .selected-panel { display: none; }
     .combo-summary { display: none !important; }
-
-    /* Export-Buttons ganz unten (wandern per JS hierher) */
     .mobile-export-row { display: flex; gap: 8px; margin-top: 14px; }
     .mobile-export-row button {
       flex: 1; background: #2c5f63; color: #dff5f5; border: 1px solid #3d8484;
       border-radius: 8px; padding: 11px 8px; font-size: 13px; cursor: pointer;
     }
-    .skill-info { display:flex !important; align-items:center; justify-content:center;
+    .skill-info { display:flex; align-items:center; justify-content:center;
       position:absolute; top:1px; right:1px; width:15px; height:15px;
       font-size:9px; font-weight:700; color:#7fd4d4;
       background:rgba(16,32,31,.85); border-radius:50%; z-index:2; }
@@ -315,9 +303,7 @@
     html.export-desktop-layout .bars-outer { flex-direction: row; }
     html.export-desktop-layout .bar-aside { width: auto; }
     html.export-desktop-layout .splitter-panel { width: 230px; }
-	.subtitle { display: none; }
   }
-    /* --- Export-Popup --- */
   #exportPop { position:fixed; z-index:1001; background:#10201f; border:1px solid #3d8484;
     border-radius:10px; padding:10px; display:none; width:300px; box-shadow:0 4px 14px rgba(0,0,0,.55); }
   #exportPop.show { display:block; }
@@ -346,8 +332,6 @@
   .hl-g { color: #7ee787; font-weight: 600; }
   .hl-r { color: #ff8b8b; font-weight: 600; }
   .hl-y { color: #ffd76e; font-weight: 600; }
-  .skill-info { display: none; }
-  /* Skill-Info-Popup (mobil) */
   #skillInfoPop { position:fixed; z-index:1001; background:#10201f; color:#e8f4f4;
     border:1px solid #3d8484; border-radius:8px; padding:10px 12px; display:none;
     max-width:280px; box-shadow:0 4px 14px rgba(0,0,0,.55); }
@@ -366,12 +350,11 @@
 <h1>&#9876; EUREKA LOGOS PLANNER</h1>
 <link rel="icon" type="image/png" href="divers/BAprepare.png">
 <div class="subtitle" id="subtitle"></div>
-
 <div class="main-area">
 <div class="toolbar">
   <button id="btnLang" title="Language / Sprache">&#127760;</button>
   <button id="btnExportPng" class="primary"></button>
-   <button id="btnCopyPng" class="primary"></button>
+  <button id="btnCopyPng" class="primary"></button>
   <button id="btnSplitters" title="Splitter ein-/ausblenden" class="icon-btn"><img src="divers/logo.png" alt="Splitter"></button>
   <button id="btnBar2" title="BA Prepare" class="icon-btn"><img src="divers/BAprepare.png" alt="BA Prepare"></button>
 </div>
@@ -385,39 +368,38 @@
     <h2 id="panelTitle"></h2>
     <div class="skill-grid" id="skillGrid"></div>
   </div>
-  <div class="bar-section">                      <!-- Ö 1 -->
-    <div class="bars-outer">                     <!-- Ö 2 -->
-      <div class="bars-wrap">                    <!-- Ö 3 -->
+  <div class="bar-section">                     
+    <div class="bars-outer">                     
+      <div class="bars-wrap">                   
         <div class="bar-col">
           <div class="bar-head" id="barHead1"></div>
           <div class="bar-flex">
             <div class="pct-col" id="pctCol1"></div>
             <div class="logos-bar" id="logosBar"></div>
           </div>
-        </div>                                  <!-- Zu 4 -->
+        </div>                                
         <div class="bar-col" id="bar2Block">
           <div class="bar-head" id="barHead2"></div>
           <div class="bar-flex">
             <div class="logos-bar" id="logosBar2"></div>
             <div class="pct-col" id="pctCol2"></div>
           </div>
-        </div>                                 <!-- Zu 4 -->
-      </div>                                     <!-- Zu 3: bars-wrap ENDE -->
-      <div class="bar-aside">                    <!-- Ö 3 -->
+        </div>                                 
+      </div>                                    
+      <div class="bar-aside">                   
         <div class="splitter-panel" id="splitterPanel"></div>
         <div class="bar-controls-vertical">
           <button id="slotPlus" title="Mehr Reihen / More rows">+</button>
           <button id="slotMinus" title="Weniger Reihen / Fewer rows">&minus;</button>
           <button id="resetBtn" class="clear-btn" title="Leeren / Clear">&times;</button>
         </div>
-      </div>                                     <!-- Zu 3: bar-aside ENDE -->
-    </div>                                       <!-- Zu 2: bars-outer ENDE -->
+      </div>                                    
+    </div>                                     
     <div class="bar-full-warning" id="warning"></div>
-  </div>   <!-- Zu 1: bar-section ENDE -->
-  </div>                                         <!-- .layout ENDE -->
-
+  </div>  
+  </div>                                        
 <div class="bottom-row" id="bottomRow">
-<div class="mobile-export-row" id="mobileExportRow"></div>
+  <div class="mobile-export-row" id="mobileExportRow"></div>
   <div class="selected-panel">
     <h2 id="selTitle"></h2>
     <div class="selected-list" id="selectedList"></div>
@@ -425,7 +407,6 @@
   <div class="combo-summary" id="comboSummary"></div>
 </div>
 </div>
-
 <div class="footer-note" id="footerNote"></div>
 <div id="comboPop"></div>
 <div id="exportPop"></div>
@@ -434,7 +415,6 @@
 <div id="toast"></div>
 <div id="tooltip"></div>
 
-<!-- LADE ZUERST DIE DATEN -->
 <script src="data.js"></script>
 
 <script>
@@ -537,8 +517,8 @@
       LOGOGRAMS.push({ file: parts[0], nameEn: parts[1], nameDe: parts[2] || parts[1], items: parts.slice(3).filter(Boolean) });
     }
   })();
-  
-    const LOGOGRAM_INFO = {};
+
+  const LOGOGRAM_INFO = {};
   (typeof LOGOGRAM_INFO_LINES !== "undefined" ? LOGOGRAM_INFO_LINES : []).forEach(function(line) {
     const p = line.split("|").map(function(s) { return s.trim(); });
     if (p.length < 3 || !p[0]) return;
@@ -547,10 +527,10 @@
       de: p[2] ? p[2].split(";").map(function(s) { return s.trim(); }).filter(Boolean) : []
     };
   });
-  
-    const IS_TOUCH = window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
-	const MQ_MOBILE = window.matchMedia("(max-width: 700px)");
-    const isMobileLayout = function() { return MQ_MOBILE.matches; };
+
+  const IS_TOUCH = window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
+  const MQ_MOBILE = window.matchMedia("(max-width: 700px)");
+  const isMobileLayout = function() { return MQ_MOBILE.matches; };
 
   function closeLogoInfoPop() {
     document.getElementById("logoInfoPop").classList.remove("show");
@@ -583,7 +563,6 @@
     pop.style.top = py + "px";
   }
 
-  // An jedes Logogramm-Element haengen: ℹ️ nur wenn Daten vorhanden.
   function attachLogoInfo(hostEl, lg) {
     if (!LOGOGRAM_INFO[lg.nameEn]) return;
     const inf = document.createElement("span");
@@ -592,6 +571,7 @@
     hostEl.appendChild(inf);
     if (IS_TOUCH) {
       inf.addEventListener("click", function(ev) {
+        ev.preventDefault();
         ev.stopPropagation();
         const pop = document.getElementById("logoInfoPop");
         if (pop.classList.contains("show")) closeLogoInfoPop();
@@ -602,7 +582,7 @@
       inf.addEventListener("mouseleave", closeLogoInfoPop);
     }
   }
-  
+
   function logoName(l) { return LANG === "de" ? l.nameDe : l.nameEn; }
   function logogramsFor(actionName) {
     const key = (actionName || "").trim().toLowerCase();
@@ -611,7 +591,7 @@
       return l.items.some(function(it) { return it.trim().toLowerCase() === key; });
     });
   }
-  
+
   const DESCR = {};
   (function parseDescriptions() {
     for (const line of DESCRIPTION_LINES) {
@@ -672,19 +652,19 @@
 
   const T = {
     de: {
-      subtitle: "Alle Logos-Actions \u2013 Klick hinzuf\u00fcgen, per Drag & Drop gezielt platzieren",
+      subtitle: "Alle Logos-Actions \u2013 Klick hinzufügen, per Drag & Drop gezielt platzieren",
       panelTitle: "Logos-Actions (" + SKILLS.length + ")",
       rows: function(r, cap) { return r + " Reihen \u00b7 " + cap + " Skills"; },
       clear: "Leeren",
       emptyHint: "Klicke links auf Skills oder ziehe sie hierher",
       emptyHintM: "Tippe oben auf einen Skill, um ihn einzufügen",
-      full: "Leiste ist voll \u2013 f\u00fcge mit + eine Reihe hinzu oder nimm einen Skill raus.",
+      full: "Leiste ist voll \u2013 füge mit + eine Reihe hinzu oder nimm einen Skill raus.",
       rowFull: "Diese Reihe ist voll (max. 2 Skills).",
       btnExpPng: "\ud83d\uddbc Als PNG speichern",
       btnCopyPng: "\ud83d\udccb In Zwischenablage",
-      pngCopied: "PNG in der Zwischenablage \u2013 einfach einf\u00fcgen!",
+      pngCopied: "PNG in der Zwischenablage \u2013 einfach einfügen!",
       pngCopyFail: "Zwischenablage blockiert \u2013 PNG wurde stattdessen heruntergeladen.",
-	  pngNoShare: "Dieser Browser unterstützt Teilen nicht – PNG wurde heruntergeladen. Für den Teilen-Button bitte Chrome nutzen.",
+      pngNoShare: "Dieser Browser unterstützt Teilen nicht \u2013 PNG wurde heruntergeladen. Für den Teilen-Button bitte Chrome nutzen.",
       pngOk: "PNG wurde heruntergeladen.",
       pngAskFolder: "Browser blockiert den direkten Export \u2013 bitte im Dialog den Projekt-Ordner (mit dieser Datei) ausw\u00e4hlen, dann startet der Download automatisch.",
       pngFail: "PNG-Export leider blockiert. Erneut klicken und im Dialog den Projekt-Ordner ausw\u00e4hlen \u2013 dann klappt es.",
@@ -695,35 +675,35 @@
       lblRole: "ROLLE / KLASSEN",
       lblCombo: "KOMBINATIONEN / FRAGMENTE",
       combo: function(i) { return "Kombi " + i + ":"; },
-      noData: "F\u00fcr diesen Skill sind noch keine Kombinationen hinterlegt.",
+      noData: "Für diesen Skill sind noch keine Kombinationen hinterlegt.",
       hintRemove: "Klick zum Entfernen",
       noDesc: "(noch keine Beschreibung hinterlegt)",
       noRole: "Ohne Rolle",
       footer: COPYRIGHT,
       langBtn: "\ud83c\udf10 DE",
       times: function(n) { return n + "\u00d7"; },
-	  src: "Quelle:",
+      src: "Quelle:",
       splTitle: "Logos-Splitter",
       alreadyList: "Steht bereits in der Liste.",
       addBar: "In die Leiste",
       rmList: "Aus der Liste entfernen",
-	  barHead1: "Start BA",
-      barHead2: "Nach nutzung ",
-      pickTitle: "Kombi wählen",
+      barHead1: "Start BA",
+      barHead2: "Nach Nutzung",
+      pickTitle: "Kombi w\u00e4hlen",
       splEmpty: "Noch nichts \u2013 Skills mit Kombis in die Leiste ziehen.",
-      takeTip: "Ubernommen aus Leiste 1 \u2013 keine erneuten Mnemen notig.",
-	  expTitle: "Export w\u00e4hlen",
+      takeTip: "\u00dcbernommen aus Leiste 1 \u2013 keine erneuten Mnemen n\u00f6tig.",
+      expTitle: "Export wählen",
       expView: "Logosbild",
       expViewSub: "Leiste(n) + Einkaufsliste, wie sichtbar",
       expPlan: "BA-Bauplan",
       expPlanSub: "Mit \u201eDanach einbauen\u201c-Pfeilen (nur BA-Modus)",
-      expPlanOff: "\u2013 nur mit aktivierter Leiste 2 \u2013",
+      expPlanOff: "\u2013 nur mit aktiver Leiste 2 \u2013",
       expList: "Einkaufsliste (PNG)",
       expListSub: "Nur die Splitter-Liste als eigenes Bild",
       expClip: "In Zwischenablage (statt Download)",
       expCombo: "Logos-Kombiliste",
       expComboSub: "Pro Skill: welche Kombis und wie oft",
-      comboWord: "Kombi",
+      comboWord: "Kombi"
     },
     en: {
       subtitle: "All logos actions \u2013 click to add, drag & drop to place precisely",
@@ -738,7 +718,7 @@
       btnCopyPng: "\ud83d\udccb Copy to clipboard",
       pngCopied: "PNG copied to clipboard \u2013 just paste it!",
       pngCopyFail: "Clipboard blocked \u2013 PNG was downloaded instead.",
-      pngNoShare: "This browser can't share – PNG was downloaded. Please use Chrome for the share button.",
+      pngNoShare: "This browser can't share \u2013 PNG was downloaded. Please use Chrome for the share button.",
       pngOk: "PNG downloaded.",
       pngAskFolder: "Browser blocks direct export \u2013 please pick the project folder (containing this file) in the dialog, the download will then start automatically.",
       pngFail: "PNG export blocked. Click again and pick the project folder in the dialog \u2013 then it works.",
@@ -755,8 +735,8 @@
       noRole: "No role",
       footer: COPYRIGHT,
       langBtn: "\ud83c\udf10 EN",
-      times: function(n) { return n + "x"; },      
-	  src: "Source:",
+      times: function(n) { return n + "x"; },
+      src: "Source:",
       splTitle: "Logos Splitters",
       alreadyList: "Already in the list.",
       addBar: "Add to bar",
@@ -764,7 +744,7 @@
       barHead1: "Start BA",
       barHead2: "After Use",
       pickTitle: "Choose combo",
-	  splEmpty: "Nothing yet \u2013 drag skills with combos into the bar.",
+      splEmpty: "Nothing yet \u2013 drag skills with combos into the bar.",
       takeTip: "Carried over from Bar 1 \u2013 no extra mnemes needed.",
       expTitle: "Choose export",
       expView: "Logos image",
@@ -777,7 +757,7 @@
       expClip: "To clipboard (instead of download)",
       expCombo: "Logos combo list",
       expComboSub: "Per skill: which combos and how often",
-	  comboWord: "combo",
+      comboWord: "combo"
     }
   };
   function t(key) { return T[LANG][key]; }
@@ -792,7 +772,7 @@
   let pickedCombos = {};
   let splitterPanelVisible = true;
   let selected = [];
-    let rows2 = null;   
+  let rows2 = null;
   let uidSeq = 0;
 
   const grid = document.getElementById("skillGrid");
@@ -805,7 +785,6 @@
   const btnMinus = document.getElementById("slotMinus");
   const btnPlus = document.getElementById("slotPlus");
   const btnReset = document.getElementById("resetBtn");
-  
 
   function capacity() { return rowCount * PER_ROW; }
   function usedCount() { return rows.reduce(function(n, r) { return n + r.length; }, 0); }
@@ -817,7 +796,7 @@
 
   let ROW_H = 44;
   function computeRowHeight() {
-	if (isMobileLayout()) { ROW_H = 44; return; }
+    if (isMobileLayout()) { ROW_H = 44; return; }
     const panelH = panel.offsetHeight;
     const inner = panelH - BAR_V_PAD - BAR_BORDER;
     const overhead = (MAX_ROWS - 1) * DIV_H + (2 * MAX_ROWS - 2) * BAR_GAP;
@@ -889,7 +868,7 @@
       const tx = db.transaction("kv", "readonly");
       const rq = tx.objectStore("kv").get(k);
       rq.onsuccess = function() { res(rq.result); };
-      rq.onerror = function() { rej(tx.error); };
+      rq.onerror = function() { rej(rq.error); };
     });
   }
 
@@ -1040,7 +1019,7 @@
       else { pop.dataset.sid = skill.id; showSkillInfoPop(inf, skill); }
     });
     tile.addEventListener("click", function() {
-	  if (isMobileLayout()) { addSkillToBar(skill.id); return; }
+      if (isMobileLayout()) { addSkillToBar(skill.id); return; }
       if (selected.indexOf(skill.id) !== -1) { warnOnce(t("alreadyList")); return; }
       selected.push(skill.id);
       refreshAll();
@@ -1163,75 +1142,9 @@
         barEl.appendChild(div);
       }
     }
-
-  function renderBarInto(barEl, dataRows) {
-    barEl.innerHTML = "";
-    barEl.style.height = barHeightFor(rowCount) + "px";
-    const skillSize = Math.max(22, ROW_H - 6);
-    for (let r = 0; r < rowCount; r++) {
-      const rowEl = document.createElement("div");
-      rowEl.className = "bar-row";
-      rowEl.style.height = ROW_H + "px";
-      rowEl.style.justifyContent = dataRows[r].length > 1 ? "space-evenly" : "center";
-      const els = [];
-      dataRows[r].forEach(function(en, i) {
-        const skill = skillById(en.id);
-        if (!skill) { els.push(null); return; }
-        const el = document.createElement("div");
-        el.className = "bar-skill";
-        el.style.width = skillSize + "px";
-        el.style.height = skillSize + "px";
-        const hint = document.createElement("span");
-        hint.className = "remove-hint";
-        hint.textContent = "\u2715";
-        el.appendChild(hint);
-        el.appendChild(makeFallback(skill.id));
-        const img = makeImg(skill);
-        img.onload = function() { el.innerHTML = ""; el.appendChild(hint); el.appendChild(img); };
-        el.addEventListener("click", function() { dataRows[r].splice(i, 1); refreshAll(); });
-        el.draggable = true;
-        el.addEventListener("dragstart", function(e) {
-          e.stopPropagation();
-          dragPayload = { kind: "move", r: r, i: i, arr: dataRows };
-          e.dataTransfer.effectAllowed = "move";
-          e.dataTransfer.setData("text/plain", en.id);
-          tipEl.classList.remove("show");
-        });
-        bindTooltip(el, function() { return skill; });
-        els.push(el);
-        rowEl.appendChild(el);
-      });
-      anchor.appendChild(bd);
-      }
-      if (rowEl.children.length === 0 && dataRows === rows && usedCount() === 0 && r === 0) {
-        const hint = document.createElement("div");
-        hint.className = "bar-empty";
-        hint.textContent = isMobileLayout() ? t("emptyHintM") : t("emptyHint");
-        rowEl.appendChild(hint);
-      }
-      rowEl.addEventListener("dragover", function(e) {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = (dragPayload && dragPayload.kind === "move") ? "move" : "copy";
-        rowEl.classList.add("drop-hover");
-      });
-      rowEl.addEventListener("dragleave", function(e) {
-        if (!rowEl.contains(e.relatedTarget)) rowEl.classList.remove("drop-hover");
-      });
-      rowEl.addEventListener("drop", function(e) {
-        e.preventDefault();
-        rowEl.classList.remove("drop-hover");
-        handleDropOnRow(r, e, rowEl, dataRows);
-      });
-      barEl.appendChild(rowEl);
-      if (r < rowCount - 1) {
-        const div = document.createElement("div");
-        div.className = "bar-divider";
-        barEl.appendChild(div);
-      }
-    }
   }
   
-  function rowPctInfo(dataRows, r) {
+    function rowPctInfo(dataRows, r) {
     let total = 0, unknown = false, hasCombo = false;
     for (const en of dataRows[r]) {
       const skill = skillById(en.id);
@@ -1254,12 +1167,10 @@
       const cell = document.createElement("div");
       cell.className = "pct-cell";
       cell.style.height = ROW_H + "px";
-      let taken = false;
       if (isBar2 && rows2 && rows2[r] && rows2[r].length > 0 && rowEquals(rows[r], rows2[r])) {
         cell.classList.add("pct-take");
         cell.textContent = "\u2713";
         cell.title = t("takeTip");
-        taken = true;
       } else {
         const info = rowPctInfo(dataRows, r);
         if (info) {
@@ -1274,7 +1185,6 @@
           cell.style.visibility = "hidden";
         }
       }
-      void taken;
       colEl.appendChild(cell);
       if (r < rowCount - 1) {
         const sp = document.createElement("div");
@@ -1345,9 +1255,9 @@
     if (px + pr.width > window.innerWidth - 8) px = Math.max(8, cr.left - pr.width - 8);
     if (py + pr.height > window.innerHeight - 8) py = Math.max(8, window.innerHeight - pr.height - 8);
   }
-  
-    let comboPopPos = null;
-  
+
+  let comboPopPos = null;
+
   function openRowComboPop(anchorEl, dataRows, r, keepPos) {
     const pop = document.getElementById("comboPop");
     pop.innerHTML = "";
@@ -1434,7 +1344,6 @@
     pop.style.left = comboPopPos.x + "px";
     pop.style.top = comboPopPos.y + "px";
   }
-  
 
   function closeComboPop() {
     comboPopPos = null;
@@ -1452,7 +1361,7 @@
   }
 
   function makeRoleHeader(g, forTooltip) {
-    const head = document.createElement(forTooltip ? "div" : "div");
+    const head = document.createElement("div");
     head.className = forTooltip ? "tip-role-head" : "role-group-header";
     if (g.role) {
       if (g.role.file) head.appendChild(makeClassImg(g.role.file, g.role.nameEn));
@@ -1531,18 +1440,15 @@
     tipEl.style.left = x + "px";
     tipEl.style.top = y + "px";
   }
-  
+
   const DESC_HIGHLIGHT_RULES = [
-    { cls: "hl-g", words: ["Duration", "Dauer", "Cure Potency", "Heilpotenzial"] },                              // gruen
-    { cls: "hl-r", words: ["Generates", "Feindseligkeit", "Enmity"] },           // rot
-    { cls: "hl-y", words: ["Additional Effect", "Zusatzeffekt", "Vermächtnis", "Wisdom", "Vermächtnisfähigkeiten", "replacement"] } // gelb
+    { cls: "hl-g", words: ["Duration", "Dauer", "Cure Potency", "Heilpotenzial"] },
+    { cls: "hl-r", words: ["Generates", "Feindseligkeit", "Enmity"] },
+    { cls: "hl-y", words: ["Additional Effect", "Zusatzeffekt", "Vermächtnis", "Wisdom", "Vermächtnisfähigkeiten", "replacement"] }
   ];
 
   function highlightDescKeywords(rootEl) {
     if (!rootEl || !DESC_HIGHLIGHT_RULES.length) return;
-    // Regex bauen: Alternation aller Woerter mit Wortgrenzen, case-insensitive.
-    // "Additional Effect" (mit Leerzeichen) wird intern als \s+ gematcht,
-    // damit Zeilenumbrueche/leerzeichen-Varianten nicht den Match killen.
     const parts = [];
     const classOf = {};
     for (const rule of DESC_HIGHLIGHT_RULES) {
@@ -1553,7 +1459,6 @@
     }
     const re = new RegExp("(^|[^\\p{L}\\p{N}_])((" + parts.join("|") + "))(?![\\p{L}\\p{N}_])",
       "giu");
-    // Alle Textknoten unter rootEl durchgehen und Treffer einwickeln
     const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT);
     const nodes = [];
     while (walker.nextNode()) nodes.push(walker.currentNode);
@@ -1566,7 +1471,7 @@
         if (!out) out = document.createDocumentFragment();
         const before = node.nodeValue.slice(lastIdx, m.index);
         if (before) out.appendChild(document.createTextNode(before));
-        const bnd = m[1]; 
+        const bnd = m[1];
         if (bnd) out.appendChild(document.createTextNode(bnd));
         const hit = m[2];
         const sp = document.createElement("span");
@@ -1589,8 +1494,8 @@
     el.addEventListener("mousemove", moveTip);
     el.addEventListener("mouseleave", function() { tipEl.classList.remove("show"); });
   }
-  
-    function closeSkillInfoPop() {
+
+  function closeSkillInfoPop() {
     document.getElementById("skillInfoPop").classList.remove("show");
   }
   function showSkillInfoPop(anchorEl, skill) {
@@ -1636,7 +1541,7 @@
     pop.style.left = px + "px";
     pop.style.top = py + "px";
   }
-  
+
   function mnemeTotal(comboText) {
     return parseCombo(comboText).reduce(function(n, p) { return n + p.count; }, 0);
   }
@@ -1687,7 +1592,7 @@
       if (!skill) continue;
       const det = document.createElement("details");
       det.className = "sel-item";
-	  det.dataset.sid = id;
+      det.dataset.sid = id;
       const sum = document.createElement("summary");
       const icon = makeImg(skill);
       icon.className = "icon-preview";
@@ -1700,7 +1605,7 @@
       badge.className = "sel-count" + (count > 1 ? "" : " one");
       badge.textContent = t("times")(count);
       sum.appendChild(badge);
-	  
+
       const acts = document.createElement("span");
       acts.className = "sel-actions";
       const add = document.createElement("button");
@@ -1786,7 +1691,6 @@
               li.appendChild(cnt);
             }
           });
-          li.title = "Klick zum Auswählen";
           li.addEventListener("click", function() {
             if (pickedCombos[skill.id] === i) delete pickedCombos[skill.id];
             else pickedCombos[skill.id] = i;
@@ -1961,15 +1865,15 @@
       panel.appendChild(row);
     });
   }
-  
-    function logogramsContaining(itemName) {
+
+  function logogramsContaining(itemName) {
     const key = (itemName || "").trim().toLowerCase();
     if (!key) return [];
     return LOGOGRAMS.filter(function(l) {
       return l.items.some(function(it) { return it.trim().toLowerCase() === key; });
     });
   }
-  
+
   function renderComboSummary() {
     const host = document.getElementById("comboSummary");
     if (!host) return;
@@ -2045,7 +1949,7 @@
       row.style.width = (panel.getBoundingClientRect().right - layout.getBoundingClientRect().left) + "px";
     }
   }
-  
+
   function fitScale() {
     if (isMobileLayout()) { document.documentElement.style.zoom = 1; return; }
     document.documentElement.style.zoom = 1;
@@ -2058,11 +1962,8 @@
       if (r.left + r.width > maxRight) maxRight = r.left + r.width;
     }
     if (minLeft === Infinity) return;
-    // 3) Benoetigte Breite = rechte Kante minus linke Kante (faengt den
-    //    linken Ueberhang mit ein, den scrollWidth uebersehen wuerde)
     const needed = maxRight - minLeft;
     const avail = window.innerWidth;
-    // 4) Zoom setzen: 1 = Original, sonst proportional verkleinern (min. 0.5)
     let z = 1;
     if (needed > avail && needed > 0) z = Math.max(0.5, avail / needed);
     document.documentElement.style.zoom = z;
@@ -2075,9 +1976,9 @@
     updateSlotLabel();
     renderSplitterPanel();
     saveState();
-	renderComboSummary();
-	syncPanels();
-    fitScale();     
+    renderComboSummary();
+    syncPanels();
+    fitScale();
   }
 
   function updateSlotLabel() {
@@ -2169,10 +2070,8 @@
     const targets = [ { el: bar, kind: "bar" } ];
     if (rows2) targets.push({ el: bar2, kind: "bar" });
     const spl = document.getElementById("splitterPanel");
-    if (rows2 === null || true) {           // Einkaufsliste immer, wenn sichtbar
-      if (spl && splitterPanelVisible && spl.classList.contains("show")) {
-        targets.push({ el: spl, kind: "panel" });
-      }
+    if (spl && splitterPanelVisible && spl.classList.contains("show")) {
+      targets.push({ el: spl, kind: "panel" });
     }
     return targets;
   }
@@ -2239,19 +2138,17 @@
       const pos = drawArrows.pos;
       const ax1 = pos[bar2.id] - ARROW_W - 6 + 6;
       const ax2 = pos[bar2.id] - 10;
-      // Titel einmal ueber der Pfeilspalte
       ctx.font = "700 10px 'Segoe UI', Arial, sans-serif";
       ctx.fillStyle = "#c9a55f";
       ctx.textAlign = "center"; ctx.textBaseline = "top";
       ctx.fillText(LANG === "de" ? "NACH BENUTZUNG" : "AFTER USE",
         (ax1 + ax2) / 2, PAD + 4, ARROW_W);
       ctx.textAlign = "left";
-      // Ein Pfeil pro abweichender Reihe (Hoehe wie die Leistenreihen)
       const rowEls = bar2.querySelectorAll(".bar-row");
       for (let r = 0; r < rowCount && r < rowEls.length; r++) {
         if (!rows2[r]) continue;
         const same = rowEquals(rows[r], rows2[r]);
-        if (same) continue;                                  // identisch: kein Pfeil
+        if (same) continue;
         const rr = rowEls[r].getBoundingClientRect();
         drawArrowToCanvas(ctx, ax1, ax2, rr.top - oy + rr.height / 2);
       }
@@ -2273,7 +2170,6 @@
       const cnt = nEl ? nEl.textContent : "";
       const name = (nameSpan ? nameSpan.textContent : "").trim();
       if (row.querySelector("img")) hasImg = true;
-      // Name in max 2 Zeilen brechen (Wortgrenzen)
       const wrapped = [];
       let rest = name;
       while (mc.measureText(rest).width > MAX_NAME_W && wrapped.length < 1) {
@@ -2302,19 +2198,15 @@
              PAD_X: PAD_X, TITLE_H: TITLE_H, LINE_H: LINE_H, ROW_PAD: ROW_PAD };
   }
 
-  // Zeichnet die Einkaufslisten-Karte an der Position der DOM-Liste,
-  // aber mit eigener, gemessener Groesse.
   function drawPanelToCanvas(ctx, panelEl, ox, oy) {
     const m = splitterCardMetrics();
     if (m.rows.length === 0) return;
     const r = panelEl.getBoundingClientRect();
     const x = r.left - ox, y = r.top - oy;
-    // Hintergrund-Karte in Eigenmas
     ctx.fillStyle = "#272627";
     roundRect(ctx, x, y, m.width, m.height, 10); ctx.fill();
     ctx.lineWidth = 2; ctx.strokeStyle = "#3d8484";
     roundRect(ctx, x + 1, y + 1, m.width - 2, m.height - 2, 10); ctx.stroke();
-    // Titel (Text-Knoten des h3 ohne den X-Button)
     const h3 = panelEl.querySelector("h3");
     if (h3) {
       let title = "";
@@ -2324,26 +2216,22 @@
       ctx.textBaseline = "top";
       ctx.fillText(title.trim().toUpperCase(), x + m.PAD_X, y + 12);
     }
-    // Zeilen
     const domRows = panelEl.querySelectorAll(".splitter-row");
     let cy = y + m.TITLE_H;
     domRows.forEach(function(row, ri) {
       const rd = m.rows[ri];
       const rowH = Math.max(20, rd.wrapped.length * m.LINE_H);
       let tx = x + m.PAD_X;
-      // MENGE LINKS (gold, bold)
       ctx.textBaseline = "middle";
       ctx.font = "700 12px 'Segoe UI', Arial, sans-serif";
       ctx.fillStyle = "#ffe9a8";
       ctx.fillText(rd.cnt, tx, cy + rowH / 2);
       tx += rd.cntW + 10;
-      // ICON
       const img = row.querySelector("img");
       if (img && img.complete && img.naturalWidth > 0) {
         try { ctx.drawImage(img, tx, cy + (rowH - 20) / 2, 20, 20); } catch (e) {}
         tx += 20 + 8;
       }
-      // NAME (ggf. 2 Zeilen)
       ctx.font = "12px 'Segoe UI', Arial, sans-serif";
       ctx.fillStyle = "#cccccc";
       const lines = rd.wrapped.length;
@@ -2384,10 +2272,9 @@
       im.src = src;
     });
   }
-  
+
   async function buildComboListPngCanvas() {
     const SCALE = 2, PAD = 10;
-    // 1) Sammeln: Skill -> Kombi-Index -> Anzahl
     const groups = new Map();
     function addEntry(en) {
       const sk = skillById(en.id);
@@ -2408,9 +2295,8 @@
     const F_LINE = "12px 'Segoe UI', Arial, sans-serif";
     const LINE_H = 16, SKILL_H = 22, HEAD_H = 16, GROUP_GAP = 10;
     const IND_SKILL = 30, IND_HEAD = 26, IND_LINE = 44;
-	const OFF_SKILL = 38, OFF_HEAD = 34, OFF_LINE = 52;
+    const OFF_SKILL = 38, OFF_HEAD = 34, OFF_LINE = 52;
     const nameOf = function(f) { return f ? (LANG === "de" ? f.nameDe : f.nameEn) : "?"; };
-    // 2) Layout: Liste von Zeilen mit Font/Indent + Endhoehe
     const layout = [];
     for (const g of groups.values()) {
       const total = Array.from(g.counts.values()).reduce(function(a, b) { return a + b; }, 0);
@@ -2418,7 +2304,6 @@
       Array.from(g.counts.keys()).sort(function(a, b) { return a - b; }).forEach(function(ci) {
         const n = g.counts.get(ci);
         layout.push({ type: "head", text: n + "\u00d7 " + t("comboWord") + (n !== 1 ? "en" : "") });
-        // Fragmente der Kombi, Dubletten zusammenzaehlen
         const agg = new Map();
         parseCombo(g.skill.combos[ci]).forEach(function(p) {
           agg.set(p.name, (agg.get(p.name) || 0) + p.count);
@@ -2431,14 +2316,12 @@
       });
       layout.push({ type: "gap" });
     }
-    // Gap nur ZWISCHEN Gruppen (nach der letzten Gruppe keins)
     const clean = [];
     layout.forEach(function(it) {
       if (it.type === "gap" && (clean.length === 0 || clean[clean.length - 1].type === "gap")) return;
       clean.push(it);
     });
     while (clean.length && clean[clean.length - 1].type === "gap") clean.pop();
-    // Hoehe berechnen
     let ch = PAD + 34;
     for (const it of clean) {
       if (it.type === "skill") ch += SKILL_H;
@@ -2447,7 +2330,6 @@
       else ch += GROUP_GAP;
     }
     ch += PAD;
-    // Breite messen (alle Texte einmal zeichnen-messbar machen)
     const mc = document.createElement("canvas").getContext("2d");
     let maxW = 200;
     for (const it of clean) {
@@ -2455,13 +2337,11 @@
       else if (it.type === "head") { mc.font = F_HEAD; maxW = Math.max(maxW, OFF_HEAD + mc.measureText(it.text).width); }
       else if (it.type === "line") { mc.font = F_LINE; maxW = Math.max(maxW, OFF_LINE + mc.measureText(it.text).width); }
     }
-    maxW = Math.max(maxW, 130);            // Titel "LOGOS-KOMBILISTE" sichern
-    const cw = maxW + PAD * 2 + 16;        // +16 = Sicherheitsrand rechts
-    // 3) Icons laden
+    maxW = Math.max(maxW, 130);
+    const cw = maxW + PAD * 2 + 16;
     for (const it of clean) {
       if (it.type === "skill") it.img = await loadLogoImg(skillIconSrc(it.skill));
     }
-    // 4) Zeichnen — Canvas hat ab hier DIE Hoehe des fertigen Layouts
     const canvas = document.createElement("canvas");
     canvas.width = Math.round(cw * SCALE); canvas.height = Math.round(ch * SCALE);
     const ctx = canvas.getContext("2d");
@@ -2495,7 +2375,8 @@
     }
     return canvas;
   }
-  async function exportPngCommon(kind, mode, isRetry) {
+  
+    async function exportPngCommon(kind, mode, isRetry) {
     if (isRetry === undefined) isRetry = false;
     document.documentElement.classList.add("export-desktop-layout");
     let canvas = null;
@@ -2514,31 +2395,27 @@
         catch (err) { rej(err); }
       });
       if (mode === "clipboard") {
-        // 1) Zwischenablage (Desktop-Standard)
         try {
           await navigator.clipboard.write([ new ClipboardItem({ "image/png": blob }) ]);
           showToast(t("pngCopied"));
           return;
         } catch (e2) {}
-        // 2) Teilen-Menue (Chrome mobil & Co.)
         try {
           const file = new File([blob], "logos-leiste.png", { type: "image/png" });
           if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
             await navigator.share({ files: [file] });
-            return;                                   // geteilt, fertig
+            return;
           }
         } catch (e3) {
-          if (e3 && e3.name === "AbortError") return;  // Teilen vom User abgebrochen
+          if (e3 && e3.name === "AbortError") return;
         }
       }
-      // 3) Download (immer noch noetig?)
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = "logos-leiste.png";
       a.click();
       URL.revokeObjectURL(a.href);
       if (mode === "clipboard") {
-        // Ehrlicher Toast: hatte der Browser wenigstens Teilen gekonnt?
         let canShareImg = false;
         try {
           const sf = new File([blob], "logos-leiste.png", { type: "image/png" });
@@ -2555,11 +2432,8 @@
       }
       showToast(t("pngFail"));
     }
-  }   
-	 
-  function exportPng(isRetry) { return exportPngCommon("download", isRetry); }
+  }
 
-  // Zeichnet EINE Leiste (inkl. Rahmen-Optik) an ihre relative Position.
   function drawBarToCanvas(ctx, barEl, ox, oy) {
     const br = barEl.getBoundingClientRect();
     const x = br.left - ox, y = br.top - oy, bw = br.width, bh = br.height;
@@ -2606,10 +2480,10 @@
     document.getElementById("selTitle").textContent = t("selTitle");
     document.getElementById("footerNote").textContent = t("footer");
     document.getElementById("btnExportPng").textContent = t("btnExpPng");
-	document.getElementById("btnCopyPng").textContent = t("btnCopyPng");
+    document.getElementById("btnCopyPng").textContent = t("btnCopyPng");
     document.getElementById("btnLang").textContent = t("langBtn");
     btnReset.title = t("clear");
-	const lt = document.getElementById("logoTitle");
+    const lt = document.getElementById("logoTitle");
     if (lt) lt.textContent = LANG === "de" ? "LOGOGRAMME" : "LOGOGRAMS";
     renderLogoList();
     refreshAll();
@@ -2637,8 +2511,8 @@
     else rows2 = rows.map(function() { return []; });
     refreshAll();
   });
-  
-    function closeExportPop() {
+
+  function closeExportPop() {
     const p = document.getElementById("exportPop");
     p.classList.remove("show");
     p.innerHTML = "";
@@ -2650,7 +2524,6 @@
     const p = document.getElementById("exportPop");
     p.innerHTML = "";
     const h = document.createElement("h4");
-    h.appendChild(document.createTextNode(t("expTitle")));
     h.appendChild(document.createTextNode(t("expTitle") + (clipMode ? " \u2192 " + t("btnCopyPng") : "")));
     const x = document.createElement("button");
     x.className = "exp-x";
@@ -2685,57 +2558,6 @@
     p.style.left = px + "px";
     p.style.top = py + "px";
   }
-  
-  function closeLogoInfoPop() {
-    document.getElementById("logoInfoPop").classList.remove("show");
-  }
-
-  function showLogoInfoPop(anchorEl, lg) {
-    const info = LOGOGRAM_INFO[lg.nameEn];
-    if (!info) return;
-    const srcs = LANG === "de" ? info.de : info.en;
-    if (!srcs.length) return;
-    const pop = document.getElementById("logoInfoPop");
-    pop.innerHTML = "";
-    const ti = document.createElement("div");
-    ti.className = "li-t";
-    ti.textContent = logoName(lg);
-    pop.appendChild(ti);
-    srcs.forEach(function(s) {
-      const li = document.createElement("div");
-      li.className = "li-s";
-      li.textContent = s;
-      pop.appendChild(li);
-    });
-    pop.classList.add("show");
-    const ar = anchorEl.getBoundingClientRect();
-    const pr = pop.getBoundingClientRect();
-    let px = ar.right + 8, py = ar.top;
-    if (px + pr.width > window.innerWidth - 8) px = Math.max(8, ar.left - pr.width - 8);
-    if (py + pr.height > window.innerHeight - 8) py = Math.max(8, window.innerHeight - pr.height - 8);
-    pop.style.left = px + "px";
-    pop.style.top = py + "px";
-  }
-
-  // An jedes Logogramm-Element haengen: ℹ️ nur wenn Daten vorhanden.
-  function attachLogoInfo(hostEl, lg) {
-    if (!LOGOGRAM_INFO[lg.nameEn]) return;
-    const inf = document.createElement("span");
-    inf.className = "logo-info";
-    inf.textContent = "\u2139";
-    hostEl.appendChild(inf);
-    if (IS_TOUCH) {
-      inf.addEventListener("click", function(ev) {
-        ev.stopPropagation();
-        const pop = document.getElementById("logoInfoPop");
-        if (pop.classList.contains("show")) closeLogoInfoPop();
-        else showLogoInfoPop(inf, lg);
-      });
-    } else {
-      inf.addEventListener("mouseenter", function() { showLogoInfoPop(inf, lg); });
-      inf.addEventListener("mouseleave", closeLogoInfoPop);
-    }
-  }
 
   document.getElementById("btnExportPng").addEventListener("click", function(ev) {
     openExportPop(ev, false);
@@ -2743,20 +2565,21 @@
   document.getElementById("btnCopyPng").addEventListener("click", function(ev) {
     openExportPop(ev, true);
   });
-  
+
   document.addEventListener("click", function(e) {
     const pop = document.getElementById("comboPop");
     if (pop.classList.contains("show") && !pop.contains(e.target) && !e.target.closest(".pct-badge, .pct-cell")) closeComboPop();
     const ep = document.getElementById("exportPop");
     if (ep.classList.contains("show") && !ep.contains(e.target)
         && !e.target.closest("#btnExportPng") && !e.target.closest("#btnCopyPng")) closeExportPop();
-	if (!e.target.closest(".logo-info")) closeLogoInfoPop();
+    if (!e.target.closest(".logo-info")) closeLogoInfoPop();
     const sip = document.getElementById("skillInfoPop");
     if (sip.classList.contains("show") && !sip.contains(e.target) && !e.target.closest(".skill-info")) closeSkillInfoPop();
   });
+
   document.getElementById("btnSplitters").addEventListener("click", function() {
-  splitterPanelVisible = !splitterPanelVisible;
-  renderSplitterPanel();
+    splitterPanelVisible = !splitterPanelVisible;
+    renderSplitterPanel();
   });
 
   try {
@@ -2769,7 +2592,7 @@
   loadState();
   window.addEventListener("load", function() { computeRowHeight(); refreshAll(); syncPanels(); fitScale(); });
   window.addEventListener("resize", function() { syncPanels(); fitScale(); });
-  
+
   (function mobileButtonRelocation() {
     const toolbar = document.querySelector(".toolbar");
     const actRow = document.getElementById("mobileActionRow");
@@ -2780,12 +2603,12 @@
     const btnBA = document.getElementById("btnBar2");
     function applyMobileDom() {
       if (MQ_MOBILE.matches) {
-        actRow.appendChild(btnBA);   // Reihenfolge: BA zuerst, dann Splitter
+        actRow.appendChild(btnBA);
         actRow.appendChild(btnSpl);
         expRow.appendChild(btnExp);
         expRow.appendChild(btnCopy);
       } else {
-        toolbar.appendChild(btnExp); // Desktop-Reihenfolge wiederherstellen
+        toolbar.appendChild(btnExp);
         toolbar.appendChild(btnCopy);
         toolbar.appendChild(btnSpl);
         toolbar.appendChild(btnBA);
@@ -2797,7 +2620,7 @@
     applyMobileDom();
     MQ_MOBILE.addEventListener("change", applyMobileDom);
   })();
-  
+
   (async function initFolder() {
     try {
       const h = await idbGet("projectDir");
