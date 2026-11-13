@@ -22,7 +22,7 @@ Format: `"file.png | Mneme EN | MNEME DE"`
 
 | Line (example) | Column | Note |
 |---|---|---|
-| `"mneme_offensive.png \| Wisdom of the Aetherweaver \| Vermächtnis des Zauberers"` | 3rd value (`Vermächtnis des Zauberers`) | Must **match** the DE name in `DATA_LINES`, otherwise combo popups/text show mixed names. These splitter names appear in the shopping list and combo views. |
+| `"mneme_offensive.png \| Wisdom of the Aetherweaver \| Vermächtnis des Zauberers"` | 3rd value (`Vermächtnis des Zauberers`) | Must **match** the DE name in `DATA_LINES`, otherwise combo popups/text show mixed names. These splitter names appear in the logos splitter list and combo views. |
 
 Note: this table deliberately reuses the same names as `DATA_LINES` (language-consistent). If your language has different splitter names (e.g. DE uses "Logos-Splitter der Paralyse" style elsewhere), enter them here.
 

@@ -666,7 +666,7 @@
       pngCopyFail: "Zwischenablage blockiert \u2013 PNG wurde stattdessen heruntergeladen.",
       pngNoShare: "Dieser Browser unterstützt Teilen nicht \u2013 PNG wurde heruntergeladen. Für den Teilen-Button bitte Chrome nutzen.",
       pngOk: "PNG wurde heruntergeladen.",
-      pngAskFolder: "Browser blockiert den direkten Export \u2013 bitte im Dialog den Projekt-Ordner (mit dieser Datei) ausw\u00e4hlen, dann startet der Download automatisch.",
+      pngAskFolder: "Browser blockiert den direkten Export \u2013 bitte im Dialog den Projekt-Ordner (mit dieser Datei) auswFFhlen, dann startet der Download automatisch.",
       pngFail: "PNG-Export leider blockiert. Erneut klicken und im Dialog den Projekt-Ordner ausw\u00e4hlen \u2013 dann klappt es.",
       resetConfirm: "Leiste wirklich leeren?",
       selTitle: "Ausgew\u00e4hlte Logos-Actions & Kombinationen",
@@ -694,15 +694,22 @@
       takeTip: "\u00dcbernommen aus Leiste 1 \u2013 keine erneuten Mnemen n\u00f6tig.",
       expTitle: "Export wählen",
       expView: "Logosbild",
-      expViewSub: "Leiste(n) + Einkaufsliste, wie sichtbar",
+      expViewSub: "Leiste(n) + Logo-Splitter-Liste, wie sichtbar",
       expPlan: "BA-Bauplan",
       expPlanSub: "Mit \u201eDanach einbauen\u201c-Pfeilen (nur BA-Modus)",
       expPlanOff: "\u2013 nur mit aktiver Leiste 2 \u2013",
-      expList: "Einkaufsliste (PNG)",
-      expListSub: "Nur die Splitter-Liste als eigenes Bild",
+      expList: "Logo-Splitter-Liste",
+      expListSub: "Nur die Logos-Splitter-Liste als eigenes Bild",
       expClip: "In Zwischenablage (statt Download)",
       expCombo: "Logos-Kombiliste",
       expComboSub: "Pro Skill: welche Kombis und wie oft",
+      expCmd: "Kommandos & Kombis",
+      expCmdSub: "Leiste(n) slotweise mit gewählten Kombis",
+      cmdTitle: "KOMMANDOS & KOMBIS",
+      bar1Head: "LEISTE 1 – START BA",
+      bar2Head: "LEISTE 2 – NACH BENUTZUNG",
+      rowLbl: function(i) { return "Reihe " + i + ":"; },
+      comboQ: "Kombi: ?",
       comboWord: "Kombi"
     },
     en: {
@@ -748,15 +755,22 @@
       takeTip: "Carried over from Bar 1 \u2013 no extra mnemes needed.",
       expTitle: "Choose export",
       expView: "Logos image",
-      expViewSub: "Bar(s) + shopping list, as visible",
+      expViewSub: "Bar(s) + logos splitter list, as visible",
       expPlan: "BA blueprint",
       expPlanSub: "With \u201cafter use\u201d arrows (BA mode only)",
       expPlanOff: "\u2013 requires Bar 2 active \u2013",
-      expList: "Shopping list (PNG)",
-      expListSub: "Only the splitter list as its own image",
+      expList: "logos splitter list",
+      expListSub: "Only the logos splitter list as its own image",
       expClip: "To clipboard (instead of download)",
       expCombo: "Logos combo list",
       expComboSub: "Per skill: which combos and how often",
+      expCmd: "Commands & Combos",
+      expCmdSub: "Bars slot by slot, with chosen combos",
+      cmdTitle: "COMMANDS & COMBOS",
+      bar1Head: "BAR 1 – START BA",
+      bar2Head: "BAR 2 – AFTER USE",
+      rowLbl: function(i) { return "Row " + i + ":"; },
+      comboQ: "Combo: ?",
       comboWord: "combo"
     }
   };
@@ -2275,73 +2289,99 @@
 
   async function buildComboListPngCanvas() {
     const SCALE = 2, PAD = 10;
-    const groups = new Map();
-    function addEntry(en) {
-      const sk = skillById(en.id);
-      if (!sk || sk.combos.length === 0) return;
-      const ci = effectiveCombo(en, sk);
-      if (ci === null) return;
-      let g = groups.get(sk.nameEn);
-      if (!g) { g = { skill: sk, counts: new Map() }; groups.set(sk.nameEn, g); }
-      g.counts.set(ci, (g.counts.get(ci) || 0) + 1);
+    const F_TITLE = "700 12px 'Segoe UI', Arial, sans-serif";
+    const F_BAR   = "700 13px 'Segoe UI', Arial, sans-serif";
+    const F_ROWL  = "700 11px 'Segoe UI', Arial, sans-serif";
+    const F_SKILL = "700 12px 'Segoe UI', Arial, sans-serif";
+    const F_LABEL = "700 11px 'Segoe UI', Arial, sans-serif";
+    const F_FRAG  = "11px 'Segoe UI', Arial, sans-serif";
+    const TITLE_H = 30, BAR_H = 26, ROW_H = 16, LIST_GAP = 10;
+    const ENTRY_H = 22, LINE_H = 17;
+    const ICO_S = 18, ICO_F = 13;
+    const CARD_X = PAD + 12;
+    const COMBO_X = CARD_X + ICO_S + 6;
+
+    function collectRows(src, skipIdentical) {
+      const rowsOut = [];
+      for (let r = 0; r < rowCount; r++) {
+        const ens = src[r] || [];
+        if (ens.length === 0) continue;
+        if (skipIdentical && rowEquals(rows[r], src[r])) continue;
+        const entries = [], idx = new Map();
+        for (const en of ens) {
+          const sk = skillById(en.id);
+          if (!sk || sk.combos.length === 0) continue;
+          const ci = effectiveCombo(en, sk);
+          if (ci === null) continue;
+          const key = sk.id + "|" + ci;
+          let e = idx.get(key);
+          if (!e) {
+            e = { skill: sk, count: 0, label: t("combo")(ci + 1),
+                  pieces: parseCombo(sk.combos[ci]).map(function(p) {
+                    return { name: p.name, count: p.count, frag: fragmentByName(p.name) };
+                  }) };
+            idx.set(key, e); entries.push(e);
+          }
+          e.count++;
+        }
+        if (entries.length > 0) rowsOut.push({ n: r + 1, entries: entries });
+      }
+      return rowsOut;
     }
-    for (let r = 0; r < rowCount; r++) {
-      (rows[r] || []).forEach(addEntry);
-      if (rows2 && rows2[r] && !rowEquals(rows[r], rows2[r])) (rows2[r] || []).forEach(addEntry);
+
+    const withBar2 = !!rows2;
+    const sections = [];
+    if (withBar2) {
+      sections.push({ label: t("bar1Head"), rows: collectRows(rows, false) });
+      const rs2 = collectRows(rows2, true);
+      if (rs2.length > 0) sections.push({ label: t("bar2Head"), rows: rs2, gap: true });
+    } else {
+      sections.push({ label: null, rows: collectRows(rows, false) });
     }
-    if (groups.size === 0) return null;
-    const F_SKILL = "700 13px 'Segoe UI', Arial, sans-serif";
-    const F_HEAD = "700 12px 'Segoe UI', Arial, sans-serif";
-    const F_LINE = "12px 'Segoe UI', Arial, sans-serif";
-    const LINE_H = 16, SKILL_H = 22, HEAD_H = 16, GROUP_GAP = 10;
-    const IND_SKILL = 30, IND_HEAD = 26, IND_LINE = 44;
-    const OFF_SKILL = 38, OFF_HEAD = 34, OFF_LINE = 52;
-    const nameOf = function(f) { return f ? (LANG === "de" ? f.nameDe : f.nameEn) : "?"; };
-    const layout = [];
-    for (const g of groups.values()) {
-      const total = Array.from(g.counts.values()).reduce(function(a, b) { return a + b; }, 0);
-      layout.push({ type: "skill", skill: g.skill, total: total });
-      Array.from(g.counts.keys()).sort(function(a, b) { return a - b; }).forEach(function(ci) {
-        const n = g.counts.get(ci);
-        layout.push({ type: "head", text: n + "\u00d7 " + t("comboWord") + (n !== 1 ? "en" : "") });
-        const agg = new Map();
-        parseCombo(g.skill.combos[ci]).forEach(function(p) {
-          agg.set(p.name, (agg.get(p.name) || 0) + p.count);
-        });
-        Array.from(agg.keys()).forEach(function(fname) {
-          const cnt = agg.get(fname);
-          const f = fragmentByName(fname);
-          layout.push({ type: "line", text: (cnt > 1 ? cnt + "\u00d7 " : "") + nameOf(f) });
-        });
-      });
-      layout.push({ type: "gap" });
+    const totalEntries = function(s) { return s.rows.reduce(function(n, rr) { return n + rr.entries.length; }, 0); };
+    if (!sections.some(function(s) { return totalEntries(s) > 0; })) return null;
+
+    for (const s of sections) {
+      for (const rr of s.rows) {
+        for (const e of rr.entries) {
+          e.img = await loadLogoImg(skillIconSrc(e.skill));
+          for (const p of e.pieces) {
+            p.img = p.frag ? await loadLogoImg(fragIconSrc(p.frag)) : null;
+          }
+        }
+      }
     }
-    const clean = [];
-    layout.forEach(function(it) {
-      if (it.type === "gap" && (clean.length === 0 || clean[clean.length - 1].type === "gap")) return;
-      clean.push(it);
-    });
-    while (clean.length && clean[clean.length - 1].type === "gap") clean.pop();
-    let ch = PAD + 34;
-    for (const it of clean) {
-      if (it.type === "skill") ch += SKILL_H;
-      else if (it.type === "head") ch += HEAD_H;
-      else if (it.type === "line") ch += LINE_H;
-      else ch += GROUP_GAP;
-    }
-    ch += PAD;
+
     const mc = document.createElement("canvas").getContext("2d");
-    let maxW = 200;
-    for (const it of clean) {
-      if (it.type === "skill") { mc.font = F_SKILL; maxW = Math.max(maxW, OFF_SKILL + mc.measureText(it.total + "\u00d7  " + displayName(it.skill)).width); }
-      else if (it.type === "head") { mc.font = F_HEAD; maxW = Math.max(maxW, OFF_HEAD + mc.measureText(it.text).width); }
-      else if (it.type === "line") { mc.font = F_LINE; maxW = Math.max(maxW, OFF_LINE + mc.measureText(it.text).width); }
+    function W(font, text) { mc.font = font; return mc.measureText(text).width; }
+    let maxW = 220;
+    for (const s of sections) {
+      if (s.label) maxW = Math.max(maxW, CARD_X + W(F_BAR, s.label));
+      for (const rr of s.rows) {
+        maxW = Math.max(maxW, CARD_X + W(F_ROWL, t("rowLbl")(rr.n)));
+        for (const e of rr.entries) {
+          const nameTxt = (e.count > 1 ? e.count + "\u00d7  " : "") + displayName(e.skill);
+          maxW = Math.max(maxW, CARD_X + ICO_S + 6 + W(F_SKILL, nameTxt));
+          let x = COMBO_X + W(F_LABEL, e.label) + 8;
+          for (const p of e.pieces) {
+            let pieceTxt = (p.frag ? (LANG === "de" ? p.frag.nameDe : p.frag.nameEn) : p.name);
+            if (p.count > 1) pieceTxt += " " + t("times")(p.count);
+            x += (p.img ? ICO_F + 3 : 0) + W(F_FRAG, pieceTxt) + 6;
+          }
+          maxW = Math.max(maxW, x);
+        }
+      }
     }
-    maxW = Math.max(maxW, 130);
     const cw = maxW + PAD * 2 + 16;
-    for (const it of clean) {
-      if (it.type === "skill") it.img = await loadLogoImg(skillIconSrc(it.skill));
+    let ch = PAD + TITLE_H;
+    for (const s of sections) {
+      if (s.gap) ch += LIST_GAP;
+      if (s.label) ch += BAR_H;
+      for (const rr of s.rows) {
+        ch += ROW_H + rr.entries.length * (ENTRY_H + LINE_H);
+      }
     }
+    ch += PAD + 8;
     const canvas = document.createElement("canvas");
     canvas.width = Math.round(cw * SCALE); canvas.height = Math.round(ch * SCALE);
     const ctx = canvas.getContext("2d");
@@ -2350,27 +2390,233 @@
     roundRect(ctx, PAD, PAD, cw - PAD * 2, ch - PAD * 2, 10); ctx.fill();
     ctx.lineWidth = 2; ctx.strokeStyle = "#3d8484";
     roundRect(ctx, PAD + 1, PAD + 1, cw - PAD * 2 - 2, ch - PAD * 2 - 2, 10); ctx.stroke();
-    ctx.fillStyle = "#7fd4d4"; ctx.font = "700 12px 'Segoe UI', Arial, sans-serif";
-    ctx.textBaseline = "top";
-    ctx.fillText(LANG === "de" ? "LOGOS-KOMBILISTE" : "LOGOS COMBO LIST", PAD + 12, PAD + 10);
-    const ix = PAD + 12;
-    let y = PAD + 34;
-    for (const it of clean) {
-      if (it.type === "skill") {
-        ctx.textBaseline = "middle"; ctx.font = F_SKILL; ctx.fillStyle = "#eeeeee";
-        if (it.img) { try { ctx.drawImage(it.img, ix, y + SKILL_H / 2 - 10, 20, 20); } catch (e) {} }
-        ctx.fillText(it.total + "\u00d7  " + displayName(it.skill), ix + IND_SKILL - 4, y + SKILL_H / 2);
-        y += SKILL_H;
-      } else if (it.type === "head") {
-        ctx.textBaseline = "middle"; ctx.font = F_HEAD; ctx.fillStyle = "#ffe9a8";
-        ctx.fillText(it.text, ix + IND_HEAD - 4, y + HEAD_H / 2);
-        y += HEAD_H;
-      } else if (it.type === "line") {
-        ctx.textBaseline = "middle"; ctx.font = F_LINE; ctx.fillStyle = "#cccccc";
-        ctx.fillText(it.text, ix + IND_LINE - 4, y + LINE_H / 2);
-        y += LINE_H;
+    ctx.fillStyle = "#7fd4d4"; ctx.font = F_TITLE; ctx.textBaseline = "top";
+    ctx.textAlign = "center";
+    ctx.fillText(LANG === "de" ? "LOGOS-KOMBILISTE" : "LOGOS COMBO LIST", cw / 2, PAD + 10);
+    ctx.textAlign = "left";
+
+    let y = PAD + TITLE_H;
+    for (const s of sections) {
+      if (s.gap) y += LIST_GAP;
+      if (s.label) {
+        ctx.font = F_BAR; ctx.fillStyle = "#7fd4d4"; ctx.textBaseline = "middle";
+        ctx.fillText(s.label, CARD_X, y + BAR_H / 2);
+        y += BAR_H;
+      }
+      for (const rr of s.rows) {
+        ctx.font = F_ROWL; ctx.fillStyle = "#9a9a9a"; ctx.textBaseline = "middle";
+        ctx.fillText(t("rowLbl")(rr.n), CARD_X, y + ROW_H / 2);
+        y += ROW_H;
+        for (const e of rr.entries) {
+          ctx.textBaseline = "middle";
+          if (e.img) { try { ctx.drawImage(e.img, CARD_X, y + (ENTRY_H - ICO_S) / 2, ICO_S, ICO_S); } catch (err) {} }
+          ctx.font = F_SKILL; ctx.fillStyle = "#eeeeee";
+          const nameTxt = (e.count > 1 ? e.count + "\u00d7  " : "") + displayName(e.skill);
+          ctx.fillText(nameTxt, CARD_X + ICO_S + 6, y + ENTRY_H / 2);
+          y += ENTRY_H;
+          ctx.font = F_LABEL; ctx.fillStyle = "#ffe9a8";
+          const lw = ctx.measureText(e.label).width;
+          ctx.fillText(e.label, COMBO_X, y + LINE_H / 2);
+          let x = COMBO_X + lw + 8;
+          for (const p of e.pieces) {
+            if (p.img) { try { ctx.drawImage(p.img, x, y + (LINE_H - ICO_F) / 2, ICO_F, ICO_F); } catch (err) {} x += ICO_F + 3; }
+            let pieceTxt = (p.frag ? (LANG === "de" ? p.frag.nameDe : p.frag.nameEn) : p.name);
+            if (p.count > 1) pieceTxt += " " + t("times")(p.count);
+            ctx.font = F_FRAG; ctx.fillStyle = "#cccccc";
+            ctx.fillText(pieceTxt, x, y + LINE_H / 2);
+            x += ctx.measureText(pieceTxt).width + 6;
+          }
+          y += LINE_H;
+        }
+      }
+    }
+    return canvas;
+  }
+    function fragIconSrc(frag) {
+    return iconUrls[frag.file.toLowerCase()] || (FRAGMENTS_DIR + "/" + frag.file);
+  }
+
+  async function buildCmdComboPngCanvas() {
+    const SCALE = 2, PAD = 10;
+    const F_TITLE = "700 12px 'Segoe UI', Arial, sans-serif";
+    const F_ARROW = "700 10px 'Segoe UI', Arial, sans-serif";
+    const F_ROW   = "700 11px 'Segoe UI', Arial, sans-serif";
+    const F_SKILL = "700 12px 'Segoe UI', Arial, sans-serif";
+    const F_LABEL = "700 11px 'Segoe UI', Arial, sans-serif";
+    const F_FRAG  = "11px 'Segoe UI', Arial, sans-serif";
+    const TITLE_H = 30, LBL_H = 16, SECTION_GAP = 16;
+    const ROW_H = 16, ENTRY_H = 22, LINE_H = 17, LIST_GAP = 10;
+    const ARROW_W = 120;
+    const ICO_S = 18, ICO_F = 13;
+    const CARD_X = PAD + 12;
+    const COMBO_X = CARD_X + ICO_S + 6;
+
+    const withBar2 = !!rows2;
+    const barsList = [{ rows: rows, el: bar }];
+    if (withBar2) barsList.push({ rows: rows2, el: bar2 });
+
+    const barInfos = barsList.map(function(b) {
+      const r = b.el.getBoundingClientRect();
+      return { el: b.el, r: r };
+    });
+    const barPosX = [];
+	let bx = CARD_X;
+    barInfos.forEach(function(bi, i) {
+      barPosX.push(bx);
+      bx += bi.r.width;
+      if (i < barInfos.length - 1) bx += 6 + ARROW_W + 6;
+    });
+    const barsW = bx + CARD_X;
+    const maxBarH = Math.max.apply(null, barInfos.map(function(bi) { return bi.r.height; }));
+
+    const seen = new Set();
+    const lines = [];
+    barsList.forEach(function(b, bi) {
+      const barLines = [];
+      for (let r = 0; r < rowCount; r++) {
+        const ens = b.rows[r] || [];
+        if (ens.length === 0) continue;
+        if (bi > 0 && rowEquals(rows[r], b.rows[r])) continue;  // Reihe 1:1 uebernommen -> weg
+        barLines.push({ type: "row", text: t("rowLbl")(r + 1) });
+        ens.forEach(function(en) {
+          const sk = skillById(en.id);
+          if (!sk) return;
+          const item = { type: "entry", skill: sk };
+          if (sk.combos.length > 0) {
+            const ci = effectiveCombo(en, sk);
+            if (ci === null) { item.q = true; }
+            else {
+              item.label = t("combo")(ci + 1);
+              item.pieces = parseCombo(sk.combos[ci]).map(function(p) {
+                return { name: p.name, count: p.count, frag: fragmentByName(p.name) };
+              });
+            }
+          }
+          barLines.push(item);
+        });
+      }
+      if (barLines.length > 0) {
+        lines.push({ type: "bar", text: bi === 0 ? t("bar1Head") : t("bar2Head"), gap: bi > 0 });
+        barLines.forEach(function(it) { lines.push(it); });
+      }
+    });
+    if (!lines.some(function(l) { return l.type === "entry"; })) return null;
+
+    for (const it of lines) {
+      if (it.type !== "entry") continue;
+      it.img = await loadLogoImg(skillIconSrc(it.skill));
+      if (it.pieces) {
+        for (const p of it.pieces) {
+          p.img = p.frag ? await loadLogoImg(fragIconSrc(p.frag)) : null;
+        }
+      }
+    }
+
+    const mc = document.createElement("canvas").getContext("2d");
+    function W(font, text) { mc.font = font; return mc.measureText(text).width; }
+    let listW = 240;
+    for (const it of lines) {
+      if (it.type === "bar" || it.type === "row") listW = Math.max(listW, CARD_X + W(it.type === "bar" ? "700 13px 'Segoe UI', Arial, sans-serif" : F_ROW, it.text));
+      else if (it.q) listW = Math.max(listW, COMBO_X + W(F_LABEL, t("comboQ")));
+      else {
+        listW = Math.max(listW, CARD_X + ICO_S + 6 + W(F_SKILL, displayName(it.skill)));
+        if (it.label) {
+          let x = COMBO_X + W(F_LABEL, it.label) + 8;
+          for (const p of it.pieces) {
+            let pieceTxt = (p.frag ? (LANG === "de" ? p.frag.nameDe : p.frag.nameEn) : p.name);
+            if (p.count > 1) pieceTxt += " " + t("times")(p.count);
+            x += (p.img ? ICO_F + 3 : 0) + W(F_FRAG, pieceTxt) + 6;
+          }
+          listW = Math.max(listW, x);
+        }
+      }
+    }
+
+    const cw = Math.max(barsW, listW + PAD * 2 + 16);
+    let barsTop = PAD + TITLE_H;
+    const barsY = withBar2 ? barsTop + LBL_H : barsTop + 4;
+    const barsBottom = barsY + maxBarH + 10;
+    let listTop = barsBottom + SECTION_GAP;
+    let ch = listTop;
+    for (const it of lines) {
+      if (it.gap) ch += LIST_GAP;
+      if (it.type === "bar") ch += 26;
+      else if (it.type === "row") ch += ROW_H;
+      else { ch += ENTRY_H; if (it.label || it.q) ch += LINE_H; }
+    }
+    ch += PAD;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(cw * SCALE); canvas.height = Math.round(ch * SCALE);
+    const ctx = canvas.getContext("2d");
+    ctx.scale(SCALE, SCALE);
+    ctx.fillStyle = "#272627";
+    roundRect(ctx, PAD, PAD, cw - PAD * 2, ch - PAD * 2, 10); ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = "#3d8484";
+    roundRect(ctx, PAD + 1, PAD + 1, cw - PAD * 2 - 2, ch - PAD * 2 - 2, 10); ctx.stroke();
+    ctx.fillStyle = "#7fd4d4"; ctx.font = F_TITLE; ctx.textBaseline = "top";
+    ctx.textAlign = "center";
+    ctx.fillText(LANG === "de" ? "LOGOS-KOMBILISTE" : "LOGOS COMBO LIST", cw / 2, PAD + 10);
+    ctx.textAlign = "left";
+
+    for (let i = 0; i < barInfos.length; i++) {
+      const bi = barInfos[i];
+      drawBarToCanvas(ctx, bi.el, bi.r.left - barPosX[i], bi.r.top - barsY);
+    }
+
+    if (withBar2) {
+      const ax1 = barPosX[1] - ARROW_W;
+      const ax2 = barPosX[1] - 10;
+      ctx.font = F_ARROW; ctx.fillStyle = "#c9a55f";
+      ctx.textAlign = "center"; ctx.textBaseline = "top";
+      ctx.fillText(LANG === "de" ? "NACH BENUTZUNG" : "AFTER USE", (ax1 + ax2) / 2, barsTop + 2, ARROW_W);
+      ctx.textAlign = "left";
+      const rowEls = bar2.querySelectorAll(".bar-row");
+      for (let r = 0; r < rowCount && r < rowEls.length; r++) {
+        if (!rows2[r]) continue;
+        if (rowEquals(rows[r], rows2[r])) continue;
+        const rr = rowEls[r].getBoundingClientRect();
+        const yc = barsY + (rr.top - barInfos[1].r.top) + rr.height / 2;
+        drawArrowToCanvas(ctx, ax1, ax2, yc);
+      }
+    }
+
+    let y = listTop;
+    for (const it of lines) {
+      if (it.gap) y += LIST_GAP;
+      if (it.type === "bar") {
+        ctx.font = "700 13px 'Segoe UI', Arial, sans-serif"; ctx.fillStyle = "#7fd4d4"; ctx.textBaseline = "middle";
+        ctx.fillText(it.text, CARD_X, y + 13);
+        y += 26;
+      } else if (it.type === "row") {
+        ctx.font = F_ROW; ctx.fillStyle = "#9a9a9a"; ctx.textBaseline = "middle";
+        ctx.fillText(it.text, CARD_X, y + ROW_H / 2);
+        y += ROW_H;
       } else {
-        y += GROUP_GAP;
+        ctx.textBaseline = "middle";
+        if (it.img) { try { ctx.drawImage(it.img, CARD_X, y + (ENTRY_H - ICO_S) / 2, ICO_S, ICO_S); } catch (e) {} }
+        ctx.font = F_SKILL; ctx.fillStyle = "#eeeeee";
+        ctx.fillText(displayName(it.skill), CARD_X + ICO_S + 6, y + ENTRY_H / 2);
+        y += ENTRY_H;
+        if (it.q) {
+          ctx.font = F_LABEL; ctx.fillStyle = "#ff8a8a";
+          ctx.fillText(t("comboQ"), COMBO_X, y + LINE_H / 2);
+          y += LINE_H;
+        } else if (it.label) {
+          ctx.font = F_LABEL; ctx.fillStyle = "#ffe9a8";
+          const lw = ctx.measureText(it.label).width;
+          ctx.fillText(it.label, COMBO_X, y + LINE_H / 2);
+          let x = COMBO_X + lw + 8;
+          for (const p of it.pieces) {
+            if (p.img) { try { ctx.drawImage(p.img, x, y + (LINE_H - ICO_F) / 2, ICO_F, ICO_F); } catch (e) {} x += ICO_F + 3; }
+            let pieceTxt = (p.frag ? (LANG === "de" ? p.frag.nameDe : p.frag.nameEn) : p.name);
+            if (p.count > 1) pieceTxt += " " + t("times")(p.count);
+            ctx.font = F_FRAG; ctx.fillStyle = "#cccccc";
+            ctx.fillText(pieceTxt, x, y + LINE_H / 2);
+            x += ctx.measureText(pieceTxt).width + 6;
+          }
+          y += LINE_H;
+        }
       }
     }
     return canvas;
@@ -2382,6 +2628,7 @@
     let canvas = null;
     try {
       canvas = (kind === "combolist") ? await buildComboListPngCanvas()
+             : (kind === "cmdlist") ? await buildCmdComboPngCanvas()
              : (kind === "list") ? buildListPngCanvas()
              : (kind === "plan") ? buildPngCanvas(true)
              : buildPngCanvas(false);
@@ -2549,6 +2796,7 @@
     opt("view", t("expView"), t("expViewSub"), false);
     opt("plan", t("expPlan"), t("expPlanSub"), !rows2);
     opt("list", t("expList"), t("expListSub"), false);
+    opt("cmdlist", t("expCmd"), t("expCmdSub"), false);          // NEU
     opt("combolist", t("expCombo"), t("expComboSub"), false);
     p.classList.add("show");
     let px = ev.clientX + 10, py = ev.clientY + 10;
